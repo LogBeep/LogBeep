@@ -1007,28 +1007,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 <script>
 // ── DATABASE CENTRAL ──
 const db = {
-  products: [
-    {id:'SKU-00142', name:'Cabo USB-C 1m',        cat:'Eletrônicos', qty:4,  min:20, price:29.90},
-    {id:'SKU-00081', name:'Caixa Papelão P',       cat:'Embalagem',   qty:12, min:30, price:3.50},
-    {id:'SKU-00094', name:'Fita Adesiva 45mm',     cat:'Embalagem',   qty:48, min:40, price:5.20},
-    {id:'SKU-00841', name:'Notebook Dell XPS 13',  cat:'Informática', qty:16, min:10, price:7800},
-    {id:'SKU-00295', name:'Carregador 65W USB-C',  cat:'Eletrônicos', qty:3,  min:15, price:189},
-    {id:'SKU-00296', name:'Mouse Logitech MX3',    cat:'Informática', qty:22, min:10, price:499},
-    {id:'SKU-00311', name:'Teclado Mecânico K2',   cat:'Informática', qty:7,  min:12, price:620},
-    {id:'SKU-00400', name:'Monitor 24" LG',        cat:'Informática', qty:9,  min:5,  price:1350},
-    {id:'SKU-00512', name:'Headset Sony WH-1000',  cat:'Eletrônicos', qty:11, min:8,  price:1199},
-    {id:'SKU-00633', name:'Câmera Web 4K',         cat:'Eletrônicos', qty:6,  min:6,  price:399},
-    {id:'SKU-00720', name:'SSD 1TB Samsung',       cat:'Informática', qty:20, min:10, price:449},
-    {id:'SKU-00801', name:'Camiseta Básica P',     cat:'Vestuário',   qty:35, min:20, price:49},
-    {id:'SKU-00802', name:'Camiseta Básica M',     cat:'Vestuário',   qty:42, min:20, price:49},
-    {id:'SKU-00803', name:'Camiseta Básica G',     cat:'Vestuário',   qty:18, min:20, price:49},
-    {id:'SKU-00901', name:'Perfume Importado',     cat:'Cosméticos',  qty:8,  min:5,  price:389},
-    {id:'SKU-00902', name:'Sérum Vitamina C',      cat:'Cosméticos',  qty:25, min:15, price:89},
-    {id:'SKU-00903', name:'Base Facial HD',        cat:'Cosméticos',  qty:30, min:20, price:129},
-    {id:'SKU-01001', name:'Fone JBL Tune 510',     cat:'Eletrônicos', qty:14, min:10, price:299},
-    {id:'SKU-01100', name:'Régua 6 Tomadas',       cat:'Utilidades',  qty:19, min:15, price:89},
-    {id:'SKU-01200', name:'Hub USB-C 7 portas',    cat:'Informática', qty:2,  min:8,  price:219},
-  ]
+  products: []
 };
 
 // sincroniza IV_CATALOG com db.products (usados em outros módulos)
@@ -1037,78 +1016,7 @@ function syncCatalog() {
   db.products.forEach(p => IV_CATALOG.push({id:p.id, name:p.name, cat:p.cat}));
 }
 
-const cargos = [
-  {id:'BR-4821',title:'Eletrônicos — Lote Maio',status:'transit',statusLabel:'Em trânsito',origin:'São Paulo, SP',dest:'Rio de Janeiro, RJ',carrier:'Correios SEDEX',eta:'12 abr',steps:[2,3],badges:['b-transit'],
-   remetente:{empresa:'TechStore SP Ltda.',cnpj:'12.345.678/0001-90',tel:'(11) 99200-4321'},
-   destinatario:{nome:'InfoNet Distribuidora',endereco:'Rua Bento Ribeiro, 430 — Madureira, RJ',cnpj:'98.765.432/0001-11',tel:'(21) 98810-0033'},
-   nfe:'000.432',peso:'14,2',volumes:3,
-   rastreio:'SB473821049BR',modalidade:'SEDEX 10',prazo:'10 abr',prazoRev:'12 abr',seguro:'R$ 8.490',frete:'R$ 148,90',
-   ocorrencia:{tipo:'Atraso — Evento climático',desc:'Condições adversas em Resende/RJ causaram atraso de 12h na rota. Monitoramento ativo.',data:'09 abr · 04h20 · Código OC-7743'},
-   itens:[{name:'Notebook Dell XPS 13',sku:'SKU-00841',qty:2},{name:'Carregador 65W USB-C',sku:'SKU-00142',qty:2},{name:'Mouse Logitech MX3',sku:'SKU-00295',qty:1}],
-   timeline:[
-     {cls:'done',ev:'Pedido criado e confirmado',detail:'Emitido por admin · NF-e 000.432',time:'07 abr · 09h14'},
-     {cls:'done',ev:'Itens separados no estoque',detail:'Conferência OK · 3 volumes · 14,2 kg',time:'07 abr · 11h52'},
-     {cls:'done',ev:'Coletado pela transportadora',detail:'Motorista: Carlos M. · Placa HRK-2241',time:'08 abr · 08h30'},
-     {cls:'done',ev:'Chegada no centro de triagem',detail:'CD Correios Guarulhos · Voo GRU-SDU',time:'08 abr · 16h07'},
-     {cls:'alert',ev:'Atraso — evento climático',detail:'Estimativa revisada em +12h',time:'09 abr · 04h20'},
-     {cls:'active',ev:'Em rota para destino final',detail:'Saiu de Resende, RJ · ~3h estimadas',time:'10 abr · 07h48 · agora'},
-     {cls:'pending',ev:'Tentativa de entrega',detail:'Aguardando chegada ao destino',time:'Previsto 12 abr'},
-     {cls:'pending',ev:'Entrega confirmada',detail:'Assinatura digital + foto obrigatórias',time:'Previsto 12 abr'},
-   ]},
-  {id:'BR-4799',title:'Vestuário — Cliente Marcos R.',status:'pending',statusLabel:'Aguardando',origin:'Campinas, SP',dest:'Belo Horizonte, MG',carrier:'Jadlog .COM',eta:'14 abr',steps:[1,3],badges:['b-pending'],
-   remetente:{empresa:'ModaFlex Ind.',cnpj:'55.444.333/0001-22',tel:'(19) 98800-1122'},
-   destinatario:{nome:'Marcos Rocha',endereco:'Av. Getúlio Vargas, 500 — Savassi, BH',cnpj:'—',tel:'(31) 99100-5566'},
-   nfe:'000.388',peso:'8,0',volumes:2,
-   rastreio:'JD112233445BR',modalidade:'.COM Expresso',prazo:'14 abr',prazoRev:null,seguro:'R$ 980',frete:'R$ 38,50',
-   ocorrencia:null,
-   itens:[{name:'Camiseta Básica P',sku:'SKU-00801',qty:5},{name:'Camiseta Básica M',sku:'SKU-00802',qty:5},{name:'Camiseta Básica G',sku:'SKU-00803',qty:3}],
-   timeline:[
-     {cls:'done',ev:'Pedido criado e confirmado',detail:'Emitido por admin · NF-e 000.388',time:'08 abr · 14h00'},
-     {cls:'active',ev:'Aguardando coleta',detail:'Jadlog irá coletar hoje após 16h',time:'10 abr · pendente'},
-     {cls:'pending',ev:'Em rota',detail:'—',time:'Previsto 11 abr'},
-     {cls:'pending',ev:'Entrega ao destinatário',detail:'—',time:'Previsto 14 abr'},
-   ]},
-  {id:'BR-4756',title:'Cosméticos — Pedido B2B',status:'delivered',statusLabel:'Entregue',origin:'Curitiba, PR',dest:'Florianópolis, SC',carrier:'Loggi Express',eta:'Concluído',steps:[4,4],badges:['b-delivered'],
-   remetente:{empresa:'BellaVita Cosm.',cnpj:'77.888.999/0001-44',tel:'(41) 98700-3344'},
-   destinatario:{nome:'Beleza & Cia Ltda.',endereco:'Rua Felipe Schmidt, 200 — Centro, Florianópolis',cnpj:'11.222.333/0001-55',tel:'(48) 99200-7788'},
-   nfe:'000.310',peso:'5,5',volumes:1,
-   rastreio:'LG998877665SC',modalidade:'Express',prazo:'09 abr',prazoRev:null,seguro:'R$ 2.100',frete:'R$ 52,00',
-   ocorrencia:null,
-   itens:[{name:'Perfume Importado',sku:'SKU-00901',qty:3},{name:'Sérum Vitamina C',sku:'SKU-00902',qty:10},{name:'Base Facial HD',sku:'SKU-00903',qty:8}],
-   timeline:[
-     {cls:'done',ev:'Pedido criado',detail:'NF-e 000.310',time:'06 abr · 10h00'},
-     {cls:'done',ev:'Coletado pela Loggi',detail:'Motorista: Ana P.',time:'07 abr · 13h20'},
-     {cls:'done',ev:'Em rota',detail:'Curitiba → Florianópolis',time:'08 abr · 09h00'},
-     {cls:'done',ev:'Entregue com sucesso',detail:'Assinado por: Carla M.',time:'09 abr · 14h35'},
-   ]},
-  {id:'BR-4812',title:'Informática — Lote Especial',status:'transit',statusLabel:'Em rota',origin:'Porto Alegre, RS',dest:'São Paulo, SP',carrier:'Correios SEDEX',eta:'11 abr',steps:[3,4],badges:['b-transit'],
-   remetente:{empresa:'InfoNet Dist.',cnpj:'98.765.432/0001-11',tel:'(51) 99300-8899'},
-   destinatario:{nome:'TechStore SP Ltda.',endereco:'Av. Paulista, 1000 — Bela Vista, SP',cnpj:'12.345.678/0001-90',tel:'(11) 99200-4321'},
-   nfe:'000.401',peso:'22,0',volumes:4,
-   rastreio:'SB998001772BR',modalidade:'SEDEX',prazo:'11 abr',prazoRev:null,seguro:'R$ 22.000',frete:'R$ 290,00',
-   ocorrencia:null,
-   itens:[{name:'Notebook Dell XPS 13',sku:'SKU-00841',qty:2},{name:'SSD 1TB Samsung',sku:'SKU-00720',qty:5},{name:'Monitor 24" LG',sku:'SKU-00400',qty:2}],
-   timeline:[
-     {cls:'done',ev:'Pedido criado',detail:'NF-e 000.401',time:'08 abr · 08h00'},
-     {cls:'done',ev:'Separado e embalado',detail:'4 volumes · 22 kg',time:'08 abr · 12h00'},
-     {cls:'done',ev:'Coletado pelos Correios',detail:'AG Porto Alegre Centro',time:'09 abr · 09h30'},
-     {cls:'active',ev:'Em rota — SP',detail:'Saiu de Curitiba, PR às 06h',time:'10 abr · 06h00 · agora'},
-     {cls:'pending',ev:'Entrega final',detail:'—',time:'Previsto 11 abr'},
-   ]},
-  {id:'BR-4801',title:'Alimentos — Pedido Orgânico',status:'pending',statusLabel:'Coletado',origin:'Ribeirão Preto, SP',dest:'Goiânia, GO',carrier:'Jadlog .COM',eta:'15 abr',steps:[1,4],badges:['b-pending'],
-   remetente:{empresa:'NaturaFoods Ltda.',cnpj:'33.444.555/0001-66',tel:'(16) 98800-5511'},
-   destinatario:{nome:'Mercado Verde GO',endereco:'Rua 44, 300 — Setor Marista, Goiânia',cnpj:'66.777.888/0001-99',tel:'(62) 99100-4422'},
-   nfe:'000.299',peso:'18,0',volumes:5,
-   rastreio:'JD554433221GO',modalidade:'.COM',prazo:'15 abr',prazoRev:null,seguro:'R$ 1.200',frete:'R$ 78,00',
-   ocorrencia:null,
-   itens:[{name:'Fita Adesiva 45mm',sku:'SKU-00094',qty:20},{name:'Caixa Papelão P',sku:'SKU-00081',qty:15}],
-   timeline:[
-     {cls:'done',ev:'Pedido criado',detail:'NF-e 000.299',time:'09 abr · 16h00'},
-     {cls:'active',ev:'Aguardando coleta',detail:'Jadlog · amanhã às 09h',time:'10 abr · pendente'},
-     {cls:'pending',ev:'Em rota',detail:'—',time:'Previsto 12 abr'},
-     {cls:'pending',ev:'Entrega final',detail:'—',time:'Previsto 15 abr'},
-   ]},
-];
+const cargos = [];
 
 const stepLabels = ['Coleta','Triagem','Rota','Entrega'];
 
@@ -1142,7 +1050,12 @@ function buildCargoCard(c) {
 
 function renderCards(list, containerId) {
   const el = document.getElementById(containerId);
-  if (el) el.innerHTML = list.map(buildCargoCard).join('');
+  if (!el) return;
+  if (!list.length) {
+    el.innerHTML = '<div style="padding:24px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum pedido registrado ainda.</div>';
+    return;
+  }
+  el.innerHTML = list.map(buildCargoCard).join('');
 }
 
 renderCards(cargos.slice(0, 3), 'cargo-list');
@@ -1194,7 +1107,11 @@ function renderStockFull(q) {
   const list = db.products.filter(p =>
     !term || p.name.toLowerCase().includes(term) || p.id.toLowerCase().includes(term) || p.cat.toLowerCase().includes(term)
   );
-  if (!list.length) { el.innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum produto encontrado</div>'; return; }
+  if (!list.length && !term) {
+    el.innerHTML = '<div style="padding:32px 20px;text-align:center;font-size:13px;color:var(--text-muted)">Nenhum produto cadastrado.<br><span style="font-size:12px">Bipe um código de barras para começar a catalogar.</span></div>';
+    return;
+  }
+  if (!list.length) { el.innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum produto encontrado para "<b>'+q+'</b>"</div>'; return; }
   el.innerHTML =
     `<div class="stock-row hdr"><div>Produto / SKU</div><div style="text-align:right">Qtd</div><div style="text-align:right">Mín</div><div style="text-align:right">Status</div></div>` +
     list.map(p => stockRowHtml(p, true)).join('');
@@ -1204,6 +1121,7 @@ function renderStockFull(q) {
 function renderCriticalStock() {
   const el = document.getElementById('stock-table-critical');
   if (!el) return;
+  if (!db.products.length) { el.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--text-muted)">Nenhum produto catalogado ainda.</div>'; return; }
   const critical = db.products.filter(p => p.qty / p.min < 0.8).slice(0, 5);
   if (!critical.length) { el.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--success)">✓ Todos os itens acima do mínimo</div>'; return; }
   el.innerHTML =
@@ -1299,29 +1217,8 @@ let ivActiveTab = 'mapa';
 let cmCurrentCell = null;
 let cmSelectedProduct = null;
 
-// ── CATALOG ──
-const IV_CATALOG = [
-  {id:'SKU-00142', name:'Cabo USB-C 1m',        cat:'Eletrônicos'},
-  {id:'SKU-00081', name:'Caixa Papelão P',       cat:'Embalagem'},
-  {id:'SKU-00094', name:'Fita Adesiva 45mm',     cat:'Embalagem'},
-  {id:'SKU-00841', name:'Notebook Dell XPS 13',  cat:'Informática'},
-  {id:'SKU-00295', name:'Carregador 65W USB-C',  cat:'Eletrônicos'},
-  {id:'SKU-00296', name:'Mouse Logitech MX3',    cat:'Informática'},
-  {id:'SKU-00311', name:'Teclado Mecânico K2',   cat:'Informática'},
-  {id:'SKU-00400', name:'Monitor 24" LG',        cat:'Informática'},
-  {id:'SKU-00512', name:'Headset Sony WH-1000',  cat:'Eletrônicos'},
-  {id:'SKU-00633', name:'Câmera Web 4K',         cat:'Eletrônicos'},
-  {id:'SKU-00720', name:'SSD 1TB Samsung',       cat:'Informática'},
-  {id:'SKU-00801', name:'Camiseta Básica P',     cat:'Vestuário'},
-  {id:'SKU-00802', name:'Camiseta Básica M',     cat:'Vestuário'},
-  {id:'SKU-00803', name:'Camiseta Básica G',     cat:'Vestuário'},
-  {id:'SKU-00901', name:'Perfume Importado',     cat:'Cosméticos'},
-  {id:'SKU-00902', name:'Sérum Vitamina C',      cat:'Cosméticos'},
-  {id:'SKU-00903', name:'Base Facial HD',        cat:'Cosméticos'},
-  {id:'SKU-01001', name:'Fone JBL Tune 510',     cat:'Eletrônicos'},
-  {id:'SKU-01100', name:'Régua 6 Tomadas',       cat:'Utilidades'},
-  {id:'SKU-01200', name:'Hub USB-C 7 portas',    cat:'Informática'},
-];
+// ── CATALOG — preenchido via db.products ──
+const IV_CATALOG = [];
 
 function ivSwitchTab(tab) {
   ivActiveTab = tab;
@@ -2160,6 +2057,11 @@ function openNewProductModal(code) {
   let modal = document.getElementById('new-product-modal-overlay');
   if (modal) modal.remove();
 
+  // Monta opções de Rua, Nível e Posição
+  const ruaOpts  = Array.from({length:5},  (_,i) => `<option value="${i+1}">R${i+1}</option>`).join('');
+  const nivelOpts = Array.from({length:5}, (_,i) => `<option value="${i+1}">N${i+1}</option>`).join('');
+  const posOpts  = Array.from({length:20}, (_,i) => `<option value="${i+1}">P${i+1}</option>`).join('');
+
   const overlay = document.createElement('div');
   overlay.id = 'new-product-modal-overlay';
   overlay.style.cssText = `
@@ -2169,15 +2071,22 @@ function openNewProductModal(code) {
   `;
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
 
+  const sel = (id, opts, label) => `
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <label style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">${label}</label>
+      <select id="${id}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);
+        padding:8px 10px;color:var(--text-primary);font-family:var(--mono);font-size:13px;outline:none;font-weight:500">${opts}</select>
+    </div>`;
+
   overlay.innerHTML = `
     <div onclick="event.stopPropagation()" style="
       background:var(--surface);border:1px solid var(--border2);
-      border-radius:12px;width:420px;max-height:90vh;overflow:hidden;
+      border-radius:12px;width:440px;max-height:92vh;overflow:hidden;
       display:flex;flex-direction:column;
       animation:slideUp .3s cubic-bezier(.34,1.56,.64,1);
     ">
       <!-- Header -->
-      <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
         <button onclick="document.getElementById('new-product-modal-overlay').remove()"
           style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;
             cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)">
@@ -2185,59 +2094,87 @@ function openNewProductModal(code) {
         </button>
         <div>
           <div style="font-size:14px;font-weight:500;color:var(--text-primary)">Novo produto bipado</div>
-          <div style="font-size:11px;color:var(--text-muted)">Código não encontrado — preencha os dados</div>
+          <div style="font-size:11px;color:var(--text-muted)">Código não cadastrado — preencha os dados e defina a posição</div>
         </div>
       </div>
 
-      <!-- Banner de código lido -->
+      <!-- Banner código -->
       <div style="margin:14px 18px 0;background:var(--accent-dim);border:1px solid rgba(124,111,255,.35);
-        border-radius:var(--r);padding:10px 14px;display:flex;align-items:center;gap:10px">
+        border-radius:var(--r);padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#c4beff" stroke-width="1.8">
           <rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/>
           <rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h4M12 10h4M10 12v4"/>
         </svg>
         <div>
           <div style="font-size:10px;color:#9b93cc;margin-bottom:1px">Código lido pelo bipador</div>
-          <div style="font-size:14px;font-family:var(--mono);font-weight:600;color:#c4beff;letter-spacing:.5px">${code}</div>
+          <div style="font-size:15px;font-family:var(--mono);font-weight:600;color:#c4beff;letter-spacing:.5px">${code}</div>
         </div>
       </div>
 
       <!-- Formulário -->
-      <div style="padding:14px 18px;display:flex;flex-direction:column;gap:12px;overflow-y:auto">
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <label style="font-size:11px;color:var(--text-muted)">SKU / Código</label>
-          <input id="np-sku" value="${code}" style="background:var(--surface2);border:1px solid var(--border2);
-            border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--mono);
-            font-size:13px;outline:none;letter-spacing:.3px">
-        </div>
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <label style="font-size:11px;color:var(--text-muted)">Nome do produto *</label>
-          <input id="np-name" placeholder="Ex: Cabo HDMI 2m" autofocus style="background:var(--surface2);border:1px solid var(--border);
-            border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--font);
-            font-size:13px;outline:none;transition:border-color .15s"
-            onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'">
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="padding:14px 18px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1">
+
+        <!-- Identificação -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;font-weight:500">Identificação</div>
           <div style="display:flex;flex-direction:column;gap:4px">
-            <label style="font-size:11px;color:var(--text-muted)">Categoria</label>
-            <select id="np-cat" style="background:var(--surface2);border:1px solid var(--border);
-              border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none">
-              <option>Eletrônicos</option><option>Informática</option><option>Embalagem</option>
-              <option>Vestuário</option><option>Cosméticos</option><option>Utilidades</option><option>Outros</option>
-            </select>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <label style="font-size:11px;color:var(--text-muted)">Qtd inicial</label>
-            <input id="np-qty" type="number" value="1" min="1" style="background:var(--surface2);border:1px solid var(--border);
-              border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--mono);
+            <label style="font-size:11px;color:var(--text-secondary)">Nome do produto *</label>
+            <input id="np-name" placeholder="Ex: Cabo HDMI 2m" autofocus style="background:var(--surface2);border:1px solid var(--border);
+              border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--font);
               font-size:13px;outline:none;transition:border-color .15s"
               onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'">
           </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:11px;color:var(--text-secondary)">SKU / Código</label>
+              <input id="np-sku" value="${code}" style="background:var(--surface2);border:1px solid var(--border2);
+                border-radius:var(--r);padding:8px 12px;color:#c4beff;font-family:var(--mono);font-size:12px;outline:none">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:11px;color:var(--text-secondary)">Categoria</label>
+              <select id="np-cat" style="background:var(--surface2);border:1px solid var(--border);
+                border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none">
+                <option>Eletrônicos</option><option>Informática</option><option>Embalagem</option>
+                <option>Vestuário</option><option>Cosméticos</option><option>Utilidades</option><option>Outros</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:11px;color:var(--text-secondary)">Qtd mínima</label>
+              <input id="np-min" type="number" value="5" min="0" style="background:var(--surface2);border:1px solid var(--border);
+                border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--mono);font-size:13px;outline:none">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:11px;color:var(--text-secondary)">Preço unitário (R$)</label>
+              <input id="np-price" type="number" value="0" min="0" step="0.01" style="background:var(--surface2);border:1px solid var(--border);
+                border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--mono);font-size:13px;outline:none">
+            </div>
+          </div>
         </div>
+
+        <!-- Posição no mapa -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;font-weight:500">
+            📍 Posição no mapa de estoque
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+              ${sel('np-rua', ruaOpts, 'Rua')}
+              ${sel('np-nivel', nivelOpts, 'Nível')}
+              ${sel('np-pos', posOpts, 'Posição')}
+            </div>
+            <div id="np-pos-preview" style="font-size:11px;color:var(--text-muted);text-align:center;padding:6px;
+              background:var(--surface3);border-radius:4px;font-family:var(--mono)">
+              Posição: R1-N1-P1
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- Footer -->
-      <div style="padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px">
+      <div style="padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
         <button onclick="document.getElementById('new-product-modal-overlay').remove()"
           style="background:transparent;border:1px solid var(--border);border-radius:var(--r);
             padding:9px 16px;color:var(--text-secondary);font-family:var(--font);font-size:13px;cursor:pointer">
@@ -2245,44 +2182,82 @@ function openNewProductModal(code) {
         </button>
         <button onclick="saveNewProductFromScan()" style="flex:1;background:var(--text-primary);color:var(--bg);border:none;
           border-radius:var(--r);padding:9px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer">
-          ✓ Cadastrar produto
+          ✓ Cadastrar e mapear posição
         </button>
       </div>
     </div>
   `;
 
   document.body.appendChild(overlay);
-  // Foca no campo nome após abrir
-  setTimeout(() => { const el = document.getElementById('np-name'); if(el) el.focus(); }, 100);
+
+  // Preview dinâmico da posição
+  function updatePreview() {
+    const r = document.getElementById('np-rua')?.value   || '1';
+    const n = document.getElementById('np-nivel')?.value || '1';
+    const p = document.getElementById('np-pos')?.value   || '1';
+    const el = document.getElementById('np-pos-preview');
+    if (el) el.textContent = `Posição: R${r}-N${n}-P${p}`;
+  }
+  setTimeout(() => {
+    document.getElementById('np-rua')?.addEventListener('change', updatePreview);
+    document.getElementById('np-nivel')?.addEventListener('change', updatePreview);
+    document.getElementById('np-pos')?.addEventListener('change', updatePreview);
+    document.getElementById('np-name')?.focus();
+  }, 80);
 }
 
 function saveNewProductFromScan() {
-  const sku  = (document.getElementById('np-sku')  || {}).value || '';
-  const name = (document.getElementById('np-name') || {}).value || '';
-  const cat  = (document.getElementById('np-cat')  || {}).value || 'Outros';
-  const qty  = parseInt((document.getElementById('np-qty') || {}).value) || 1;
+  const sku   = (document.getElementById('np-sku')   || {}).value?.trim() || '';
+  const name  = (document.getElementById('np-name')  || {}).value?.trim() || '';
+  const cat   = (document.getElementById('np-cat')   || {}).value || 'Outros';
+  const min   = parseInt((document.getElementById('np-min') || {}).value) || 5;
+  const price = parseFloat((document.getElementById('np-price') || {}).value) || 0;
+  const rua   = (document.getElementById('np-rua')   || {}).value || '1';
+  const nivel = (document.getElementById('np-nivel') || {}).value || '1';
+  const pos   = (document.getElementById('np-pos')   || {}).value || '1';
 
-  if (!name.trim()) {
+  if (!name) {
     const el = document.getElementById('np-name');
     if (el) { el.style.borderColor='var(--danger)'; el.focus(); }
     showToast('⚠️ Informe o nome do produto');
     return;
   }
 
-  // Adiciona ao catálogo e ao db.products
-  const newProd = { id: sku, name: name.trim(), cat, qty, min: 5, price: 0 };
-  db.products.push(newProd);
-  IV_CATALOG.push({ id: sku, name: name.trim(), cat });
+  // 1 unidade — o primeiro scan já conta como 1
+  const qty = 1;
+  const cellId = `R${rua}-N${nivel}-P${pos}`;
 
-  // Registra na contagem da sessão
-  scanCounts[sku] = qty;
+  // Verifica se a posição já está ocupada
+  if (positionProducts[cellId]) {
+    const ocupante = positionProducts[cellId].name;
+    if (!confirm(`A posição ${cellId} já tem "${ocupante}". Substituir?`)) return;
+  }
+
+  // Salva no db
+  const newProd = { id: sku, name, cat, qty, min, price };
+  db.products.push(newProd);
+  IV_CATALOG.push({ id: sku, name, cat });
+
+  // Atribui posição no mapa de estoque
+  positionProducts[cellId] = { id: sku, name };
+
+  // Inicializa a célula do mapa com 1 unidade se ainda estava zerada
+  if (ivMatrixData[nivel] && ivMatrixData[nivel][pos] === 0) {
+    ivMatrixData[nivel][pos] = 1;
+  }
+
+  // Conta 1 unidade na sessão
+  scanCounts[sku] = 1;
 
   document.getElementById('new-product-modal-overlay').remove();
   renderAll();
-  showToast(`✅ "${name}" cadastrado! (${qty} un.)`);
+  ivBuildHeatmap(ivMatrixData);
+  ivBuildMetrics(ivMatrixData);
 
-  // Abre o painel de contagem mostrando o novo produto
-  openScanCounterPanel({ id: sku, name: name.trim(), cat }, qty);
+  showToast(`✅ "${name}" cadastrado em ${cellId}`);
+
+  // Abre o painel de contagem
+  openScanCounterPanel({ id: sku, name, cat }, 1);
 }
 
 // Animações auxiliares
