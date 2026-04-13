@@ -1243,5 +1243,88 @@ document.addEventListener('click', function(e) {
   }
 });
 </script>
+  /* ADICIONE ISTO DENTRO DO SEU <script> NO FINAL DO INDEX.HTML */
+
+const RACKS = 12;
+const LEVELS = 4;
+let currentRua = 'A';
+let currentNivel = 'Todos';
+
+function seed(rua) {
+  let data = [];
+  for(let l=LEVELS; l>=1; l--) {
+    let row = [];
+    for(let r=1; r<=RACKS; r++) {
+      let val = Math.floor(Math.random() * 120);
+      if(Math.random() < 0.1) val = 0; 
+      row.push({ id: `${rua}-${r}-${l}`, val: val, max: 100 });
+    }
+    data.push({ level: `N${l}`, racks: row });
+  }
+  return data;
+}
+
+let matrixData = seed(currentRua);
+
+function getCellColor(val, max) {
+  if(val === 0) return 'var(--surface)';
+  let pct = val / max;
+  if(pct > 0.9) return 'var(--danger-hi)';
+  if(pct > 0.7) return 'var(--amber-hi)';
+  if(pct > 0.4) return 'var(--emerald-hi)';
+  return 'var(--emerald)';
+}
+
+function buildHeatmap(data) {
+  const grid = document.getElementById('heatmap-grid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `40px repeat(${RACKS}, 54px)`;
+  grid.style.gap = '4px';
+
+  data.forEach((lvl) => {
+    let rowLabel = document.createElement('div');
+    rowLabel.className = 'hm-row-label';
+    rowLabel.textContent = lvl.level;
+    grid.appendChild(rowLabel);
+
+    lvl.racks.forEach(rack => {
+      let cell = document.createElement('div');
+      cell.className = 'hm-cell';
+      cell.style.background = getCellColor(rack.val, rack.max);
+      
+      let valEl = document.createElement('div');
+      valEl.className = 'hm-cell-val';
+      valEl.textContent = rack.val;
+      
+      let pctEl = document.createElement('div');
+      pctEl.className = 'hm-cell-pct';
+      pctEl.textContent = rack.val === 0 ? 'Vazio' : Math.round((rack.val/rack.max)*100)+'%';
+      
+      cell.appendChild(valEl);
+      cell.appendChild(pctEl);
+      grid.appendChild(cell);
+    });
+  });
+}
+
+function setToggle(groupId, btn, val) {
+  document.querySelectorAll(`#${groupId} .tg-btn`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (groupId === 'tg-rua') {
+    currentRua = val;
+    matrixData = seed(currentRua);
+  } else {
+    currentNivel = val;
+  }
+  buildHeatmap(matrixData);
+}
+
+function doSearch() {
+  const v = document.getElementById('sku-input').value;
+  if(v) alert(`A pesquisar SKU: ${v}`); // Substitua pela sua função de Toast se tiver
+}
+
+// Inicializar mapa de calor
+buildHeatmap(matrixData);
 </body>
 </html>
