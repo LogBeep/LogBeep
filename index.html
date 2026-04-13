@@ -555,224 +555,30 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 
     <!-- ── PAGE: ESTOQUE ── -->
     <div class="page" id="page-estoque">
-     <style>
-.iv{min-height:520px;display:flex;flex-direction:column;gap:0}
-
-.iv-topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.iv-search{flex:1;min-width:200px;position:relative;display:flex;align-items:center}
-.iv-search-ico{position:absolute;left:10px;color:var(--text-muted);display:flex}
-.iv-search-ico svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
-.iv-search-cam{position:absolute;right:10px;color:var(--text-muted);display:flex;cursor:pointer}
-.iv-search-cam:hover{color:var(--text-secondary)}
-.iv-search-cam svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
-.iv-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 36px 8px 34px;color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none;transition:border-color .15s}
-.iv-input:focus{border-color:var(--border2)}
-.iv-input::placeholder{color:var(--text-muted)}
-.kbd{position:absolute;right:36px;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;padding:1px 6px;font-size:10px;font-family:var(--mono);color:var(--text-muted);pointer-events:none}
-.iv-search-cam+.kbd{right:10px}
-.btn-search{background:var(--surface3);border:1px solid var(--border2);border-radius:6px;padding:8px 14px;color:var(--text-secondary);font-family:var(--font);font-size:12px;cursor:pointer;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:6px}
-.btn-search:hover{border-color:var(--border);color:var(--text-primary)}
-.btn-search svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
-.btn-primary-sm{background:var(--accent-dim);border:1px solid rgba(232,224,255,.3);border-radius:6px;padding:8px 14px;color:var(--accent);font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .15s}
-.btn-primary-sm:hover{background:#3D3760;border-color:rgba(232,224,255,.5)}
-
-.iv-filters{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.filter-label{font-size:10px;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
-
-.sel{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:5px 8px;color:var(--text-secondary);font-family:var(--font);font-size:12px;cursor:pointer;outline:none;transition:all .15s;-webkit-appearance:none;appearance:none;display:flex;align-items:center;gap:5px;white-space:nowrap}
-.sel:hover,.sel:focus{border-color:var(--border2);color:var(--text-primary)}
-select.sel{padding-right:24px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23444' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
-
-.toggle-group{display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px}
-.tg-btn{background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer;transition:all .15s;white-space:nowrap}
-.tg-btn:hover{color:var(--text-secondary);background:var(--surface3)}
-.tg-btn.active{background:var(--surface3);color:var(--text-primary);border:1px solid var(--border2)}
-
-.filter-sep{width:1px;height:18px;background:var(--border);flex-shrink:0}
-
-.iv-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 18px;border-bottom:1px solid var(--border)}
-.mc{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 12px}
-.mc-label{font-size:10px;color:var(--text-muted);margin-bottom:4px;letter-spacing:.3px}
-.mc-value{font-size:18px;font-weight:600;color:var(--text-primary);font-family:var(--mono);letter-spacing:-1px}
-.mc-delta{font-size:10px;margin-top:2px}
-
-.iv-heatmap-wrap{padding:14px 18px;flex:1;overflow:hidden}
-.hm-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.hm-title{font-size:11px;color:var(--text-secondary);letter-spacing:.4px;text-transform:uppercase}
-.hm-legend{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-muted)}
-.legend-scale{display:flex;gap:2px;align-items:center}
-.legend-cell{width:14px;height:10px;border-radius:2px}
-
-.hm-scroll{overflow-x:auto;overflow-y:hidden}
-.hm-scroll::-webkit-scrollbar{height:4px}
-.hm-scroll::-webkit-scrollbar-track{background:var(--surface2);border-radius:2px}
-.hm-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-
-.hm-grid{display:grid;min-width:max-content}
-.hm-cell{width:54px;height:44px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;border:1px solid transparent}
-.hm-cell:hover{border-color:var(--border);z-index:1}
-.hm-cell-val{font-size:11px;font-family:var(--mono);font-weight:500;line-height:1}
-.hm-cell-pct{font-size:9px;margin-top:2px;opacity:.7}
-
-.hm-row-label{width:40px;height:44px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:10px;font-family:var(--mono);color:var(--text-muted);flex-shrink:0}
-.hm-col-label{width:54px;height:22px;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:var(--mono);color:var(--text-muted)}
-.hm-row-corner{width:40px;height:22px}
-
-.tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);border-radius:5px;padding:5px 9px;font-size:11px;white-space:nowrap;pointer-events:none;z-index:10;display:none;font-family:var(--mono)}
-.hm-cell:hover .tooltip{display:block}
-.tt-id{color:var(--text-secondary);font-size:9px;margin-bottom:2px}
-.tt-val{color:var(--text-primary);font-weight:500}
-
-.iv-footer{padding:10px 18px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface)}
-.footer-info{font-size:11px;color:var(--text-muted)}
-.footer-info span{color:var(--text-secondary);font-family:var(--mono)}
-</style>
-
-<div class="iv">
-  <div class="iv-topbar">
-    <div class="iv-search">
-      <div class="iv-search-ico">
-        <svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg>
-      </div>
-      <input class="iv-input" id="sku-input" placeholder="Buscar por SKU ou descrição..." oninput="filterBySku(this.value)">
-      <span class="kbd">⌘ K</span>
-    </div>
-    <button class="btn-search" onclick="doSearch()">
-      <svg viewBox="0 0 14 14"><circle cx="6" cy="6" r="4"/><path d="M9 9l3 3" stroke-linecap="round"/></svg>
-      Pesquisar
-    </button>
-    <button class="btn-primary-sm" onclick="showToastIV('Scanner ativado')">
-      <svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;display:inline;vertical-align:middle;margin-right:5px" viewBox="0 0 14 14"><rect x="1" y="1" width="4" height="4" rx="1"/><rect x="9" y="1" width="4" height="4" rx="1"/><rect x="1" y="9" width="4" height="4" rx="1"/><path d="M9 9h1.5v1.5H9zM10.5 10.5H13M10.5 9H13M9 10.5v2.5"/></svg>
-      Scan QR
-    </button>
-  </div>
-
-  <div class="iv-filters">
-    <span class="filter-label">Filtros</span>
-    <select class="sel" onchange="updateFilters()">
-      <option>Todas as categorias</option>
-      <option>Eletrônicos</option>
-      <option>Vestuário</option>
-      <option>Cosméticos</option>
-      <option>Informática</option>
-    </select>
-    <select class="sel" onchange="updateFilters()">
-      <option>Todos os produtos</option>
-      <option>Notebooks</option>
-      <option>Periféricos</option>
-      <option>Acessórios</option>
-    </select>
-
-    <div class="filter-sep"></div>
-
-    <span class="filter-label">Rua</span>
-    <div class="toggle-group" id="tg-rua">
-      <button class="tg-btn active" onclick="setToggle('tg-rua',this,'1')">R1</button>
-      <button class="tg-btn" onclick="setToggle('tg-rua',this,'2')">R2</button>
-      <button class="tg-btn" onclick="setToggle('tg-rua',this,'3')">R3</button>
-      <button class="tg-btn" onclick="setToggle('tg-rua',this,'4')">R4</button>
-      <button class="tg-btn" onclick="setToggle('tg-rua',this,'5')">R5</button>
-    </div>
-
-    <div class="filter-sep"></div>
-
-    <span class="filter-label">Nível</span>
-    <div class="toggle-group" id="tg-nivel">
-      <button class="tg-btn active" onclick="setToggle('tg-nivel',this,'all')">Todos</button>
-      <button class="tg-btn" onclick="setToggle('tg-nivel',this,'1')">N1</button>
-      <button class="tg-btn" onclick="setToggle('tg-nivel',this,'2')">N2</button>
-      <button class="tg-btn" onclick="setToggle('tg-nivel',this,'3')">N3</button>
-      <button class="tg-btn" onclick="setToggle('tg-nivel',this,'4')">N4</button>
-      <button class="tg-btn" onclick="setToggle('tg-nivel',this,'5')">N5</button>
-    </div>
-  </div>
-
-  <div class="iv-metrics" id="iv-metrics"></div>
-
-  <div class="iv-heatmap-wrap">
-    <div class="hm-header">
-      <div class="hm-title" id="hm-title">Rua 1 — mapa de estoque (níveis × prédios)</div>
-      <div class="hm-legend">
-        <span>Vazio</span>
-        <div class="legend-scale">
-          <div class="legend-cell" style="background:rgba(27,73,45,.3)"></div>
-          <div class="legend-cell" style="background:rgba(27,73,45,.5)"></div>
-          <div class="legend-cell" style="background:rgba(39,103,54,.7)"></div>
-          <div class="legend-cell" style="background:#27a354"></div>
+      <div class="content">
+        <div class="metrics-row">
+          <div class="metric-card"><div class="metric-label">Total de SKUs</div><div class="metric-value">142</div><div class="metric-delta" style="color:var(--info)">+4 este mês</div></div>
+          <div class="metric-card"><div class="metric-label">Unidades totais</div><div class="metric-value">847</div><div class="metric-delta" style="color:var(--success)">estável</div></div>
+          <div class="metric-card"><div class="metric-label">Abaixo do mínimo</div><div class="metric-value" style="color:var(--warning)">8</div><div class="metric-delta" style="color:var(--warning)">repor hoje</div></div>
+          <div class="metric-card"><div class="metric-label">Valor em estoque</div><div class="metric-value">142k</div><div class="metric-delta" style="color:var(--success)">R$ 142.800</div></div>
         </div>
-        <span>Cheio</span>
-        <div style="width:1px;height:10px;background:var(--border2);margin:0 4px"></div>
-        <div class="legend-cell" style="background:rgba(107,72,0,.8)"></div>
-        <span>Baixo</span>
-        <div style="width:1px;height:10px;background:var(--border2);margin:0 4px"></div>
-        <div class="legend-cell" style="background:rgba(200,60,60,.6)"></div>
-        <span>Crítico</span>
+        <div>
+          <div class="section-header"><div class="section-title">Todos os itens</div></div>
+          <div class="stock-table">
+            <div class="stock-row hdr"><div>Produto / SKU</div><div style="text-align:right">Qtd</div><div style="text-align:right">Mín</div><div style="text-align:right">Status</div></div>
+            <div class="stock-row"><div><div class="stock-name">Cabo USB-C 1m</div><div class="stock-sku">SKU-00142</div></div><div class="stock-num stock-low">4</div><div class="stock-num">20</div><div style="text-align:right"><span class="pill" style="background:var(--danger-bg);color:var(--danger)">Crítico</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Caixa Papelão P</div><div class="stock-sku">SKU-00081</div></div><div class="stock-num stock-low">12</div><div class="stock-num">30</div><div style="text-align:right"><span class="pill" style="background:var(--warning-bg);color:var(--warning)">Baixo</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Fita Adesiva 45mm</div><div class="stock-sku">SKU-00094</div></div><div class="stock-num stock-ok">48</div><div class="stock-num">40</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Notebook Dell XPS 13</div><div class="stock-sku">SKU-00841</div></div><div class="stock-num stock-ok">16</div><div class="stock-num">10</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Carregador 65W USB-C</div><div class="stock-sku">SKU-00295</div></div><div class="stock-num stock-low">3</div><div class="stock-num">15</div><div style="text-align:right"><span class="pill" style="background:var(--danger-bg);color:var(--danger)">Crítico</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Mouse Logitech MX3</div><div class="stock-sku">SKU-00296</div></div><div class="stock-num stock-ok">22</div><div class="stock-num">10</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Teclado Mecânico K2</div><div class="stock-sku">SKU-00311</div></div><div class="stock-num stock-low">7</div><div class="stock-num">12</div><div style="text-align:right"><span class="pill" style="background:var(--warning-bg);color:var(--warning)">Baixo</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Monitor 24" LG</div><div class="stock-sku">SKU-00400</div></div><div class="stock-num stock-ok">9</div><div class="stock-num">5</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
+          </div>
+        </div>
+        <div style="height:80px"></div>
       </div>
     </div>
-    <div class="hm-scroll">
-      <div id="heatmap-container"></div>
-    </div>
-  </div>
-
-  <div class="iv-footer">
-    <div class="footer-info">Mostrando <span id="foot-count">100</span> posições · Rua <span id="foot-rua">1</span> · Última sync <span>há 2 min</span></div>
-    <div class="footer-info" id="foot-sel"></div>
-  </div>
-</div>
-
-<div id="toast-iv" style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--surface3);border:1px solid var(--border2);border-radius:6px;padding:7px 16px;font-size:12px;color:var(--text-primary);pointer-events:none;opacity:0;transition:all .25s;white-space:nowrap;z-index:50"></div>
-
-<script>
-const LEVELS = 5;
-const RACKS  = 20;
-const MAX_CAP = 800;
-
-let currentRua = '1';
-let currentNivel = 'all';
-let matrixData = {};
-let highlightSku = '';
-
-function seed(rua) {
-  const r = {};
-  for (let lv = 1; lv <= LEVELS; lv++) {
-    r[lv] = {};
-    for (let rk = 1; rk <= RACKS; rk++) {
-      const rand = Math.random();
-      let val;
-      if (rand < 0.06) val = 0;
-      else if (rand < 0.18) val = Math.round(Math.random() * 80 + 20);
-      else val = Math.round(Math.random() * 680 + 100);
-      r[lv][rk] = val;
-    }
-  }
-  return r;
-}
-
-function cellColor(val) {
-  if (val === 0) return {bg:'rgba(20,20,20,.9)',tc:'#333'};
-  const pct = val / MAX_CAP;
-  if (pct < 0.12) return {bg:'rgba(180,40,40,.55)',tc:'#f88'};
-  if (pct < 0.25) return {bg:'rgba(100,65,0,.75)',tc:'#c87c00'};
-  if (pct < 0.5)  return {bg:'rgba(27,73,45,.5)',tc:'#4aad6a'};
-  if (pct < 0.75) return {bg:'rgba(27,90,50,.7)',tc:'#5dc97a'};
-  return {bg:'rgba(25,100,52,.85)',tc:'#7fdda0'};
-}
-
-function buildMetrics(data) {
-  let total=0, filled=0, low=0, crit=0, max=0;
-  for (let lv=1;lv<=LEVELS;lv++) for (let rk=1;rk<=RACKS;rk++) {
-    const v = data[lv][rk];
-    total += v; if (v>0) filled++;
-    if (v>0 && v/MAX_CAP<0.12) crit++;
-    else if (v>0 && v/MAX_CAP<0.25) low++;
-    if (v>max) max=v;
-  }
-  const el = document.getElementById('iv-metrics');
-  el.innerHTML = `
-    <div class="mc"><div class="mc-label">Unidades totais</div><div class="mc-value">${total.toLocaleString('pt-BR')}</div><div class="mc-delta" style="color:#5dc97a">Rua ${currentRua}</div></div>
-    <div class="mc"><div class="mc-label">Posições ocupadas</div><div class="mc-value">${filled}</div><div class="mc-delta" style="color:#888">de ${LEVELS*RACKS}</div></div>
-    <div class="mc"><div class="mc-label">Estoque baixo</div><div class="mc-value" style="color:#c87c00">${low}</div><div class="mc-delta" style="color:#c87c00">posições</div></div>
-    <div class="mc"><div class="mc-label">Crítico</div><div class="mc-value" style="color:#d4
 
     <!-- ── PAGE: RASTREIO ── -->
     <div class="page" id="page-rastreio">
