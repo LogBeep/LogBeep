@@ -1815,35 +1815,244 @@ document.addEventListener('click', function(e) {
   });
 
   function handleBarcodeScan(code) {
-    // 1. Navega para a aba Mapa de Estoque se não estiver nela
-    if (currentPage !== 'heatmap') {
-      navTo('heatmap');
-    }
-
-    // 2. Garante que a aba correta (Localizar Produto) está visível
-    ivSwitchTab('produto');
-
-    // 3. Preenche o campo de busca de produto
-    const input = document.getElementById('prod-search');
-    if (input) {
-      input.value = code;
-      // Dispara o filtro visual da lista
-      ivFilterProductList(code);
-    }
-
-    // 4. Tenta localizar automaticamente se houver match exato de SKU
+    // Verifica se o produto existe no catálogo (match exato de SKU)
     const exactMatch = IV_CATALOG.find(
       p => p.id.toLowerCase() === code.toLowerCase()
     );
+
     if (exactMatch) {
-      ivLocateProduct(exactMatch.id);
-      showToast(`📦 Bipado: ${exactMatch.name} (${exactMatch.id})`);
+      // ── PRODUTO EXISTENTE: incrementa contagem e mostra painel ──
+      if (!scanCounts[exactMatch.id]) scanCounts[exactMatch.id] = 0;
+      scanCounts[exactMatch.id]++;
+      openScanCounterPanel(exactMatch, scanCounts[exactMatch.id]);
+      showToast(`📦 +1 · ${exactMatch.name} (total: ${scanCounts[exactMatch.id]})`);
     } else {
-      // Match parcial — mostra a lista filtrada e avisa
-      showToast(`🔍 Código bipado: ${code}`);
+      // ── PRODUTO DESCONHECIDO: abre modal de cadastro com código preenchido ──
+      openNewProductModal(code);
+      showToast(`🔍 Produto não encontrado — cadastre agora`);
     }
   }
 })();
+
+// ── SCAN SESSION STATE ──
+const scanCounts = {}; // { skuId: count }
+
+// ── PAINEL CONTADOR DE BIPAGEM ──
+function openScanCounterPanel(prod, count) {
+  // Cria ou atualiza o painel flutuante de contagem
+  let panel = document.getElementById('scan-counter-panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'scan-counter-panel';
+    panel.style.cssText = `
+      position:fixed;bottom:80px;right:28px;width:320px;
+      background:var(--surface);border:1px solid var(--border2);
+      border-radius:10px;z-index:500;overflow:hidden;
+      box-shadow:0 8px 32px rgba(0,0,0,.6);
+      animation:slideUp .25s cubic-bezier(.34,1.56,.64,1);
+    `;
+    document.body.appendChild(panel);
+  }
+
+  // Monta lista de todos os produtos bipados nesta sessão
+  const allScans = Object.entries(scanCounts)
+    .sort(([,a],[,b]) => b - a)
+    .map(([skuId, cnt]) => {
+      const p = IV_CATALOG.find(x => x.id === skuId);
+      const name = p ? p.name : skuId;
+      const isActive = skuId === prod.id;
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;
+          padding:8px 14px;border-bottom:1px solid var(--border);
+          background:${isActive ? 'var(--accent-dim)' : 'transparent'}">
+          <div>
+            <div style="font-size:12px;color:${isActive ? '#c4beff' : 'var(--text-primary)'};font-weight:${isActive ? '500' : '400'}">${name}</div>
+            <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:1px">${skuId}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="font-size:20px;font-family:var(--mono);font-weight:600;
+              color:${isActive ? '#c4beff' : 'var(--text-primary)'}">×${cnt}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+  panel.innerHTML = `
+    <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite"></div>
+        <span style="font-size:11px;font-weight:500;color:var(--text-primary);letter-spacing:.3px">LEITURA ATIVA</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button onclick="resetScanSession()" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;
+          padding:3px 8px;font-size:10px;color:var(--text-muted);cursor:pointer;font-family:var(--font)">Zerar</button>
+        <button onclick="closeScanCounterPanel()" style="background:transparent;border:1px solid var(--border);border-radius:5px;
+          width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted)">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l8 8M9 1L1 9"/></svg>
+        </button>
+      </div>
+    </div>
+    <div style="max-height:260px;overflow-y:auto">${allScans}</div>
+    <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px">
+      <button onclick="exportScanSession()" style="flex:1;background:var(--text-primary);color:var(--bg);border:none;
+        border-radius:var(--r);padding:8px;font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer">
+        Confirmar lote (${Object.values(scanCounts).reduce((a,b)=>a+b,0)} unid.)
+      </button>
+    </div>
+  `;
+}
+
+function closeScanCounterPanel() {
+  const p = document.getElementById('scan-counter-panel');
+  if (p) { p.style.animation = 'slideDown .2s ease forwards'; setTimeout(() => p.remove(), 200); }
+}
+
+function resetScanSession() {
+  Object.keys(scanCounts).forEach(k => delete scanCounts[k]);
+  closeScanCounterPanel();
+  showToast('Contagem zerada');
+}
+
+function exportScanSession() {
+  const total = Object.values(scanCounts).reduce((a,b)=>a+b,0);
+  showToast(`✅ Lote de ${total} unidades confirmado!`);
+  resetScanSession();
+}
+
+// ── MODAL CADASTRO DE NOVO PRODUTO ──
+function openNewProductModal(code) {
+  let modal = document.getElementById('new-product-modal-overlay');
+  if (modal) modal.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'new-product-modal-overlay';
+  overlay.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;
+    display:flex;align-items:center;justify-content:center;
+    animation:fadeIn .2s ease;
+  `;
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+
+  overlay.innerHTML = `
+    <div onclick="event.stopPropagation()" style="
+      background:var(--surface);border:1px solid var(--border2);
+      border-radius:12px;width:420px;max-height:90vh;overflow:hidden;
+      display:flex;flex-direction:column;
+      animation:slideUp .3s cubic-bezier(.34,1.56,.64,1);
+    ">
+      <!-- Header -->
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        <button onclick="document.getElementById('new-product-modal-overlay').remove()"
+          style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;
+            cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l8 8M9 1L1 9"/></svg>
+        </button>
+        <div>
+          <div style="font-size:14px;font-weight:500;color:var(--text-primary)">Novo produto bipado</div>
+          <div style="font-size:11px;color:var(--text-muted)">Código não encontrado — preencha os dados</div>
+        </div>
+      </div>
+
+      <!-- Banner de código lido -->
+      <div style="margin:14px 18px 0;background:var(--accent-dim);border:1px solid rgba(124,111,255,.35);
+        border-radius:var(--r);padding:10px 14px;display:flex;align-items:center;gap:10px">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#c4beff" stroke-width="1.8">
+          <rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/>
+          <rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h4M12 10h4M10 12v4"/>
+        </svg>
+        <div>
+          <div style="font-size:10px;color:#9b93cc;margin-bottom:1px">Código lido pelo bipador</div>
+          <div style="font-size:14px;font-family:var(--mono);font-weight:600;color:#c4beff;letter-spacing:.5px">${code}</div>
+        </div>
+      </div>
+
+      <!-- Formulário -->
+      <div style="padding:14px 18px;display:flex;flex-direction:column;gap:12px;overflow-y:auto">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:11px;color:var(--text-muted)">SKU / Código</label>
+          <input id="np-sku" value="${code}" style="background:var(--surface2);border:1px solid var(--border2);
+            border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--mono);
+            font-size:13px;outline:none;letter-spacing:.3px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:11px;color:var(--text-muted)">Nome do produto *</label>
+          <input id="np-name" placeholder="Ex: Cabo HDMI 2m" autofocus style="background:var(--surface2);border:1px solid var(--border);
+            border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--font);
+            font-size:13px;outline:none;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:11px;color:var(--text-muted)">Categoria</label>
+            <select id="np-cat" style="background:var(--surface2);border:1px solid var(--border);
+              border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none">
+              <option>Eletrônicos</option><option>Informática</option><option>Embalagem</option>
+              <option>Vestuário</option><option>Cosméticos</option><option>Utilidades</option><option>Outros</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:11px;color:var(--text-muted)">Qtd inicial</label>
+            <input id="np-qty" type="number" value="1" min="1" style="background:var(--surface2);border:1px solid var(--border);
+              border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--mono);
+              font-size:13px;outline:none;transition:border-color .15s"
+              onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px">
+        <button onclick="document.getElementById('new-product-modal-overlay').remove()"
+          style="background:transparent;border:1px solid var(--border);border-radius:var(--r);
+            padding:9px 16px;color:var(--text-secondary);font-family:var(--font);font-size:13px;cursor:pointer">
+          Cancelar
+        </button>
+        <button onclick="saveNewProductFromScan()" style="flex:1;background:var(--text-primary);color:var(--bg);border:none;
+          border-radius:var(--r);padding:9px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer">
+          ✓ Cadastrar produto
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  // Foca no campo nome após abrir
+  setTimeout(() => { const el = document.getElementById('np-name'); if(el) el.focus(); }, 100);
+}
+
+function saveNewProductFromScan() {
+  const sku  = (document.getElementById('np-sku')  || {}).value || '';
+  const name = (document.getElementById('np-name') || {}).value || '';
+  const cat  = (document.getElementById('np-cat')  || {}).value || 'Outros';
+  const qty  = parseInt((document.getElementById('np-qty') || {}).value) || 1;
+
+  if (!name.trim()) {
+    const el = document.getElementById('np-name');
+    if (el) { el.style.borderColor='var(--danger)'; el.focus(); }
+    showToast('⚠️ Informe o nome do produto');
+    return;
+  }
+
+  // Adiciona ao catálogo em memória
+  IV_CATALOG.push({ id: sku, name: name.trim(), cat });
+
+  // Registra na contagem da sessão
+  scanCounts[sku] = qty;
+
+  document.getElementById('new-product-modal-overlay').remove();
+  showToast(`✅ "${name}" cadastrado! (${qty} un.)`);
+
+  // Abre o painel de contagem mostrando o novo produto
+  openScanCounterPanel({ id: sku, name: name.trim(), cat }, qty);
+}
+
+// Animações auxiliares
+const scanStyle = document.createElement('style');
+scanStyle.textContent = `
+  @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+  @keyframes slideDown { from{transform:translateY(0);opacity:1} to{transform:translateY(20px);opacity:0} }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+`;
+document.head.appendChild(scanStyle);
 </script>
 </body>
 </html>
