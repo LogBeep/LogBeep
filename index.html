@@ -19,6 +19,12 @@
   --info-bg:#0E2540;--info:#60A5FA;
   --font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
   --r:6px;--r2:8px;--sidebar:220px;
+  --s1:#0d0d0d;--s2:#141414;--s3:#1a1a1a;
+  --b1:#1f1f1f;--b2:#2a2a2a;--b3:#383838;
+  --t1:#e8e8e8;--t2:#888;--t3:#444;
+  --emerald:#1a4a2e;--emerald-mid:#1f6b3a;--emerald-hi:#27a354;
+  --amber-lo:#3a2800;--amber-mid:#6b4800;--amber-hi:#c87c00;
+  --danger-lo:#3a1010;--danger-hi:#d44;
 }
 
 html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--bg);color:var(--text-primary);font-size:14px;line-height:1.5}
@@ -394,6 +400,34 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 @media(max-width:480px){
   .metrics-row{grid-template-columns:1fr 1fr}
   .stock-row{grid-template-columns:1fr 48px 72px}
+.iv{background:transparent;min-height:520px;display:flex;flex-direction:column;gap:0}
+.iv-topbar{background:var(--surface2);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-radius:var(--r2) var(--r2) 0 0}
+.iv-search{flex:1;min-width:200px;position:relative;display:flex;align-items:center}
+.iv-search-ico{position:absolute;left:10px;color:var(--text-muted);display:flex}
+.iv-search-ico svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
+.iv-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 36px 8px 34px;color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none;transition:border-color .15s}
+.iv-input:focus{border-color:var(--border2)}
+.btn-search{background:var(--surface3);border:1px solid var(--border2);border-radius:6px;padding:8px 14px;color:var(--text-secondary);font-family:var(--font);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-search:hover{border-color:var(--border2);color:var(--text-primary)}
+.iv-filters{background:var(--surface2);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-label{font-size:10px;color:var(--text-muted);text-transform:uppercase}
+.sel{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 8px;color:var(--text-secondary);font-size:12px;cursor:pointer;outline:none}
+.toggle-group{display:flex;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:2px}
+.tg-btn{background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;color:var(--text-muted);cursor:pointer}
+.tg-btn.active{background:var(--surface3);color:var(--text-primary);border:1px solid var(--border2)}
+.iv-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.mc{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 12px}
+.mc-label{font-size:10px;color:var(--text-muted);margin-bottom:4px}
+.mc-value{font-size:18px;font-weight:600;color:var(--text-primary);font-family:var(--mono)}
+.iv-heatmap-wrap{padding:14px 18px;flex:1;overflow:hidden;background:var(--surface2);border-radius:0 0 var(--r2) var(--r2)}
+.hm-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hm-title{font-size:11px;color:var(--text-secondary);text-transform:uppercase}
+.hm-grid{display:grid;min-width:max-content}
+.hm-cell{width:54px;height:44px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:1px solid transparent}
+.hm-cell:hover{border-color:var(--border2);z-index:1}
+.hm-cell-val{font-size:11px;font-family:var(--mono);font-weight:500;line-height:1}
+.hm-cell-pct{font-size:9px;margin-top:2px;opacity:.7}
+.hm-scroll{overflow-x:auto;overflow-y:hidden}
 }
 </style>
 </head>
@@ -554,31 +588,66 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
     </div>
 
     <!-- ── PAGE: ESTOQUE ── -->
-    <div class="page" id="page-estoque">
-      <div class="content">
-        <div class="metrics-row">
-          <div class="metric-card"><div class="metric-label">Total de SKUs</div><div class="metric-value">142</div><div class="metric-delta" style="color:var(--info)">+4 este mês</div></div>
-          <div class="metric-card"><div class="metric-label">Unidades totais</div><div class="metric-value">847</div><div class="metric-delta" style="color:var(--success)">estável</div></div>
-          <div class="metric-card"><div class="metric-label">Abaixo do mínimo</div><div class="metric-value" style="color:var(--warning)">8</div><div class="metric-delta" style="color:var(--warning)">repor hoje</div></div>
-          <div class="metric-card"><div class="metric-label">Valor em estoque</div><div class="metric-value">142k</div><div class="metric-delta" style="color:var(--success)">R$ 142.800</div></div>
-        </div>
-        <div>
-          <div class="section-header"><div class="section-title">Todos os itens</div></div>
-          <div class="stock-table">
-            <div class="stock-row hdr"><div>Produto / SKU</div><div style="text-align:right">Qtd</div><div style="text-align:right">Mín</div><div style="text-align:right">Status</div></div>
-            <div class="stock-row"><div><div class="stock-name">Cabo USB-C 1m</div><div class="stock-sku">SKU-00142</div></div><div class="stock-num stock-low">4</div><div class="stock-num">20</div><div style="text-align:right"><span class="pill" style="background:var(--danger-bg);color:var(--danger)">Crítico</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Caixa Papelão P</div><div class="stock-sku">SKU-00081</div></div><div class="stock-num stock-low">12</div><div class="stock-num">30</div><div style="text-align:right"><span class="pill" style="background:var(--warning-bg);color:var(--warning)">Baixo</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Fita Adesiva 45mm</div><div class="stock-sku">SKU-00094</div></div><div class="stock-num stock-ok">48</div><div class="stock-num">40</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Notebook Dell XPS 13</div><div class="stock-sku">SKU-00841</div></div><div class="stock-num stock-ok">16</div><div class="stock-num">10</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Carregador 65W USB-C</div><div class="stock-sku">SKU-00295</div></div><div class="stock-num stock-low">3</div><div class="stock-num">15</div><div style="text-align:right"><span class="pill" style="background:var(--danger-bg);color:var(--danger)">Crítico</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Mouse Logitech MX3</div><div class="stock-sku">SKU-00296</div></div><div class="stock-num stock-ok">22</div><div class="stock-num">10</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Teclado Mecânico K2</div><div class="stock-sku">SKU-00311</div></div><div class="stock-num stock-low">7</div><div class="stock-num">12</div><div style="text-align:right"><span class="pill" style="background:var(--warning-bg);color:var(--warning)">Baixo</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Monitor 24" LG</div><div class="stock-sku">SKU-00400</div></div><div class="stock-num stock-ok">9</div><div class="stock-num">5</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
-          </div>
-        </div>
-        <div style="height:80px"></div>
+<div class="iv">
+  <div class="iv-topbar">
+    <div class="iv-search">
+      <div class="iv-search-ico">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </div>
+      <input type="text" class="iv-input" id="sku-input" placeholder="Buscar SKU, lote ou localização..." onkeyup="if(event.key==='Enter') doSearch()">
+      <div class="kbd">⌘K</div>
     </div>
+    <button class="btn-search" onclick="doSearch()">
+      Buscar
+    </button>
+  </div>
+
+  <div class="iv-filters">
+    <span class="filter-label">Rua:</span>
+    <div class="toggle-group" id="tg-rua">
+      <button class="tg-btn active" onclick="setToggle('tg-rua', this, 'A')">Corredor A</button>
+      <button class="tg-btn" onclick="setToggle('tg-rua', this, 'B')">Corredor B</button>
+      <button class="tg-btn" onclick="setToggle('tg-rua', this, 'C')">Corredor C</button>
+    </div>
+    <div class="filter-sep"></div>
+    <span class="filter-label">Nível:</span>
+    <div class="toggle-group" id="tg-nivel">
+      <button class="tg-btn active" onclick="setToggle('tg-nivel', this, 'Todos')">Todos</button>
+      <button class="tg-btn" onclick="setToggle('tg-nivel', this, 'Baixo')">Baixo</button>
+      <button class="tg-btn" onclick="setToggle('tg-nivel', this, 'Médio')">Médio</button>
+      <button class="tg-btn" onclick="setToggle('tg-nivel', this, 'Alto')">Alto</button>
+    </div>
+  </div>
+
+  <div class="iv-metrics">
+    <div class="mc">
+      <div class="mc-label">OCUPAÇÃO TOTAL</div>
+      <div class="mc-value" id="m-occ">84%</div>
+    </div>
+    <div class="mc">
+      <div class="mc-label">SKUs ÚNICOS</div>
+      <div class="mc-value" id="m-skus">142</div>
+    </div>
+    <div class="mc">
+      <div class="mc-label">ITENS TOTAIS</div>
+      <div class="mc-value" id="m-items">12.450</div>
+    </div>
+    <div class="mc">
+      <div class="mc-label">ESPAÇOS LIVRES</div>
+      <div class="mc-value" style="color:var(--success)" id="m-free">16</div>
+    </div>
+  </div>
+
+  <div class="iv-heatmap-wrap">
+    <div class="hm-header">
+      <div class="hm-title">Mapa de Calor da Localização</div>
+    </div>
+    <div class="hm-scroll">
+      <div class="hm-grid" id="heatmap-grid">
+        </div>
+    </div>
+  </div>
+</div>
 
     <!-- ── PAGE: RASTREIO ── -->
     <div class="page" id="page-rastreio">
