@@ -492,37 +492,14 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
       </div>
 
       <div class="content">
-        <div class="metrics-row">
-          <div class="metric-card">
-            <div class="metric-label">Em trânsito</div>
-            <div class="metric-value">24</div>
-            <div class="metric-delta" style="color:var(--success)">+3 hoje</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Entregues hoje</div>
-            <div class="metric-value">11</div>
-            <div class="metric-delta" style="color:var(--info)">meta: 15</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Estoque total</div>
-            <div class="metric-value">847</div>
-            <div class="metric-delta" style="color:var(--warning)">8 abaixo mín</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Alertas</div>
-            <div class="metric-value" style="color:var(--danger)">3</div>
-            <div class="metric-delta" style="color:var(--danger)">requer ação</div>
-          </div>
-        </div>
+        <div class="metrics-row" id="dash-metrics"></div>
 
         <div>
           <div class="section-header">
             <div class="section-title">Entregas ativas</div>
             <div class="section-action" onclick="navToStr('pedidos')">ver todas →</div>
           </div>
-          <div class="cargo-list" id="cargo-list">
-            <!-- cards injetados via JS -->
-          </div>
+          <div class="cargo-list" id="cargo-list"></div>
         </div>
 
         <div>
@@ -530,12 +507,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
             <div class="section-title">Estoque crítico</div>
             <div class="section-action" onclick="navToStr('estoque')">gerenciar →</div>
           </div>
-          <div class="stock-table">
-            <div class="stock-row hdr"><div>Produto / SKU</div><div style="text-align:right">Qtd</div><div style="text-align:right">Mín</div><div style="text-align:right">Status</div></div>
-            <div class="stock-row"><div><div class="stock-name">Cabo USB-C 1m</div><div class="stock-sku">SKU-00142</div></div><div class="stock-num stock-low">4</div><div class="stock-num">20</div><div style="text-align:right"><span class="pill" style="background:var(--danger-bg);color:var(--danger)">Crítico</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Caixa Papelão P</div><div class="stock-sku">SKU-00081</div></div><div class="stock-num stock-low">12</div><div class="stock-num">30</div><div style="text-align:right"><span class="pill" style="background:var(--warning-bg);color:var(--warning)">Baixo</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Fita Adesiva 45mm</div><div class="stock-sku">SKU-00094</div></div><div class="stock-num stock-ok">48</div><div class="stock-num">40</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
-          </div>
+          <div class="stock-table" id="stock-table-critical"></div>
         </div>
         <div style="height:80px"></div>
       </div>
@@ -559,26 +531,19 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 
     <!-- ── PAGE: ESTOQUE ── -->
     <div class="page" id="page-estoque">
+      <div class="search-bar">
+        <div class="search-icon"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg></div>
+        <input class="search-input" id="estoque-search" placeholder="Buscar produto ou SKU..." oninput="renderStockFull(this.value)">
+        <button class="btn-scan" onclick="openQR()">
+          <svg viewBox="0 0 16 16"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/><rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h3M12 10h3M10 12v3"/></svg>
+          Entrada
+        </button>
+      </div>
       <div class="content">
-        <div class="metrics-row">
-          <div class="metric-card"><div class="metric-label">Total de SKUs</div><div class="metric-value">142</div><div class="metric-delta" style="color:var(--info)">+4 este mês</div></div>
-          <div class="metric-card"><div class="metric-label">Unidades totais</div><div class="metric-value">847</div><div class="metric-delta" style="color:var(--success)">estável</div></div>
-          <div class="metric-card"><div class="metric-label">Abaixo do mínimo</div><div class="metric-value" style="color:var(--warning)">8</div><div class="metric-delta" style="color:var(--warning)">repor hoje</div></div>
-          <div class="metric-card"><div class="metric-label">Valor em estoque</div><div class="metric-value">142k</div><div class="metric-delta" style="color:var(--success)">R$ 142.800</div></div>
-        </div>
+        <div class="metrics-row" id="estoque-metrics"></div>
         <div>
           <div class="section-header"><div class="section-title">Todos os itens</div></div>
-          <div class="stock-table">
-            <div class="stock-row hdr"><div>Produto / SKU</div><div style="text-align:right">Qtd</div><div style="text-align:right">Mín</div><div style="text-align:right">Status</div></div>
-            <div class="stock-row"><div><div class="stock-name">Cabo USB-C 1m</div><div class="stock-sku">SKU-00142</div></div><div class="stock-num stock-low">4</div><div class="stock-num">20</div><div style="text-align:right"><span class="pill" style="background:var(--danger-bg);color:var(--danger)">Crítico</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Caixa Papelão P</div><div class="stock-sku">SKU-00081</div></div><div class="stock-num stock-low">12</div><div class="stock-num">30</div><div style="text-align:right"><span class="pill" style="background:var(--warning-bg);color:var(--warning)">Baixo</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Fita Adesiva 45mm</div><div class="stock-sku">SKU-00094</div></div><div class="stock-num stock-ok">48</div><div class="stock-num">40</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Notebook Dell XPS 13</div><div class="stock-sku">SKU-00841</div></div><div class="stock-num stock-ok">16</div><div class="stock-num">10</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Carregador 65W USB-C</div><div class="stock-sku">SKU-00295</div></div><div class="stock-num stock-low">3</div><div class="stock-num">15</div><div style="text-align:right"><span class="pill" style="background:var(--danger-bg);color:var(--danger)">Crítico</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Mouse Logitech MX3</div><div class="stock-sku">SKU-00296</div></div><div class="stock-num stock-ok">22</div><div class="stock-num">10</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Teclado Mecânico K2</div><div class="stock-sku">SKU-00311</div></div><div class="stock-num stock-low">7</div><div class="stock-num">12</div><div style="text-align:right"><span class="pill" style="background:var(--warning-bg);color:var(--warning)">Baixo</span></div></div>
-            <div class="stock-row"><div><div class="stock-name">Monitor 24" LG</div><div class="stock-sku">SKU-00400</div></div><div class="stock-num stock-ok">9</div><div class="stock-num">5</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
-          </div>
+          <div class="stock-table" id="stock-table-full"></div>
         </div>
         <div style="height:80px"></div>
       </div>
@@ -859,106 +824,11 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
     <div class="dtab" onclick="switchDTab('info',this)">Detalhes</div>
     <div class="dtab" onclick="switchDTab('carrier',this)">Transportadora</div>
   </div>
-  <div class="drawer-body">
-    <!-- TIMELINE -->
-    <div class="dtab-content active" id="dtab-timeline">
-      <div class="dsection">
-        <div class="dsection-label">Rota</div>
-        <div class="route-visual">
-          <div class="rv-city"><div class="rv-name">São Paulo, SP</div><div class="rv-sub">CD Mooca · Origem</div></div>
-          <div class="rv-mid"><div class="rv-line"></div><div class="rv-dist">429 km</div></div>
-          <div class="rv-city" style="text-align:right"><div class="rv-name">Rio de Janeiro, RJ</div><div class="rv-sub">Madureira · Destino</div></div>
-        </div>
-      </div>
-      <div class="dsection">
-        <div class="dsection-label">Histórico de eventos</div>
-        <div class="tl-full">
-          <div class="tl-item done"><div class="tl-ico"><svg viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tl-event">Pedido criado e confirmado</div><div class="tl-detail">Emitido por admin · NF-e 000.432</div><div class="tl-time">07 abr · 09h14</div></div>
-          <div class="tl-item done"><div class="tl-ico"><svg viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tl-event">Itens separados no estoque</div><div class="tl-detail">Conferência OK · 3 volumes · 14,2 kg</div><div class="tl-time">07 abr · 11h52</div></div>
-          <div class="tl-item done"><div class="tl-ico"><svg viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tl-event">Coletado pela transportadora</div><div class="tl-detail">Motorista: Carlos M. · Placa HRK-2241</div><div class="tl-time">08 abr · 08h30</div></div>
-          <div class="tl-item done"><div class="tl-ico"><svg viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tl-event">Chegada no centro de triagem</div><div class="tl-detail">CD Correios Guarulhos · Voo GRU-SDU</div><div class="tl-time">08 abr · 16h07</div></div>
-          <div class="tl-item alert"><div class="tl-ico"><svg viewBox="0 0 10 10"><path d="M5 2v3.5M5 7.5v.5" stroke-linecap="round"/></svg></div><div class="tl-event">Atraso — evento climático</div><div class="tl-detail">Estimativa revisada em +12h</div><div class="tl-time">09 abr · 04h20</div></div>
-          <div class="tl-item active"><div class="tl-ico"><svg viewBox="0 0 10 10"><path d="M1 5h8M6 2l3 3-3 3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tl-event">Em rota para destino final</div><div class="tl-detail">Saiu de Resende, RJ · ~3h estimadas</div><div class="tl-time">10 abr · 07h48 · agora</div></div>
-          <div class="tl-item pending"><div class="tl-ico"><svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="3"/></svg></div><div class="tl-event">Tentativa de entrega</div><div class="tl-detail">Aguardando chegada ao destino</div><div class="tl-time">Previsto 10 abr · ~11h00</div></div>
-          <div class="tl-item pending"><div class="tl-ico"><svg viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tl-event">Entrega confirmada</div><div class="tl-detail">Assinatura digital + foto obrigatórias</div><div class="tl-time">Previsto 10 abr</div></div>
-        </div>
-      </div>
-    </div>
-    <!-- ITEMS -->
-    <div class="dtab-content" id="dtab-items">
-      <div class="dsection">
-        <div class="dsection-label">3 volumes · 14,2 kg total</div>
-        <div class="items-list">
-          <div class="item-row"><div class="item-ico"><svg viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="1"/><path d="M2 5h10"/></svg></div><div><div class="item-name">Notebook Dell XPS 13</div><div class="item-sku">SKU-00841 · Série A</div></div><div class="item-qty">× 2</div></div>
-          <div class="item-row"><div class="item-ico"><svg viewBox="0 0 14 14"><rect x="4" y="1" width="6" height="12" rx="1"/><path d="M6 10h2"/></svg></div><div><div class="item-name">Carregador 65W USB-C</div><div class="item-sku">SKU-00142 · Bivolt</div></div><div class="item-qty">× 2</div></div>
-          <div class="item-row"><div class="item-ico"><svg viewBox="0 0 14 14"><ellipse cx="7" cy="7" rx="5" ry="3"/></svg></div><div><div class="item-name">Mouse Logitech MX3</div><div class="item-sku">SKU-00295 · Preto</div></div><div class="item-qty">× 1</div></div>
-        </div>
-      </div>
-      <div class="dsection">
-        <div class="dsection-label">Embalagem</div>
-        <div class="meta-grid">
-          <div class="meta-item"><div class="meta-key">Volumes</div><div class="meta-val mono">3 caixas</div></div>
-          <div class="meta-item"><div class="meta-key">Peso bruto</div><div class="meta-val mono">14,2 kg</div></div>
-          <div class="meta-item"><div class="meta-key">Dimensões</div><div class="meta-val mono">40×30×25</div></div>
-          <div class="meta-item"><div class="meta-key">Valor declarado</div><div class="meta-val mono">R$ 8.490</div></div>
-        </div>
-      </div>
-    </div>
-    <!-- INFO -->
-    <div class="dtab-content" id="dtab-info">
-      <div class="dsection">
-        <div class="dsection-label">Remetente</div>
-        <div class="meta-grid">
-          <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Empresa</div><div class="meta-val">TechStore SP Ltda.</div></div>
-          <div class="meta-item"><div class="meta-key">CNPJ</div><div class="meta-val mono" style="font-size:11px">12.345.678/0001-90</div></div>
-          <div class="meta-item"><div class="meta-key">Contato</div><div class="meta-val mono">(11) 99200-4321</div></div>
-        </div>
-      </div>
-      <div class="dsection">
-        <div class="dsection-label">Destinatário</div>
-        <div class="meta-grid">
-          <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Nome</div><div class="meta-val">InfoNet Distribuidora</div></div>
-          <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Endereço</div><div class="meta-val">Rua Bento Ribeiro, 430 — Madureira, RJ · 21321-000</div></div>
-          <div class="meta-item"><div class="meta-key">CNPJ</div><div class="meta-val mono" style="font-size:11px">98.765.432/0001-11</div></div>
-          <div class="meta-item"><div class="meta-key">Contato</div><div class="meta-val mono">(21) 98810-0033</div></div>
-        </div>
-      </div>
-      <div class="dsection">
-        <div class="dsection-label">Fiscal</div>
-        <div class="meta-grid">
-          <div class="meta-item"><div class="meta-key">NF-e</div><div class="meta-val mono">000.432</div></div>
-          <div class="meta-item"><div class="meta-key">Chave</div><div class="meta-val mono" style="font-size:9px;word-break:break-all">35240412345678...9900</div></div>
-        </div>
-      </div>
-    </div>
-    <!-- CARRIER -->
-    <div class="dtab-content" id="dtab-carrier">
-      <div class="dsection">
-        <div class="dsection-label">Transportadora</div>
-        <div class="carrier-card">
-          <div class="carrier-top">
-            <div class="carrier-logo"><svg viewBox="0 0 16 16"><path d="M1 8h10M1 5h10M9 3l4 5-4 5"/></svg></div>
-            <div><div class="carrier-name">Correios</div><div class="carrier-svc">SEDEX · Prioridade</div></div>
-          </div>
-          <div class="carrier-fields">
-            <div><div class="cf-key">Código de rastreio</div><div class="cf-val">SB473821049BR</div></div>
-            <div><div class="cf-key">Modalidade</div><div class="cf-val">SEDEX 10</div></div>
-            <div><div class="cf-key">Prazo original</div><div class="cf-val">10 abr</div></div>
-            <div><div class="cf-key">Prazo revisado</div><div class="cf-val" style="color:var(--warning)">12 abr</div></div>
-            <div><div class="cf-key">Seguro</div><div class="cf-val">R$ 8.490</div></div>
-            <div><div class="cf-key">Frete</div><div class="cf-val">R$ 148,90</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="dsection">
-        <div class="dsection-label">Ocorrência ativa</div>
-        <div style="background:var(--danger-bg);border:1px solid rgba(248,113,113,.25);border-radius:var(--r);padding:12px 14px">
-          <div style="font-size:11px;color:var(--danger);font-weight:500;margin-bottom:4px">Atraso — Evento climático</div>
-          <div style="font-size:12px;color:var(--text-secondary)">Condições adversas em Resende/RJ causaram atraso de 12h na rota. Monitoramento ativo.</div>
-          <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:6px">Registrado 09 abr · 04h20 · Código OC-7743</div>
-        </div>
-      </div>
-    </div>
+  <div class="drawer-body" id="drawer-body">
+    <div class="dtab-content active" id="dtab-timeline"><div id="d-timeline-content"></div></div>
+    <div class="dtab-content" id="dtab-items"><div id="d-items-content"></div></div>
+    <div class="dtab-content" id="dtab-info"><div id="d-info-content"></div></div>
+    <div class="dtab-content" id="dtab-carrier"><div id="d-carrier-content"></div></div>
   </div>
   <div class="drawer-footer">
     <button class="btn-primary" onclick="showToast('Exportando NF-e...')">
@@ -1120,7 +990,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
         <div class="success-ring"><svg viewBox="0 0 26 26"><path d="M4 13l6 6L22 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="success-title">Entrada registrada!</div>
         <div class="success-sub">Os itens foram adicionados ao estoque e o pedido está disponível no sistema.</div>
-        <div class="success-id">#BR-4899</div>
+        <div class="success-id" id="success-id-val">#BR-4899</div>
         <div class="success-btns">
           <button class="btn-secondary" onclick="closeQR()">Fechar</button>
           <button class="btn-primary" onclick="closeQR();navToStr('estoque')">
@@ -1135,13 +1005,109 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 </div>
 
 <script>
-// ── DATA ──
+// ── DATABASE CENTRAL ──
+const db = {
+  products: [
+    {id:'SKU-00142', name:'Cabo USB-C 1m',        cat:'Eletrônicos', qty:4,  min:20, price:29.90},
+    {id:'SKU-00081', name:'Caixa Papelão P',       cat:'Embalagem',   qty:12, min:30, price:3.50},
+    {id:'SKU-00094', name:'Fita Adesiva 45mm',     cat:'Embalagem',   qty:48, min:40, price:5.20},
+    {id:'SKU-00841', name:'Notebook Dell XPS 13',  cat:'Informática', qty:16, min:10, price:7800},
+    {id:'SKU-00295', name:'Carregador 65W USB-C',  cat:'Eletrônicos', qty:3,  min:15, price:189},
+    {id:'SKU-00296', name:'Mouse Logitech MX3',    cat:'Informática', qty:22, min:10, price:499},
+    {id:'SKU-00311', name:'Teclado Mecânico K2',   cat:'Informática', qty:7,  min:12, price:620},
+    {id:'SKU-00400', name:'Monitor 24" LG',        cat:'Informática', qty:9,  min:5,  price:1350},
+    {id:'SKU-00512', name:'Headset Sony WH-1000',  cat:'Eletrônicos', qty:11, min:8,  price:1199},
+    {id:'SKU-00633', name:'Câmera Web 4K',         cat:'Eletrônicos', qty:6,  min:6,  price:399},
+    {id:'SKU-00720', name:'SSD 1TB Samsung',       cat:'Informática', qty:20, min:10, price:449},
+    {id:'SKU-00801', name:'Camiseta Básica P',     cat:'Vestuário',   qty:35, min:20, price:49},
+    {id:'SKU-00802', name:'Camiseta Básica M',     cat:'Vestuário',   qty:42, min:20, price:49},
+    {id:'SKU-00803', name:'Camiseta Básica G',     cat:'Vestuário',   qty:18, min:20, price:49},
+    {id:'SKU-00901', name:'Perfume Importado',     cat:'Cosméticos',  qty:8,  min:5,  price:389},
+    {id:'SKU-00902', name:'Sérum Vitamina C',      cat:'Cosméticos',  qty:25, min:15, price:89},
+    {id:'SKU-00903', name:'Base Facial HD',        cat:'Cosméticos',  qty:30, min:20, price:129},
+    {id:'SKU-01001', name:'Fone JBL Tune 510',     cat:'Eletrônicos', qty:14, min:10, price:299},
+    {id:'SKU-01100', name:'Régua 6 Tomadas',       cat:'Utilidades',  qty:19, min:15, price:89},
+    {id:'SKU-01200', name:'Hub USB-C 7 portas',    cat:'Informática', qty:2,  min:8,  price:219},
+  ]
+};
+
+// sincroniza IV_CATALOG com db.products (usados em outros módulos)
+function syncCatalog() {
+  IV_CATALOG.length = 0;
+  db.products.forEach(p => IV_CATALOG.push({id:p.id, name:p.name, cat:p.cat}));
+}
+
 const cargos = [
-  {id:'BR-4821',title:'Eletrônicos — Lote Maio',status:'transit',statusLabel:'Em trânsito',origin:'São Paulo, SP',dest:'Rio de Janeiro, RJ',carrier:'Correios PAC',eta:'12 abr',steps:[2,3],badges:['b-transit']},
-  {id:'BR-4799',title:'Vestuário — Cliente Marcos R.',status:'pending',statusLabel:'Aguardando',origin:'Campinas, SP',dest:'Belo Horizonte, MG',carrier:'Jadlog .COM',eta:'14 abr',steps:[1,3],badges:['b-pending']},
-  {id:'BR-4756',title:'Cosméticos — Pedido B2B',status:'delivered',statusLabel:'Entregue',origin:'Curitiba, PR',dest:'Florianópolis, SC',carrier:'Loggi Express',eta:'Concluído',steps:[4,4],badges:['b-delivered']},
-  {id:'BR-4812',title:'Informática — Lote Especial',status:'transit',statusLabel:'Em rota',origin:'Porto Alegre, RS',dest:'São Paulo, SP',carrier:'Correios SEDEX',eta:'11 abr',steps:[3,4],badges:['b-transit']},
-  {id:'BR-4801',title:'Alimentos — Pedido Orgânico',status:'pending',statusLabel:'Coletado',origin:'Ribeirão Preto, SP',dest:'Goiânia, GO',carrier:'Jadlog .COM',eta:'15 abr',steps:[1,4],badges:['b-pending']},
+  {id:'BR-4821',title:'Eletrônicos — Lote Maio',status:'transit',statusLabel:'Em trânsito',origin:'São Paulo, SP',dest:'Rio de Janeiro, RJ',carrier:'Correios SEDEX',eta:'12 abr',steps:[2,3],badges:['b-transit'],
+   remetente:{empresa:'TechStore SP Ltda.',cnpj:'12.345.678/0001-90',tel:'(11) 99200-4321'},
+   destinatario:{nome:'InfoNet Distribuidora',endereco:'Rua Bento Ribeiro, 430 — Madureira, RJ',cnpj:'98.765.432/0001-11',tel:'(21) 98810-0033'},
+   nfe:'000.432',peso:'14,2',volumes:3,
+   rastreio:'SB473821049BR',modalidade:'SEDEX 10',prazo:'10 abr',prazoRev:'12 abr',seguro:'R$ 8.490',frete:'R$ 148,90',
+   ocorrencia:{tipo:'Atraso — Evento climático',desc:'Condições adversas em Resende/RJ causaram atraso de 12h na rota. Monitoramento ativo.',data:'09 abr · 04h20 · Código OC-7743'},
+   itens:[{name:'Notebook Dell XPS 13',sku:'SKU-00841',qty:2},{name:'Carregador 65W USB-C',sku:'SKU-00142',qty:2},{name:'Mouse Logitech MX3',sku:'SKU-00295',qty:1}],
+   timeline:[
+     {cls:'done',ev:'Pedido criado e confirmado',detail:'Emitido por admin · NF-e 000.432',time:'07 abr · 09h14'},
+     {cls:'done',ev:'Itens separados no estoque',detail:'Conferência OK · 3 volumes · 14,2 kg',time:'07 abr · 11h52'},
+     {cls:'done',ev:'Coletado pela transportadora',detail:'Motorista: Carlos M. · Placa HRK-2241',time:'08 abr · 08h30'},
+     {cls:'done',ev:'Chegada no centro de triagem',detail:'CD Correios Guarulhos · Voo GRU-SDU',time:'08 abr · 16h07'},
+     {cls:'alert',ev:'Atraso — evento climático',detail:'Estimativa revisada em +12h',time:'09 abr · 04h20'},
+     {cls:'active',ev:'Em rota para destino final',detail:'Saiu de Resende, RJ · ~3h estimadas',time:'10 abr · 07h48 · agora'},
+     {cls:'pending',ev:'Tentativa de entrega',detail:'Aguardando chegada ao destino',time:'Previsto 12 abr'},
+     {cls:'pending',ev:'Entrega confirmada',detail:'Assinatura digital + foto obrigatórias',time:'Previsto 12 abr'},
+   ]},
+  {id:'BR-4799',title:'Vestuário — Cliente Marcos R.',status:'pending',statusLabel:'Aguardando',origin:'Campinas, SP',dest:'Belo Horizonte, MG',carrier:'Jadlog .COM',eta:'14 abr',steps:[1,3],badges:['b-pending'],
+   remetente:{empresa:'ModaFlex Ind.',cnpj:'55.444.333/0001-22',tel:'(19) 98800-1122'},
+   destinatario:{nome:'Marcos Rocha',endereco:'Av. Getúlio Vargas, 500 — Savassi, BH',cnpj:'—',tel:'(31) 99100-5566'},
+   nfe:'000.388',peso:'8,0',volumes:2,
+   rastreio:'JD112233445BR',modalidade:'.COM Expresso',prazo:'14 abr',prazoRev:null,seguro:'R$ 980',frete:'R$ 38,50',
+   ocorrencia:null,
+   itens:[{name:'Camiseta Básica P',sku:'SKU-00801',qty:5},{name:'Camiseta Básica M',sku:'SKU-00802',qty:5},{name:'Camiseta Básica G',sku:'SKU-00803',qty:3}],
+   timeline:[
+     {cls:'done',ev:'Pedido criado e confirmado',detail:'Emitido por admin · NF-e 000.388',time:'08 abr · 14h00'},
+     {cls:'active',ev:'Aguardando coleta',detail:'Jadlog irá coletar hoje após 16h',time:'10 abr · pendente'},
+     {cls:'pending',ev:'Em rota',detail:'—',time:'Previsto 11 abr'},
+     {cls:'pending',ev:'Entrega ao destinatário',detail:'—',time:'Previsto 14 abr'},
+   ]},
+  {id:'BR-4756',title:'Cosméticos — Pedido B2B',status:'delivered',statusLabel:'Entregue',origin:'Curitiba, PR',dest:'Florianópolis, SC',carrier:'Loggi Express',eta:'Concluído',steps:[4,4],badges:['b-delivered'],
+   remetente:{empresa:'BellaVita Cosm.',cnpj:'77.888.999/0001-44',tel:'(41) 98700-3344'},
+   destinatario:{nome:'Beleza & Cia Ltda.',endereco:'Rua Felipe Schmidt, 200 — Centro, Florianópolis',cnpj:'11.222.333/0001-55',tel:'(48) 99200-7788'},
+   nfe:'000.310',peso:'5,5',volumes:1,
+   rastreio:'LG998877665SC',modalidade:'Express',prazo:'09 abr',prazoRev:null,seguro:'R$ 2.100',frete:'R$ 52,00',
+   ocorrencia:null,
+   itens:[{name:'Perfume Importado',sku:'SKU-00901',qty:3},{name:'Sérum Vitamina C',sku:'SKU-00902',qty:10},{name:'Base Facial HD',sku:'SKU-00903',qty:8}],
+   timeline:[
+     {cls:'done',ev:'Pedido criado',detail:'NF-e 000.310',time:'06 abr · 10h00'},
+     {cls:'done',ev:'Coletado pela Loggi',detail:'Motorista: Ana P.',time:'07 abr · 13h20'},
+     {cls:'done',ev:'Em rota',detail:'Curitiba → Florianópolis',time:'08 abr · 09h00'},
+     {cls:'done',ev:'Entregue com sucesso',detail:'Assinado por: Carla M.',time:'09 abr · 14h35'},
+   ]},
+  {id:'BR-4812',title:'Informática — Lote Especial',status:'transit',statusLabel:'Em rota',origin:'Porto Alegre, RS',dest:'São Paulo, SP',carrier:'Correios SEDEX',eta:'11 abr',steps:[3,4],badges:['b-transit'],
+   remetente:{empresa:'InfoNet Dist.',cnpj:'98.765.432/0001-11',tel:'(51) 99300-8899'},
+   destinatario:{nome:'TechStore SP Ltda.',endereco:'Av. Paulista, 1000 — Bela Vista, SP',cnpj:'12.345.678/0001-90',tel:'(11) 99200-4321'},
+   nfe:'000.401',peso:'22,0',volumes:4,
+   rastreio:'SB998001772BR',modalidade:'SEDEX',prazo:'11 abr',prazoRev:null,seguro:'R$ 22.000',frete:'R$ 290,00',
+   ocorrencia:null,
+   itens:[{name:'Notebook Dell XPS 13',sku:'SKU-00841',qty:2},{name:'SSD 1TB Samsung',sku:'SKU-00720',qty:5},{name:'Monitor 24" LG',sku:'SKU-00400',qty:2}],
+   timeline:[
+     {cls:'done',ev:'Pedido criado',detail:'NF-e 000.401',time:'08 abr · 08h00'},
+     {cls:'done',ev:'Separado e embalado',detail:'4 volumes · 22 kg',time:'08 abr · 12h00'},
+     {cls:'done',ev:'Coletado pelos Correios',detail:'AG Porto Alegre Centro',time:'09 abr · 09h30'},
+     {cls:'active',ev:'Em rota — SP',detail:'Saiu de Curitiba, PR às 06h',time:'10 abr · 06h00 · agora'},
+     {cls:'pending',ev:'Entrega final',detail:'—',time:'Previsto 11 abr'},
+   ]},
+  {id:'BR-4801',title:'Alimentos — Pedido Orgânico',status:'pending',statusLabel:'Coletado',origin:'Ribeirão Preto, SP',dest:'Goiânia, GO',carrier:'Jadlog .COM',eta:'15 abr',steps:[1,4],badges:['b-pending'],
+   remetente:{empresa:'NaturaFoods Ltda.',cnpj:'33.444.555/0001-66',tel:'(16) 98800-5511'},
+   destinatario:{nome:'Mercado Verde GO',endereco:'Rua 44, 300 — Setor Marista, Goiânia',cnpj:'66.777.888/0001-99',tel:'(62) 99100-4422'},
+   nfe:'000.299',peso:'18,0',volumes:5,
+   rastreio:'JD554433221GO',modalidade:'.COM',prazo:'15 abr',prazoRev:null,seguro:'R$ 1.200',frete:'R$ 78,00',
+   ocorrencia:null,
+   itens:[{name:'Fita Adesiva 45mm',sku:'SKU-00094',qty:20},{name:'Caixa Papelão P',sku:'SKU-00081',qty:15}],
+   timeline:[
+     {cls:'done',ev:'Pedido criado',detail:'NF-e 000.299',time:'09 abr · 16h00'},
+     {cls:'active',ev:'Aguardando coleta',detail:'Jadlog · amanhã às 09h',time:'10 abr · pendente'},
+     {cls:'pending',ev:'Em rota',detail:'—',time:'Previsto 12 abr'},
+     {cls:'pending',ev:'Entrega final',detail:'—',time:'Previsto 15 abr'},
+   ]},
 ];
 
 const stepLabels = ['Coleta','Triagem','Rota','Entrega'];
@@ -1182,17 +1148,131 @@ function renderCards(list, containerId) {
 renderCards(cargos.slice(0, 3), 'cargo-list');
 renderCards(cargos, 'cargo-list-all');
 
-// ── SEARCH FILTER ──
+// ── SEARCH FILTER — Pedidos ──
 function filterCards(q) {
   const term = q.toLowerCase();
   const filtered = cargos.filter(c =>
     c.id.toLowerCase().includes(term) ||
     c.title.toLowerCase().includes(term) ||
     c.origin.toLowerCase().includes(term) ||
-    c.dest.toLowerCase().includes(term)
+    c.dest.toLowerCase().includes(term) ||
+    (c.remetente && c.remetente.empresa.toLowerCase().includes(term)) ||
+    (c.destinatario && c.destinatario.nome.toLowerCase().includes(term))
   );
   renderCards(filtered.slice(0, 3), 'cargo-list');
+  renderCards(filtered, 'cargo-list-all');
 }
+
+// ── STOCK STATUS ──
+function stockStatus(p) {
+  const pct = p.qty / p.min;
+  if (p.qty === 0) return {label:'Zerado', bg:'var(--danger-bg)', color:'var(--danger)', cls:'stock-low'};
+  if (pct < 0.3)  return {label:'Crítico', bg:'var(--danger-bg)', color:'var(--danger)', cls:'stock-low'};
+  if (pct < 0.8)  return {label:'Baixo',   bg:'var(--warning-bg)', color:'var(--warning)', cls:'stock-low'};
+  return {label:'OK', bg:'var(--success-bg)', color:'var(--success)', cls:'stock-ok'};
+}
+
+function stockRowHtml(p, editable) {
+  const s = stockStatus(p);
+  const qtyEl = editable
+    ? `<div class="stock-num ${s.cls}" style="text-align:right;cursor:pointer;border-bottom:1px dashed var(--border2)"
+         title="Clique para editar" onclick="editQty('${p.id}',${p.qty})">${p.qty}</div>`
+    : `<div class="stock-num ${s.cls}">${p.qty}</div>`;
+  return `<div class="stock-row">
+    <div><div class="stock-name">${p.name}</div><div class="stock-sku">${p.id}</div></div>
+    ${qtyEl}
+    <div class="stock-num">${p.min}</div>
+    <div style="text-align:right"><span class="pill" style="background:${s.bg};color:${s.color}">${s.label}</span></div>
+  </div>`;
+}
+
+// ── RENDER STOCK TABLE FULL (Estoque page) ──
+function renderStockFull(q) {
+  const el = document.getElementById('stock-table-full');
+  if (!el) return;
+  const term = (q||'').toLowerCase();
+  const list = db.products.filter(p =>
+    !term || p.name.toLowerCase().includes(term) || p.id.toLowerCase().includes(term) || p.cat.toLowerCase().includes(term)
+  );
+  if (!list.length) { el.innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum produto encontrado</div>'; return; }
+  el.innerHTML =
+    `<div class="stock-row hdr"><div>Produto / SKU</div><div style="text-align:right">Qtd</div><div style="text-align:right">Mín</div><div style="text-align:right">Status</div></div>` +
+    list.map(p => stockRowHtml(p, true)).join('');
+}
+
+// ── RENDER CRITICAL STOCK (Dashboard) ──
+function renderCriticalStock() {
+  const el = document.getElementById('stock-table-critical');
+  if (!el) return;
+  const critical = db.products.filter(p => p.qty / p.min < 0.8).slice(0, 5);
+  if (!critical.length) { el.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--success)">✓ Todos os itens acima do mínimo</div>'; return; }
+  el.innerHTML =
+    `<div class="stock-row hdr"><div>Produto / SKU</div><div style="text-align:right">Qtd</div><div style="text-align:right">Mín</div><div style="text-align:right">Status</div></div>` +
+    critical.map(p => stockRowHtml(p, false)).join('');
+}
+
+// ── RENDER DASHBOARD METRICS ──
+function renderDashMetrics() {
+  const el = document.getElementById('dash-metrics');
+  if (!el) return;
+  const transit   = cargos.filter(c => c.status === 'transit').length;
+  const delivered = cargos.filter(c => c.status === 'delivered').length;
+  const totalQty  = db.products.reduce((s,p) => s+p.qty, 0);
+  const belowMin  = db.products.filter(p => p.qty < p.min).length;
+  const alertas   = db.products.filter(p => p.qty / p.min < 0.3).length;
+  el.innerHTML = `
+    <div class="metric-card"><div class="metric-label">Em trânsito</div><div class="metric-value">${transit}</div><div class="metric-delta" style="color:var(--success)">${cargos.filter(c=>c.status==='pending').length} aguardando</div></div>
+    <div class="metric-card"><div class="metric-label">Entregues</div><div class="metric-value">${delivered}</div><div class="metric-delta" style="color:var(--info)">de ${cargos.length} pedidos</div></div>
+    <div class="metric-card"><div class="metric-label">Estoque total</div><div class="metric-value">${totalQty.toLocaleString('pt-BR')}</div><div class="metric-delta" style="color:${belowMin?'var(--warning)':'var(--success)'}">${belowMin} abaixo do mín</div></div>
+    <div class="metric-card"><div class="metric-label">Alertas</div><div class="metric-value" style="color:${alertas?'var(--danger)':'var(--success)'}">${alertas}</div><div class="metric-delta" style="color:${alertas?'var(--danger)':'var(--text-muted)'}">${alertas?'requer ação':'tudo normal'}</div></div>
+  `;
+}
+
+// ── RENDER ESTOQUE METRICS ──
+function renderEstoqueMetrics() {
+  const el = document.getElementById('estoque-metrics');
+  if (!el) return;
+  const total  = db.products.reduce((s,p) => s+p.qty, 0);
+  const baixo  = db.products.filter(p => p.qty < p.min).length;
+  const valor  = db.products.reduce((s,p) => s + p.qty * (p.price||0), 0);
+  el.innerHTML = `
+    <div class="metric-card"><div class="metric-label">Total de SKUs</div><div class="metric-value">${db.products.length}</div><div class="metric-delta" style="color:var(--info)">produtos ativos</div></div>
+    <div class="metric-card"><div class="metric-label">Unidades totais</div><div class="metric-value">${total.toLocaleString('pt-BR')}</div><div class="metric-delta" style="color:var(--success)">em estoque</div></div>
+    <div class="metric-card"><div class="metric-label">Abaixo do mínimo</div><div class="metric-value" style="color:${baixo?'var(--warning)':'var(--success)'}">${baixo}</div><div class="metric-delta" style="color:${baixo?'var(--warning)':'var(--text-muted)'}">${baixo?'repor hoje':'OK'}</div></div>
+    <div class="metric-card"><div class="metric-label">Valor estimado</div><div class="metric-value">${valor>=1000?(valor/1000).toFixed(0)+'k':valor.toFixed(0)}</div><div class="metric-delta" style="color:var(--success)">R$ ${valor.toLocaleString('pt-BR',{minimumFractionDigits:0})}</div></div>
+  `;
+}
+
+// ── EDIT QTY INLINE ──
+function editQty(skuId, current) {
+  const novo = prompt(`Nova quantidade para ${skuId}:`, current);
+  if (novo === null || novo === '') return;
+  const n = parseInt(novo);
+  if (isNaN(n) || n < 0) { showToast('⚠️ Quantidade inválida'); return; }
+  const p = db.products.find(x => x.id === skuId);
+  if (p) {
+    p.qty = n;
+    renderAll();
+    showToast(`✓ ${p.name}: ${n} unidades`);
+  }
+}
+
+// ── RENDER ALL (atualiza tudo de uma vez) ──
+function renderAll() {
+  renderDashMetrics();
+  renderCriticalStock();
+  renderEstoqueMetrics();
+  renderStockFull(document.getElementById('estoque-search')?.value || '');
+  renderCards(cargos.slice(0,3), 'cargo-list');
+  renderCards(cargos, 'cargo-list-all');
+  syncCatalog();
+  // atualiza badge da sidebar
+  const badge = document.querySelector('.nav-item[data-page="pedidos"] .nav-badge');
+  if (badge) badge.textContent = cargos.filter(c=>c.status!=='delivered').length;
+}
+
+// ── INIT ──
+renderAll();
 
 // ── NAV ──
 const pageTitles = {
@@ -1632,6 +1712,10 @@ function navTo(pageId, sidebarEl, tbId) {
 
   currentPage = pageId;
 
+  // re-renderiza dados ao entrar na página
+  if (pageId === 'estoque') { renderEstoqueMetrics(); renderStockFull(document.getElementById('estoque-search')?.value||''); }
+  if (pageId === 'dashboard') { renderDashMetrics(); renderCriticalStock(); }
+
   // init heatmap on first visit
   if (pageId === 'heatmap') {
     setTimeout(() => { ivBuildMetrics(ivMatrixData); ivBuildHeatmap(ivMatrixData); }, 10);
@@ -1654,19 +1738,134 @@ function toggleSidebar() {
 
 // ── DRAWER ──
 function openDrawer(id) {
+  const c = cargos.find(x => x.id === id);
+  if (!c) return;
   const overlay = document.getElementById('drawer-overlay');
-  const drawer = document.getElementById('drawer');
+  const drawer  = document.getElementById('drawer');
   overlay.classList.add('open');
   drawer.classList.add('open');
   requestAnimationFrame(() => overlay.classList.add('visible'));
 
   // reset tabs
   document.querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.dtab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.dtab-content').forEach(ct => ct.classList.remove('active'));
   document.querySelectorAll('.dtab')[0].classList.add('active');
   document.getElementById('dtab-timeline').classList.add('active');
 
-  document.getElementById('d-id').textContent = 'PEDIDO · #' + id;
+  // header
+  document.getElementById('d-id').textContent    = 'PEDIDO · #' + c.id;
+  document.getElementById('d-title').textContent  = c.title;
+  document.getElementById('d-badges').innerHTML   = c.badges.map(b => `<span class="badge ${b}">${c.statusLabel}</span>`).join('');
+
+  // ── TAB: TIMELINE ──
+  const tlIcons = {
+    done:   `<svg viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    alert:  `<svg viewBox="0 0 10 10"><path d="M5 2v3.5M5 7.5v.5" stroke-linecap="round"/></svg>`,
+    active: `<svg viewBox="0 0 10 10"><path d="M1 5h8M6 2l3 3-3 3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    pending:`<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="3"/></svg>`,
+  };
+  document.getElementById('d-timeline-content').innerHTML = `
+    <div class="dsection">
+      <div class="dsection-label">Rota</div>
+      <div class="route-visual">
+        <div class="rv-city"><div class="rv-name">${c.origin}</div><div class="rv-sub">Origem</div></div>
+        <div class="rv-mid"><div class="rv-line"></div></div>
+        <div class="rv-city" style="text-align:right"><div class="rv-name">${c.dest}</div><div class="rv-sub">Destino</div></div>
+      </div>
+    </div>
+    <div class="dsection">
+      <div class="dsection-label">Histórico de eventos</div>
+      <div class="tl-full">
+        ${(c.timeline||[]).map(t => `
+          <div class="tl-item ${t.cls}">
+            <div class="tl-ico">${tlIcons[t.cls]||tlIcons.pending}</div>
+            <div class="tl-event">${t.ev}</div>
+            <div class="tl-detail">${t.detail}</div>
+            <div class="tl-time">${t.time}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  // ── TAB: ITENS ──
+  document.getElementById('d-items-content').innerHTML = `
+    <div class="dsection">
+      <div class="dsection-label">${c.volumes} volume(s) · ${c.peso} kg total</div>
+      <div class="items-list">
+        ${(c.itens||[]).map(it => `
+          <div class="item-row">
+            <div class="item-ico"><svg viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="1"/><path d="M2 5h10"/></svg></div>
+            <div><div class="item-name">${it.name}</div><div class="item-sku">${it.sku}</div></div>
+            <div class="item-qty">× ${it.qty}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="dsection">
+      <div class="dsection-label">Embalagem</div>
+      <div class="meta-grid">
+        <div class="meta-item"><div class="meta-key">Volumes</div><div class="meta-val mono">${c.volumes} caixa(s)</div></div>
+        <div class="meta-item"><div class="meta-key">Peso bruto</div><div class="meta-val mono">${c.peso} kg</div></div>
+        <div class="meta-item"><div class="meta-key">NF-e</div><div class="meta-val mono">${c.nfe}</div></div>
+        <div class="meta-item"><div class="meta-key">Seguro</div><div class="meta-val mono">${c.seguro}</div></div>
+      </div>
+    </div>`;
+
+  // ── TAB: INFO ──
+  const dest = c.destinatario||{};
+  const rem  = c.remetente||{};
+  document.getElementById('d-info-content').innerHTML = `
+    <div class="dsection">
+      <div class="dsection-label">Remetente</div>
+      <div class="meta-grid">
+        <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Empresa</div><div class="meta-val">${rem.empresa||'—'}</div></div>
+        <div class="meta-item"><div class="meta-key">CNPJ</div><div class="meta-val mono" style="font-size:11px">${rem.cnpj||'—'}</div></div>
+        <div class="meta-item"><div class="meta-key">Contato</div><div class="meta-val mono">${rem.tel||'—'}</div></div>
+      </div>
+    </div>
+    <div class="dsection">
+      <div class="dsection-label">Destinatário</div>
+      <div class="meta-grid">
+        <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Nome</div><div class="meta-val">${dest.nome||'—'}</div></div>
+        <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Endereço</div><div class="meta-val">${dest.endereco||'—'}</div></div>
+        <div class="meta-item"><div class="meta-key">CNPJ</div><div class="meta-val mono" style="font-size:11px">${dest.cnpj||'—'}</div></div>
+        <div class="meta-item"><div class="meta-key">Contato</div><div class="meta-val mono">${dest.tel||'—'}</div></div>
+      </div>
+    </div>
+    <div class="dsection">
+      <div class="dsection-label">Fiscal</div>
+      <div class="meta-grid">
+        <div class="meta-item"><div class="meta-key">NF-e</div><div class="meta-val mono">${c.nfe}</div></div>
+        <div class="meta-item"><div class="meta-key">Transportadora</div><div class="meta-val mono">${c.carrier}</div></div>
+      </div>
+    </div>`;
+
+  // ── TAB: CARRIER ──
+  const ocEl = c.ocorrencia
+    ? `<div class="dsection">
+        <div class="dsection-label">Ocorrência ativa</div>
+        <div style="background:var(--danger-bg);border:1px solid rgba(248,113,113,.25);border-radius:var(--r);padding:12px 14px">
+          <div style="font-size:11px;color:var(--danger);font-weight:500;margin-bottom:4px">${c.ocorrencia.tipo}</div>
+          <div style="font-size:12px;color:var(--text-secondary)">${c.ocorrencia.desc}</div>
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:6px">${c.ocorrencia.data}</div>
+        </div>
+      </div>` : '';
+  document.getElementById('d-carrier-content').innerHTML = `
+    <div class="dsection">
+      <div class="dsection-label">Transportadora</div>
+      <div class="carrier-card">
+        <div class="carrier-top">
+          <div class="carrier-logo"><svg viewBox="0 0 16 16"><path d="M1 8h10M1 5h10M9 3l4 5-4 5"/></svg></div>
+          <div><div class="carrier-name">${c.carrier}</div><div class="carrier-svc">${c.modalidade||''}</div></div>
+        </div>
+        <div class="carrier-fields">
+          <div><div class="cf-key">Código de rastreio</div><div class="cf-val">${c.rastreio||'—'}</div></div>
+          <div><div class="cf-key">Prazo original</div><div class="cf-val">${c.prazo||c.eta}</div></div>
+          ${c.prazoRev?`<div><div class="cf-key">Prazo revisado</div><div class="cf-val" style="color:var(--warning)">${c.prazoRev}</div></div>`:''}
+          <div><div class="cf-key">Frete</div><div class="cf-val">${c.frete||'—'}</div></div>
+          <div><div class="cf-key">Seguro</div><div class="cf-val">${c.seguro||'—'}</div></div>
+        </div>
+      </div>
+    </div>
+    ${ocEl}`;
 }
 
 function closeDrawer() {
@@ -1726,6 +1925,32 @@ function msGo(id, scan) {
       document.getElementById('form-modal-title').textContent = 'Entrada Manual';
       document.getElementById('form-modal-sub').textContent = 'Preencha os dados do pedido';
     }
+  }
+  if (id === 'ms5') {
+    // Salva o novo pedido
+    const pedNum = 'BR-' + (4900 + cargos.length);
+    const empresa = document.getElementById('fi-emp')?.value || 'Fornecedor';
+    const tipo = document.querySelector('#ms4 select')?.value || 'Compra de fornecedor';
+    const newCargo = {
+      id: pedNum,
+      title: tipo + ' — ' + empresa,
+      status: 'pending', statusLabel: 'Aguardando',
+      origin: document.getElementById('fi-uf')?.value || 'SP',
+      dest: 'CD Principal',
+      carrier: document.querySelector('#ms4 select:last-of-type')?.value || 'Correios SEDEX',
+      eta: 'em breve',
+      steps: [0, 3],
+      badges: ['b-pending'],
+      remetente: {empresa: empresa, cnpj: document.getElementById('fi-cnpj')?.value || '—', tel: '—'},
+      destinatario: {nome: 'CD Principal', endereco: '—', cnpj: '—', tel: '—'},
+      nfe: document.getElementById('fi-nfe')?.value || '—',
+      peso: '—', volumes: 1, seguro: '—', frete: '—',
+      rastreio: '—', modalidade: '—', prazo: 'em breve', prazoRev: null, ocorrencia: null,
+      itens: [], timeline: [{cls:'done',ev:'Pedido criado',detail:'Via FluxWMS',time:'agora'}],
+    };
+    cargos.unshift(newCargo);
+    document.getElementById('success-id-val').textContent = '#' + pedNum;
+    renderAll();
   }
   msGoTo(id);
 }
@@ -1914,7 +2139,19 @@ function resetScanSession() {
 
 function exportScanSession() {
   const total = Object.values(scanCounts).reduce((a,b)=>a+b,0);
-  showToast(`✅ Lote de ${total} unidades confirmado!`);
+  // Atualiza estoque real
+  Object.entries(scanCounts).forEach(([skuId, qty]) => {
+    const p = db.products.find(x => x.id === skuId);
+    if (p) {
+      p.qty += qty;
+    } else {
+      // produto novo (cadastrado na sessão) — adiciona ao db
+      const cat = IV_CATALOG.find(x => x.id === skuId);
+      if (cat) db.products.push({id:skuId, name:cat.name, cat:cat.cat, qty, min:5, price:0});
+    }
+  });
+  renderAll();
+  showToast(`✅ Lote de ${total} unidades confirmado! Estoque atualizado.`);
   resetScanSession();
 }
 
@@ -2032,13 +2269,16 @@ function saveNewProductFromScan() {
     return;
   }
 
-  // Adiciona ao catálogo em memória
+  // Adiciona ao catálogo e ao db.products
+  const newProd = { id: sku, name: name.trim(), cat, qty, min: 5, price: 0 };
+  db.products.push(newProd);
   IV_CATALOG.push({ id: sku, name: name.trim(), cat });
 
   // Registra na contagem da sessão
   scanCounts[sku] = qty;
 
   document.getElementById('new-product-modal-overlay').remove();
+  renderAll();
   showToast(`✅ "${name}" cadastrado! (${qty} un.)`);
 
   // Abre o painel de contagem mostrando o novo produto
