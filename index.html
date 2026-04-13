@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LogBeep</title>
+<title>FluxWMS — Dashboard Logístico</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -19,12 +19,6 @@
   --info-bg:#0E2540;--info:#60A5FA;
   --font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
   --r:6px;--r2:8px;--sidebar:220px;
-  --s1:#0d0d0d;--s2:#141414;--s3:#1a1a1a;
-  --b1:#1f1f1f;--b2:#2a2a2a;--b3:#383838;
-  --t1:#e8e8e8;--t2:#888;--t3:#444;
-  --emerald:#1a4a2e;--emerald-mid:#1f6b3a;--emerald-hi:#27a354;
-  --amber-lo:#3a2800;--amber-mid:#6b4800;--amber-hi:#c87c00;
-  --danger-lo:#3a1010;--danger-hi:#d44;
 }
 
 html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--bg);color:var(--text-primary);font-size:14px;line-height:1.5}
@@ -400,34 +394,6 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 @media(max-width:480px){
   .metrics-row{grid-template-columns:1fr 1fr}
   .stock-row{grid-template-columns:1fr 48px 72px}
-.iv{background:transparent;min-height:520px;display:flex;flex-direction:column;gap:0}
-.iv-topbar{background:var(--surface2);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-radius:var(--r2) var(--r2) 0 0}
-.iv-search{flex:1;min-width:200px;position:relative;display:flex;align-items:center}
-.iv-search-ico{position:absolute;left:10px;color:var(--text-muted);display:flex}
-.iv-search-ico svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
-.iv-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 36px 8px 34px;color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none;transition:border-color .15s}
-.iv-input:focus{border-color:var(--border2)}
-.btn-search{background:var(--surface3);border:1px solid var(--border2);border-radius:6px;padding:8px 14px;color:var(--text-secondary);font-family:var(--font);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px}
-.btn-search:hover{border-color:var(--border2);color:var(--text-primary)}
-.iv-filters{background:var(--surface2);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.filter-label{font-size:10px;color:var(--text-muted);text-transform:uppercase}
-.sel{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 8px;color:var(--text-secondary);font-size:12px;cursor:pointer;outline:none}
-.toggle-group{display:flex;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:2px}
-.tg-btn{background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;color:var(--text-muted);cursor:pointer}
-.tg-btn.active{background:var(--surface3);color:var(--text-primary);border:1px solid var(--border2)}
-.iv-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
-.mc{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 12px}
-.mc-label{font-size:10px;color:var(--text-muted);margin-bottom:4px}
-.mc-value{font-size:18px;font-weight:600;color:var(--text-primary);font-family:var(--mono)}
-.iv-heatmap-wrap{padding:14px 18px;flex:1;overflow:hidden;background:var(--surface2);border-radius:0 0 var(--r2) var(--r2)}
-.hm-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.hm-title{font-size:11px;color:var(--text-secondary);text-transform:uppercase}
-.hm-grid{display:grid;min-width:max-content}
-.hm-cell{width:54px;height:44px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:1px solid transparent}
-.hm-cell:hover{border-color:var(--border2);z-index:1}
-.hm-cell-val{font-size:11px;font-family:var(--mono);font-weight:500;line-height:1}
-.hm-cell-pct{font-size:9px;margin-top:2px;opacity:.7}
-.hm-scroll{overflow-x:auto;overflow-y:hidden}
 }
 </style>
 </head>
@@ -445,7 +411,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
       <div class="logo-mark">
         <svg viewBox="0 0 14 14"><path d="M1 7h5M8 7h5M7 1v5M7 8v5" stroke-linecap="round"/></svg>
       </div>
-      <span class="logo-name">LogBeep</span>
+      <span class="logo-name">FluxWMS</span>
     </div>
 
     <div class="nav-section">
@@ -466,6 +432,10 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
         <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>
         Rastreio
         <span class="nav-badge">3</span>
+      </div>
+      <div class="nav-item" data-page="heatmap" onclick="navTo('heatmap',this)">
+        <svg viewBox="0 0 16 16"><rect x="1" y="1" width="4" height="4" rx=".5"/><rect x="6" y="1" width="4" height="4" rx=".5"/><rect x="11" y="1" width="4" height="4" rx=".5"/><rect x="1" y="6" width="4" height="4" rx=".5"/><rect x="6" y="6" width="4" height="4" rx=".5"/><rect x="11" y="6" width="4" height="4" rx=".5"/><rect x="1" y="11" width="4" height="4" rx=".5"/><rect x="6" y="11" width="4" height="4" rx=".5"/><rect x="11" y="11" width="4" height="4" rx=".5"/></svg>
+        Mapa de Estoque
       </div>
     </div>
 
@@ -588,66 +558,31 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
     </div>
 
     <!-- ── PAGE: ESTOQUE ── -->
-<div class="iv">
-  <div class="iv-topbar">
-    <div class="iv-search">
-      <div class="iv-search-ico">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      </div>
-      <input type="text" class="iv-input" id="sku-input" placeholder="Buscar SKU, lote ou localização..." onkeyup="if(event.key==='Enter') doSearch()">
-      <div class="kbd">⌘K</div>
-    </div>
-    <button class="btn-search" onclick="doSearch()">
-      Buscar
-    </button>
-  </div>
-
-  <div class="iv-filters">
-    <span class="filter-label">Rua:</span>
-    <div class="toggle-group" id="tg-rua">
-      <button class="tg-btn active" onclick="setToggle('tg-rua', this, 'A')">Corredor A</button>
-      <button class="tg-btn" onclick="setToggle('tg-rua', this, 'B')">Corredor B</button>
-      <button class="tg-btn" onclick="setToggle('tg-rua', this, 'C')">Corredor C</button>
-    </div>
-    <div class="filter-sep"></div>
-    <span class="filter-label">Nível:</span>
-    <div class="toggle-group" id="tg-nivel">
-      <button class="tg-btn active" onclick="setToggle('tg-nivel', this, 'Todos')">Todos</button>
-      <button class="tg-btn" onclick="setToggle('tg-nivel', this, 'Baixo')">Baixo</button>
-      <button class="tg-btn" onclick="setToggle('tg-nivel', this, 'Médio')">Médio</button>
-      <button class="tg-btn" onclick="setToggle('tg-nivel', this, 'Alto')">Alto</button>
-    </div>
-  </div>
-
-  <div class="iv-metrics">
-    <div class="mc">
-      <div class="mc-label">OCUPAÇÃO TOTAL</div>
-      <div class="mc-value" id="m-occ">84%</div>
-    </div>
-    <div class="mc">
-      <div class="mc-label">SKUs ÚNICOS</div>
-      <div class="mc-value" id="m-skus">142</div>
-    </div>
-    <div class="mc">
-      <div class="mc-label">ITENS TOTAIS</div>
-      <div class="mc-value" id="m-items">12.450</div>
-    </div>
-    <div class="mc">
-      <div class="mc-label">ESPAÇOS LIVRES</div>
-      <div class="mc-value" style="color:var(--success)" id="m-free">16</div>
-    </div>
-  </div>
-
-  <div class="iv-heatmap-wrap">
-    <div class="hm-header">
-      <div class="hm-title">Mapa de Calor da Localização</div>
-    </div>
-    <div class="hm-scroll">
-      <div class="hm-grid" id="heatmap-grid">
+    <div class="page" id="page-estoque">
+      <div class="content">
+        <div class="metrics-row">
+          <div class="metric-card"><div class="metric-label">Total de SKUs</div><div class="metric-value">142</div><div class="metric-delta" style="color:var(--info)">+4 este mês</div></div>
+          <div class="metric-card"><div class="metric-label">Unidades totais</div><div class="metric-value">847</div><div class="metric-delta" style="color:var(--success)">estável</div></div>
+          <div class="metric-card"><div class="metric-label">Abaixo do mínimo</div><div class="metric-value" style="color:var(--warning)">8</div><div class="metric-delta" style="color:var(--warning)">repor hoje</div></div>
+          <div class="metric-card"><div class="metric-label">Valor em estoque</div><div class="metric-value">142k</div><div class="metric-delta" style="color:var(--success)">R$ 142.800</div></div>
         </div>
+        <div>
+          <div class="section-header"><div class="section-title">Todos os itens</div></div>
+          <div class="stock-table">
+            <div class="stock-row hdr"><div>Produto / SKU</div><div style="text-align:right">Qtd</div><div style="text-align:right">Mín</div><div style="text-align:right">Status</div></div>
+            <div class="stock-row"><div><div class="stock-name">Cabo USB-C 1m</div><div class="stock-sku">SKU-00142</div></div><div class="stock-num stock-low">4</div><div class="stock-num">20</div><div style="text-align:right"><span class="pill" style="background:var(--danger-bg);color:var(--danger)">Crítico</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Caixa Papelão P</div><div class="stock-sku">SKU-00081</div></div><div class="stock-num stock-low">12</div><div class="stock-num">30</div><div style="text-align:right"><span class="pill" style="background:var(--warning-bg);color:var(--warning)">Baixo</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Fita Adesiva 45mm</div><div class="stock-sku">SKU-00094</div></div><div class="stock-num stock-ok">48</div><div class="stock-num">40</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Notebook Dell XPS 13</div><div class="stock-sku">SKU-00841</div></div><div class="stock-num stock-ok">16</div><div class="stock-num">10</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Carregador 65W USB-C</div><div class="stock-sku">SKU-00295</div></div><div class="stock-num stock-low">3</div><div class="stock-num">15</div><div style="text-align:right"><span class="pill" style="background:var(--danger-bg);color:var(--danger)">Crítico</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Mouse Logitech MX3</div><div class="stock-sku">SKU-00296</div></div><div class="stock-num stock-ok">22</div><div class="stock-num">10</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Teclado Mecânico K2</div><div class="stock-sku">SKU-00311</div></div><div class="stock-num stock-low">7</div><div class="stock-num">12</div><div style="text-align:right"><span class="pill" style="background:var(--warning-bg);color:var(--warning)">Baixo</span></div></div>
+            <div class="stock-row"><div><div class="stock-name">Monitor 24" LG</div><div class="stock-sku">SKU-00400</div></div><div class="stock-num stock-ok">9</div><div class="stock-num">5</div><div style="text-align:right"><span class="pill" style="background:var(--success-bg);color:var(--success)">OK</span></div></div>
+          </div>
+        </div>
+        <div style="height:80px"></div>
+      </div>
     </div>
-  </div>
-</div>
 
     <!-- ── PAGE: RASTREIO ── -->
     <div class="page" id="page-rastreio">
@@ -690,6 +625,185 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
           <div class="supplier-card"><div class="supplier-head"><div class="supplier-logo" style="background:var(--success-bg)">BV</div><div><div class="supplier-name">BellaVita Cosm.</div><div class="supplier-cat">Cosméticos · Curitiba</div></div></div><div class="supplier-meta"><span>CNPJ 77.888.999/0001-44</span><span style="color:var(--warning)">Revisão</span></div></div>
         </div>
         <div style="height:80px"></div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: MAPA DE ESTOQUE (HEATMAP) ── -->
+    <div class="page" id="page-heatmap">
+      <div style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+
+        <!-- TAB BAR -->
+        <div style="background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:stretch;padding:0 18px;flex-shrink:0">
+          <div id="hmtab-mapa" onclick="ivSwitchTab('mapa')" style="padding:12px 16px;font-size:13px;font-weight:500;color:var(--text-primary);cursor:pointer;border-bottom:2px solid var(--text-primary);margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:all .15s">
+            <svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8" viewBox="0 0 14 14"><rect x="1" y="1" width="3.5" height="3.5" rx=".5"/><rect x="5.25" y="1" width="3.5" height="3.5" rx=".5"/><rect x="9.5" y="1" width="3.5" height="3.5" rx=".5"/><rect x="1" y="5.25" width="3.5" height="3.5" rx=".5"/><rect x="5.25" y="5.25" width="3.5" height="3.5" rx=".5"/><rect x="9.5" y="5.25" width="3.5" height="3.5" rx=".5"/><rect x="1" y="9.5" width="3.5" height="3.5" rx=".5"/><rect x="5.25" y="9.5" width="3.5" height="3.5" rx=".5"/><rect x="9.5" y="9.5" width="3.5" height="3.5" rx=".5"/></svg>
+            Mapa de Posições
+          </div>
+          <div id="hmtab-produto" onclick="ivSwitchTab('produto')" style="padding:12px 16px;font-size:13px;font-weight:400;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:all .15s">
+            <svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8" viewBox="0 0 14 14"><circle cx="6" cy="6" r="4"/><path d="M9.5 9.5l3 3" stroke-linecap="round"/></svg>
+            Localizar Produto
+          </div>
+          <div style="margin-left:auto;display:flex;align-items:center">
+            <button onclick="showToast('Scanner ativado')" style="background:var(--accent-dim);border:1px solid rgba(124,111,255,.3);border-radius:var(--r);padding:5px 12px;color:#c4beff;font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px">
+              <svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 14 14"><rect x="1" y="1" width="4" height="4" rx="1"/><rect x="9" y="1" width="4" height="4" rx="1"/><rect x="1" y="9" width="4" height="4" rx="1"/><path d="M9 9h1.5v1.5H9zM10.5 10.5H13M10.5 9H13M9 10.5v2.5"/></svg>
+              Scan QR
+            </button>
+          </div>
+        </div>
+
+        <!-- ── ABA: MAPA DE POSIÇÕES ── -->
+        <div id="hmview-mapa" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+
+          <!-- FILTERS -->
+          <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
+            <span style="font-size:10px;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap">Rua</span>
+            <div id="tg-rua" style="display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px">
+              <button class="iv-tg active" onclick="ivSetToggle('tg-rua',this,'1')" style="background:var(--surface3);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-primary);cursor:pointer">R1</button>
+              <button class="iv-tg" onclick="ivSetToggle('tg-rua',this,'2')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">R2</button>
+              <button class="iv-tg" onclick="ivSetToggle('tg-rua',this,'3')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">R3</button>
+              <button class="iv-tg" onclick="ivSetToggle('tg-rua',this,'4')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">R4</button>
+              <button class="iv-tg" onclick="ivSetToggle('tg-rua',this,'5')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">R5</button>
+            </div>
+            <div style="width:1px;height:18px;background:var(--border);flex-shrink:0"></div>
+            <span style="font-size:10px;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap">Nível</span>
+            <div id="tg-nivel" style="display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px">
+              <button class="iv-tg active" onclick="ivSetToggle('tg-nivel',this,'all')" style="background:var(--surface3);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-primary);cursor:pointer">Todos</button>
+              <button class="iv-tg" onclick="ivSetToggle('tg-nivel',this,'1')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">N1</button>
+              <button class="iv-tg" onclick="ivSetToggle('tg-nivel',this,'2')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">N2</button>
+              <button class="iv-tg" onclick="ivSetToggle('tg-nivel',this,'3')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">N3</button>
+              <button class="iv-tg" onclick="ivSetToggle('tg-nivel',this,'4')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">N4</button>
+              <button class="iv-tg" onclick="ivSetToggle('tg-nivel',this,'5')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">N5</button>
+            </div>
+            <div style="width:1px;height:18px;background:var(--border);flex-shrink:0"></div>
+            <span style="font-size:10px;color:var(--text-muted);font-style:italic">Clique em uma célula para atribuir ou editar produto</span>
+          </div>
+
+          <!-- METRICS -->
+          <div id="iv-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 18px;border-bottom:1px solid var(--border);flex-shrink:0"></div>
+
+          <!-- HEATMAP AREA -->
+          <div style="padding:14px 18px;flex:1;overflow:hidden;display:flex;flex-direction:column">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0">
+              <div id="hm-title" style="font-size:11px;color:var(--text-secondary);letter-spacing:.4px;text-transform:uppercase">Rua 1 — mapa de posições</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-muted)">
+                <span>Vazio</span>
+                <div style="display:flex;gap:2px;align-items:center">
+                  <div style="width:14px;height:10px;border-radius:2px;background:rgba(27,73,45,.3)"></div>
+                  <div style="width:14px;height:10px;border-radius:2px;background:rgba(27,90,50,.55)"></div>
+                  <div style="width:14px;height:10px;border-radius:2px;background:rgba(25,100,52,.85)"></div>
+                </div>
+                <span>Cheio</span>
+                <div style="width:1px;height:10px;background:var(--border);margin:0 4px"></div>
+                <div style="width:14px;height:10px;border-radius:2px;background:rgba(100,65,0,.75)"></div><span>Baixo</span>
+                <div style="width:1px;height:10px;background:var(--border);margin:0 4px"></div>
+                <div style="width:14px;height:10px;border-radius:2px;background:rgba(180,40,40,.55)"></div><span>Crítico</span>
+                <div style="width:1px;height:10px;background:var(--border);margin:0 4px"></div>
+                <div style="width:14px;height:10px;border-radius:2px;background:rgba(99,88,255,.5);border:1px solid rgba(124,111,255,.6)"></div><span>Com produto</span>
+              </div>
+            </div>
+            <div style="overflow-x:auto;overflow-y:auto;flex:1">
+              <div id="heatmap-container"></div>
+            </div>
+          </div>
+
+          <!-- FOOTER -->
+          <div style="padding:10px 18px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-shrink:0">
+            <div style="font-size:11px;color:var(--text-muted)">Mostrando <span id="foot-count" style="color:var(--text-secondary);font-family:var(--mono)">100</span> posições · Rua <span id="foot-rua" style="color:var(--text-secondary);font-family:var(--mono)">1</span> · Última sync <span style="color:var(--text-secondary);font-family:var(--mono)">há 2 min</span></div>
+            <div id="foot-sel" style="font-size:11px;color:var(--text-muted)"></div>
+          </div>
+        </div>
+
+        <!-- ── ABA: LOCALIZAR PRODUTO ── -->
+        <div id="hmview-produto" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+          <!-- SEARCH -->
+          <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+            <div style="flex:1;position:relative;display:flex;align-items:center">
+              <div style="position:absolute;left:10px;color:var(--text-muted);display:flex">
+                <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8" viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg>
+              </div>
+              <input id="prod-search" placeholder="Buscar por nome ou SKU..." oninput="ivFilterProductList(this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px 8px 34px;color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <span style="font-size:11px;color:var(--text-muted)">Clique num produto para ver onde está no armazém</span>
+          </div>
+
+          <!-- SPLIT: lista + mini-mapa -->
+          <div style="flex:1;overflow:hidden;display:flex;gap:0">
+
+            <!-- PRODUCT LIST -->
+            <div style="width:300px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column">
+              <div id="prod-list" style="padding:8px;display:flex;flex-direction:column;gap:4px"></div>
+            </div>
+
+            <!-- LOCATOR PANEL -->
+            <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;padding:16px 20px">
+              <div id="prod-locator-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text-muted)">
+                <svg style="width:36px;height:36px;stroke:currentColor;fill:none;stroke-width:1.2;opacity:.4" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
+                <div style="font-size:13px">Selecione um produto para localizar no armazém</div>
+              </div>
+              <div id="prod-locator-result" style="display:none;flex-direction:column;gap:14px;flex:1;overflow-y:auto">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between">
+                  <div>
+                    <div id="loc-prod-name" style="font-size:15px;font-weight:500;color:var(--text-primary)"></div>
+                    <div id="loc-prod-sku" style="font-size:11px;font-family:var(--mono);color:var(--text-muted);margin-top:2px"></div>
+                  </div>
+                  <button onclick="ivClearLocator()" style="background:transparent;border:1px solid var(--border);border-radius:var(--r);padding:5px 10px;font-size:11px;color:var(--text-muted);cursor:pointer;font-family:var(--font)">Limpar</button>
+                </div>
+                <!-- posições encontradas -->
+                <div id="loc-positions" style="display:flex;flex-direction:column;gap:6px"></div>
+                <!-- mini heatmap por rua -->
+                <div>
+                  <div style="font-size:10px;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">Mapa geral — todas as ruas</div>
+                  <div id="loc-map-grid" style="display:flex;flex-direction:column;gap:6px"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MODAL: ATRIBUIR PRODUTO A POSIÇÃO -->
+    <div id="cell-modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;display:none;opacity:0;transition:opacity .2s;align-items:center;justify-content:center" onclick="ivCloseCellModal()">
+      <div onclick="event.stopPropagation()" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;width:400px;max-width:94vw;display:flex;flex-direction:column;overflow:hidden;transform:translateY(16px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)" id="cell-modal">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <div id="cm-cell-id" style="font-size:10px;font-family:var(--mono);color:var(--text-muted);letter-spacing:.6px;margin-bottom:3px"></div>
+            <div style="font-size:14px;font-weight:500;color:var(--text-primary)">Atribuir produto à posição</div>
+          </div>
+          <button onclick="ivCloseCellModal()" style="background:transparent;border:1px solid var(--border);border-radius:5px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)">
+            <svg style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 12 12"><path d="M1 1l10 10M11 1L1 11" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div><div style="font-size:10px;color:var(--text-muted)">Posição</div><div id="cm-pos" style="font-size:13px;font-family:var(--mono);color:var(--text-primary)"></div></div>
+            <div><div style="font-size:10px;color:var(--text-muted)">Capacidade</div><div id="cm-cap" style="font-size:13px;font-family:var(--mono);color:var(--text-primary)"></div></div>
+          </div>
+          <!-- produto atual -->
+          <div id="cm-current-wrap" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;display:none">
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Produto atual</div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div id="cm-current-name" style="font-size:13px;color:var(--text-primary)"></div>
+                <div id="cm-current-sku" style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:2px"></div>
+              </div>
+              <button onclick="ivRemoveProduct()" style="background:var(--danger-bg);border:1px solid rgba(248,113,113,.2);border-radius:5px;padding:4px 10px;font-size:11px;color:var(--danger);cursor:pointer;font-family:var(--font)">Remover</button>
+            </div>
+          </div>
+          <!-- selecionar produto -->
+          <div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px">Selecionar produto</div>
+            <div style="position:relative;display:flex;align-items:center;margin-bottom:8px">
+              <div style="position:absolute;left:9px;color:var(--text-muted);display:flex"><svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8" viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg></div>
+              <input id="cm-search" placeholder="Buscar produto por nome ou SKU..." oninput="ivCmFilter(this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px 7px 30px;color:var(--text-primary);font-family:var(--font);font-size:12px;outline:none" onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div id="cm-product-list" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;border:1px solid var(--border);border-radius:var(--r);padding:4px;background:var(--surface2)"></div>
+          </div>
+        </div>
+        <div style="padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px">
+          <button onclick="ivConfirmAssign()" id="cm-confirm-btn" style="flex:1;background:var(--text-primary);color:var(--bg);border:none;border-radius:var(--r);padding:9px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;opacity:.4;pointer-events:none" disabled>Confirmar</button>
+          <button onclick="ivCloseCellModal()" style="background:transparent;border:1px solid var(--border);border-radius:var(--r);padding:9px 16px;color:var(--text-secondary);font-family:var(--font);font-size:13px;cursor:pointer">Cancelar</button>
+        </div>
       </div>
     </div>
 
@@ -1087,7 +1201,410 @@ const pageTitles = {
   estoque: ['Estoque', '847 unidades · 142 SKUs'],
   rastreio: ['Rastreio', '4 pedidos monitorados'],
   fornecedores: ['Fornecedores', '4 parceiros cadastrados'],
+  heatmap: ['Mapa de Estoque', 'Visualização de ocupação por posição'],
 };
+
+// ── HEATMAP MODULE ──
+const IV_LEVELS  = 5;
+const IV_RACKS   = 20;
+const IV_MAX_CAP = 800;
+let ivCurrentRua   = '1';
+let ivCurrentNivel = 'all';
+let ivMatrixData   = {};
+// positionProducts[cellId] = { skuId, name, sku }
+let positionProducts = {};
+// activeTab
+let ivActiveTab = 'mapa';
+// cell modal state
+let cmCurrentCell = null;
+let cmSelectedProduct = null;
+
+// ── CATALOG ──
+const IV_CATALOG = [
+  {id:'SKU-00142', name:'Cabo USB-C 1m',        cat:'Eletrônicos'},
+  {id:'SKU-00081', name:'Caixa Papelão P',       cat:'Embalagem'},
+  {id:'SKU-00094', name:'Fita Adesiva 45mm',     cat:'Embalagem'},
+  {id:'SKU-00841', name:'Notebook Dell XPS 13',  cat:'Informática'},
+  {id:'SKU-00295', name:'Carregador 65W USB-C',  cat:'Eletrônicos'},
+  {id:'SKU-00296', name:'Mouse Logitech MX3',    cat:'Informática'},
+  {id:'SKU-00311', name:'Teclado Mecânico K2',   cat:'Informática'},
+  {id:'SKU-00400', name:'Monitor 24" LG',        cat:'Informática'},
+  {id:'SKU-00512', name:'Headset Sony WH-1000',  cat:'Eletrônicos'},
+  {id:'SKU-00633', name:'Câmera Web 4K',         cat:'Eletrônicos'},
+  {id:'SKU-00720', name:'SSD 1TB Samsung',       cat:'Informática'},
+  {id:'SKU-00801', name:'Camiseta Básica P',     cat:'Vestuário'},
+  {id:'SKU-00802', name:'Camiseta Básica M',     cat:'Vestuário'},
+  {id:'SKU-00803', name:'Camiseta Básica G',     cat:'Vestuário'},
+  {id:'SKU-00901', name:'Perfume Importado',     cat:'Cosméticos'},
+  {id:'SKU-00902', name:'Sérum Vitamina C',      cat:'Cosméticos'},
+  {id:'SKU-00903', name:'Base Facial HD',        cat:'Cosméticos'},
+  {id:'SKU-01001', name:'Fone JBL Tune 510',     cat:'Eletrônicos'},
+  {id:'SKU-01100', name:'Régua 6 Tomadas',       cat:'Utilidades'},
+  {id:'SKU-01200', name:'Hub USB-C 7 portas',    cat:'Informática'},
+];
+
+function ivSwitchTab(tab) {
+  ivActiveTab = tab;
+  const tabMapa = document.getElementById('hmtab-mapa');
+  const tabProd = document.getElementById('hmtab-produto');
+  const viewMapa = document.getElementById('hmview-mapa');
+  const viewProd = document.getElementById('hmview-produto');
+  if (tab === 'mapa') {
+    tabMapa.style.cssText = 'padding:12px 16px;font-size:13px;font-weight:500;color:var(--text-primary);cursor:pointer;border-bottom:2px solid var(--text-primary);margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:all .15s';
+    tabProd.style.cssText = 'padding:12px 16px;font-size:13px;font-weight:400;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:all .15s';
+    viewMapa.style.display = 'flex';
+    viewProd.style.display = 'none';
+  } else {
+    tabMapa.style.cssText = 'padding:12px 16px;font-size:13px;font-weight:400;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:all .15s';
+    tabProd.style.cssText = 'padding:12px 16px;font-size:13px;font-weight:500;color:var(--text-primary);cursor:pointer;border-bottom:2px solid var(--text-primary);margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:all .15s';
+    viewMapa.style.display = 'none';
+    viewProd.style.display = 'flex';
+    ivRenderProductList('');
+  }
+}
+
+// ── SEED ──
+function ivSeed(rua) {
+  const r = {};
+  for (let lv = 1; lv <= IV_LEVELS; lv++) {
+    r[lv] = {};
+    for (let rk = 1; rk <= IV_RACKS; rk++) {
+      const rand = Math.random();
+      let val;
+      if (rand < 0.06) val = 0;
+      else if (rand < 0.18) val = Math.round(Math.random() * 80 + 20);
+      else val = Math.round(Math.random() * 680 + 100);
+      r[lv][rk] = val;
+    }
+  }
+  return r;
+}
+
+function ivCellColor(val) {
+  if (val === 0) return {bg:'rgba(20,20,20,.9)',tc:'#333'};
+  const pct = val / IV_MAX_CAP;
+  if (pct < 0.12) return {bg:'rgba(180,40,40,.55)',tc:'#f88'};
+  if (pct < 0.25) return {bg:'rgba(100,65,0,.75)',tc:'#c87c00'};
+  if (pct < 0.5)  return {bg:'rgba(27,73,45,.5)',tc:'#4aad6a'};
+  if (pct < 0.75) return {bg:'rgba(27,90,50,.7)',tc:'#5dc97a'};
+  return {bg:'rgba(25,100,52,.85)',tc:'#7fdda0'};
+}
+
+function ivBuildMetrics(data) {
+  let total=0, filled=0, low=0, crit=0;
+  for (let lv=1;lv<=IV_LEVELS;lv++) for (let rk=1;rk<=IV_RACKS;rk++) {
+    const v = data[lv][rk];
+    total += v; if (v>0) filled++;
+    if (v>0 && v/IV_MAX_CAP<0.12) crit++;
+    else if (v>0 && v/IV_MAX_CAP<0.25) low++;
+  }
+  const withProd = Object.keys(positionProducts).filter(k => k.startsWith(`R${ivCurrentRua}-`)).length;
+  const el = document.getElementById('iv-metrics');
+  if (!el) return;
+  el.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Unidades totais</div><div style="font-size:18px;font-weight:600;color:var(--text-primary);font-family:var(--mono);letter-spacing:-1px">${total.toLocaleString('pt-BR')}</div><div style="font-size:10px;margin-top:2px;color:#5dc97a">Rua ${ivCurrentRua}</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Posições ocupadas</div><div style="font-size:18px;font-weight:600;color:var(--text-primary);font-family:var(--mono);letter-spacing:-1px">${filled}</div><div style="font-size:10px;margin-top:2px;color:var(--text-muted)">de ${IV_LEVELS*IV_RACKS}</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Produtos mapeados</div><div style="font-size:18px;font-weight:600;color:#c4beff;font-family:var(--mono);letter-spacing:-1px">${withProd}</div><div style="font-size:10px;margin-top:2px;color:#7c6fff">posições com produto</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Crítico</div><div style="font-size:18px;font-weight:600;color:var(--danger);font-family:var(--mono);letter-spacing:-1px">${crit}</div><div style="font-size:10px;margin-top:2px;color:var(--danger)">requer reposição</div></div>
+  `;
+}
+
+function ivBuildHeatmap(data) {
+  const container = document.getElementById('heatmap-container');
+  if (!container) return;
+  const levelsToShow = ivCurrentNivel === 'all'
+    ? Array.from({length:IV_LEVELS},(_,i)=>i+1)
+    : [parseInt(ivCurrentNivel)];
+
+  let html = `<div style="display:grid;grid-template-columns:40px ${Array(IV_RACKS).fill('62px').join(' ')};gap:3px;min-width:max-content">`;
+  html += `<div style="width:40px;height:22px"></div>`;
+  for (let rk=1;rk<=IV_RACKS;rk++) html += `<div style="width:62px;height:22px;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:var(--mono);color:var(--text-muted)">P${rk}</div>`;
+
+  for (const lv of levelsToShow) {
+    html += `<div style="width:40px;height:52px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:10px;font-family:var(--mono);color:var(--text-muted);flex-shrink:0">N${lv}</div>`;
+    for (let rk=1;rk<=IV_RACKS;rk++) {
+      const val = data[lv][rk];
+      let {bg,tc} = ivCellColor(val);
+      const pct = Math.round(val/IV_MAX_CAP*100);
+      const cellId = `R${ivCurrentRua}-N${lv}-P${rk}`;
+      const prod = positionProducts[cellId];
+      if (prod) { bg = 'rgba(99,88,255,.35)'; tc = '#c4beff'; }
+      const prodLabel = prod
+        ? `<div style="font-size:8px;color:${tc};opacity:.85;margin-top:1px;max-width:56px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center">${prod.name.split(' ').slice(0,2).join(' ')}</div>`
+        : '';
+      const titleStr = prod
+        ? `${cellId}: ${prod.name} (${prod.id}) · ${val.toLocaleString('pt-BR')} un`
+        : `${cellId}: ${val.toLocaleString('pt-BR')} un · ${pct}%`;
+      html += `
+        <div onclick="ivOpenCellModal('${cellId}',${val},${lv},${rk})" title="${titleStr}"
+          style="width:62px;height:52px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .12s;border:1px solid ${prod?'rgba(124,111,255,.5)':'transparent'};background:${bg};position:relative"
+          onmouseover="this.style.borderColor='rgba(255,255,255,.25)';this.style.transform='scale(1.06)';this.style.zIndex='2'"
+          onmouseout="this.style.borderColor='${prod?'rgba(124,111,255,.5)':'transparent'}';this.style.transform='scale(1)';this.style.zIndex='0'">
+          <div style="font-size:10px;font-family:var(--mono);font-weight:500;color:${tc};line-height:1">${val===0?'—':val.toLocaleString('pt-BR')}</div>
+          ${val>0&&!prod?`<div style="font-size:8px;margin-top:1px;color:${tc};opacity:.7">${pct}%</div>`:''}
+          ${prodLabel}
+          ${prod?`<div style="position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:#7c6fff"></div>`:''}
+        </div>`;
+    }
+  }
+  html += '</div>';
+  container.innerHTML = html;
+  const titleEl = document.getElementById('hm-title');
+  if (titleEl) titleEl.textContent = `Rua ${ivCurrentRua} — mapa de posições`;
+  const footRua = document.getElementById('foot-rua');
+  if (footRua) footRua.textContent = ivCurrentRua;
+  const footCount = document.getElementById('foot-count');
+  if (footCount) footCount.textContent = levelsToShow.length * IV_RACKS;
+}
+
+function ivSetToggle(groupId, btn, val) {
+  document.querySelectorAll(`#${groupId} .iv-tg`).forEach(b => {
+    b.style.background = 'transparent'; b.style.border = 'none'; b.style.color = 'var(--text-muted)';
+  });
+  btn.style.background = 'var(--surface3)'; btn.style.border = '1px solid var(--border)'; btn.style.color = 'var(--text-primary)';
+  if (groupId === 'tg-rua') {
+    ivCurrentRua = val;
+    ivMatrixData = ivSeed(ivCurrentRua);
+    ivBuildMetrics(ivMatrixData);
+  } else { ivCurrentNivel = val; }
+  ivBuildHeatmap(ivMatrixData);
+}
+function ivUpdateFilters() { ivBuildHeatmap(ivMatrixData); }
+function filterBySku(v) { showToast(v ? `Filtrando: "${v}"` : 'Filtro limpo'); }
+function ivDoSearch() { const i = document.getElementById('sku-input'); if(i&&i.value) showToast(`Buscando: "${i.value}"`); }
+
+// ── CELL MODAL ──
+function ivOpenCellModal(cellId, val, lv, rk) {
+  cmCurrentCell = { cellId, val, lv, rk };
+  cmSelectedProduct = null;
+  document.getElementById('cm-cell-id').textContent = 'POSIÇÃO · ' + cellId;
+  document.getElementById('cm-pos').textContent = cellId;
+  document.getElementById('cm-cap').textContent = val.toLocaleString('pt-BR') + ' un · ' + Math.round(val/IV_MAX_CAP*100) + '%';
+  // current product
+  const cur = positionProducts[cellId];
+  const wrap = document.getElementById('cm-current-wrap');
+  if (cur) {
+    wrap.style.display = 'block';
+    document.getElementById('cm-current-name').textContent = cur.name;
+    document.getElementById('cm-current-sku').textContent = cur.id;
+  } else { wrap.style.display = 'none'; }
+  // reset search & list
+  document.getElementById('cm-search').value = '';
+  ivCmFilter('');
+  ivCmResetConfirm();
+  // open
+  const ov = document.getElementById('cell-modal-overlay');
+  ov.style.display = 'flex';
+  requestAnimationFrame(() => {
+    ov.style.opacity = '1';
+    document.getElementById('cell-modal').style.transform = 'translateY(0)';
+  });
+}
+
+function ivCloseCellModal() {
+  const ov = document.getElementById('cell-modal-overlay');
+  ov.style.opacity = '0';
+  document.getElementById('cell-modal').style.transform = 'translateY(16px)';
+  setTimeout(() => { ov.style.display = 'none'; }, 250);
+  cmCurrentCell = null; cmSelectedProduct = null;
+}
+
+function ivCmFilter(q) {
+  const list = document.getElementById('cm-product-list');
+  const filtered = IV_CATALOG.filter(p =>
+    p.name.toLowerCase().includes(q.toLowerCase()) || p.id.toLowerCase().includes(q.toLowerCase())
+  );
+  list.innerHTML = filtered.map(p => `
+    <div onclick="ivCmSelectProd('${p.id}')" id="cmprod-${p.id.replace(/[^a-z0-9]/gi,'')}"
+      style="padding:8px 10px;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background .12s"
+      onmouseover="this.style.background='var(--surface3)'" onmouseout="if(!this.classList.contains('selected'))this.style.background='transparent'">
+      <div>
+        <div style="font-size:12px;color:var(--text-primary)">${p.name}</div>
+        <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:1px">${p.id} · ${p.cat}</div>
+      </div>
+    </div>`).join('') || '<div style="padding:10px;font-size:12px;color:var(--text-muted);text-align:center">Nenhum produto encontrado</div>';
+}
+
+function ivCmSelectProd(skuId) {
+  cmSelectedProduct = IV_CATALOG.find(p => p.id === skuId);
+  // visual selection
+  document.querySelectorAll('#cm-product-list > div').forEach(el => {
+    el.style.background = 'transparent'; el.classList.remove('selected');
+  });
+  const key = skuId.replace(/[^a-z0-9]/gi,'');
+  const el = document.getElementById('cmprod-' + key);
+  if (el) { el.style.background = 'var(--accent-dim)'; el.classList.add('selected'); }
+  // enable confirm
+  const btn = document.getElementById('cm-confirm-btn');
+  btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; btn.removeAttribute('disabled');
+}
+
+function ivCmResetConfirm() {
+  const btn = document.getElementById('cm-confirm-btn');
+  btn.style.opacity = '.4'; btn.style.pointerEvents = 'none'; btn.setAttribute('disabled','');
+  cmSelectedProduct = null;
+}
+
+function ivConfirmAssign() {
+  if (!cmSelectedProduct || !cmCurrentCell) return;
+  positionProducts[cmCurrentCell.cellId] = { id: cmSelectedProduct.id, name: cmSelectedProduct.name };
+  ivCloseCellModal();
+  ivBuildHeatmap(ivMatrixData);
+  ivBuildMetrics(ivMatrixData);
+  showToast(`${cmSelectedProduct.name} → ${cmCurrentCell.cellId}`);
+}
+
+function ivRemoveProduct() {
+  if (!cmCurrentCell) return;
+  delete positionProducts[cmCurrentCell.cellId];
+  document.getElementById('cm-current-wrap').style.display = 'none';
+  ivCloseCellModal();
+  ivBuildHeatmap(ivMatrixData);
+  ivBuildMetrics(ivMatrixData);
+  showToast('Produto removido da posição');
+}
+
+// ── LOCALIZAR PRODUTO ──
+function ivRenderProductList(q) {
+  const list = document.getElementById('prod-list');
+  if (!list) return;
+  const filtered = IV_CATALOG.filter(p =>
+    p.name.toLowerCase().includes(q.toLowerCase()) || p.id.toLowerCase().includes(q.toLowerCase())
+  );
+  // group: show products that have positions first
+  const withPos = filtered.filter(p => Object.values(positionProducts).some(pp => pp.id === p.id));
+  const withoutPos = filtered.filter(p => !Object.values(positionProducts).some(pp => pp.id === p.id));
+  const renderItem = (p, hasPos) => {
+    const count = Object.entries(positionProducts).filter(([,v]) => v.id === p.id).length;
+    return `<div onclick="ivLocateProduct('${p.id}')" id="proditem-${p.id.replace(/[^a-z0-9]/gi,'')}"
+      style="padding:9px 12px;border-radius:var(--r);cursor:pointer;transition:background .12s;border:1px solid transparent"
+      onmouseover="this.style.background='var(--surface2)'" onmouseout="if(!this.classList.contains('active-prod'))this.style.background='transparent'">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+        <div style="font-size:12px;color:var(--text-primary);font-weight:${hasPos?'500':'400'}">${p.name}</div>
+        ${hasPos?`<span style="font-size:9px;padding:2px 6px;border-radius:3px;background:var(--accent-dim);color:#c4beff;font-family:var(--mono)">${count} pos.</span>`:''}
+      </div>
+      <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted)">${p.id} · ${p.cat}</div>
+    </div>`;
+  };
+  let html = '';
+  if (withPos.length) {
+    html += `<div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;padding:6px 12px 4px">Mapeados</div>`;
+    html += withPos.map(p => renderItem(p, true)).join('');
+  }
+  if (withoutPos.length) {
+    html += `<div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;padding:${withPos.length?'10px':'6px'} 12px 4px">Sem posição</div>`;
+    html += withoutPos.map(p => renderItem(p, false)).join('');
+  }
+  if (!filtered.length) html = '<div style="padding:20px;font-size:12px;color:var(--text-muted);text-align:center">Nenhum produto encontrado</div>';
+  list.innerHTML = html;
+}
+
+function ivFilterProductList(q) { ivRenderProductList(q); }
+
+function ivLocateProduct(skuId) {
+  const prod = IV_CATALOG.find(p => p.id === skuId);
+  if (!prod) return;
+  // highlight in list
+  document.querySelectorAll('#prod-list > div[id^="proditem-"]').forEach(el => {
+    el.classList.remove('active-prod'); el.style.background = 'transparent'; el.style.border = '1px solid transparent';
+  });
+  const key = skuId.replace(/[^a-z0-9]/gi,'');
+  const listEl = document.getElementById('proditem-' + key);
+  if (listEl) { listEl.classList.add('active-prod'); listEl.style.background = 'var(--accent-dim)'; listEl.style.border = '1px solid rgba(124,111,255,.3)'; }
+
+  // find all positions
+  const positions = Object.entries(positionProducts).filter(([,v]) => v.id === skuId).map(([k]) => k);
+
+  // show result panel
+  document.getElementById('prod-locator-empty').style.display = 'none';
+  const res = document.getElementById('prod-locator-result');
+  res.style.display = 'flex';
+  document.getElementById('loc-prod-name').textContent = prod.name;
+  document.getElementById('loc-prod-sku').textContent = prod.id + ' · ' + prod.cat;
+
+  // positions list
+  const posEl = document.getElementById('loc-positions');
+  if (positions.length === 0) {
+    posEl.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;font-size:12px;color:var(--text-muted)">
+      Nenhuma posição mapeada para este produto.
+      <button onclick="ivSwitchTab('mapa')" style="display:inline;background:none;border:none;color:#c4beff;cursor:pointer;font-size:12px;font-family:var(--font);padding:0 4px">Ir ao mapa →</button>
+    </div>`;
+  } else {
+    posEl.innerHTML = `<div style="font-size:10px;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">${positions.length} posição(ões) encontrada(s)</div>` +
+      positions.map(pos => {
+        const [,ruaPart,nivelPart,predioPart] = pos.match(/R(\d+)-N(\d+)-P(\d+)/)||[];
+        const val = ivMatrixData[nivelPart] ? (ivMatrixData[nivelPart][predioPart]||0) : 0;
+        const pct = Math.round(val/IV_MAX_CAP*100);
+        return `<div onclick="ivGoToPos('${pos}')" style="background:var(--accent-dim);border:1px solid rgba(124,111,255,.3);border-radius:var(--r);padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s"
+          onmouseover="this.style.background='#2a2060'" onmouseout="this.style.background='var(--accent-dim)'">
+          <div>
+            <div style="font-size:13px;font-family:var(--mono);color:#c4beff;font-weight:500">${pos}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Rua ${ruaPart} · Nível ${nivelPart} · Prédio ${predioPart}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;font-family:var(--mono);color:var(--text-secondary)">${val.toLocaleString('pt-BR')} un</div>
+            <div style="font-size:10px;color:var(--text-muted)">${pct}% cap.</div>
+          </div>
+        </div>`;
+      }).join('');
+  }
+
+  // mini map: all ruas
+  const mapGrid = document.getElementById('loc-map-grid');
+  let mapHtml = '';
+  for (let r=1;r<=5;r++) {
+    const ruaPositions = positions.filter(p => p.startsWith(`R${r}-`));
+    const dots = Array.from({length:IV_LEVELS},(_,lv) =>
+      Array.from({length:IV_RACKS},(_,rk) => {
+        const cid = `R${r}-N${lv+1}-P${rk+1}`;
+        const hasProd = ruaPositions.includes(cid);
+        return `<div title="${cid}" style="width:8px;height:8px;border-radius:1px;background:${hasProd?'#7c6fff':'var(--surface3)'}"></div>`;
+      }).join('')
+    ).join('');
+    mapHtml += `<div style="display:flex;align-items:center;gap:8px">
+      <div style="font-size:10px;font-family:var(--mono);color:${ruaPositions.length?'#c4beff':'var(--text-muted)'};width:18px;font-weight:${ruaPositions.length?'600':'400'}">R${r}</div>
+      <div style="display:flex;gap:2px;flex-wrap:wrap">${dots}</div>
+      ${ruaPositions.length?`<span style="font-size:10px;color:#c4beff;font-family:var(--mono)">${ruaPositions.length}×</span>`:''}
+    </div>`;
+  }
+  mapGrid.innerHTML = mapHtml;
+}
+
+function ivGoToPos(cellId) {
+  const m = cellId.match(/R(\d+)-N(\d+)-P(\d+)/);
+  if (!m) return;
+  ivCurrentRua = m[1]; ivCurrentNivel = 'all';
+  // update toggles
+  document.querySelectorAll('#tg-rua .iv-tg').forEach((b,i) => {
+    if ((i+1).toString() === m[1]) { b.style.background='var(--surface3)'; b.style.border='1px solid var(--border)'; b.style.color='var(--text-primary)'; }
+    else { b.style.background='transparent'; b.style.border='none'; b.style.color='var(--text-muted)'; }
+  });
+  document.querySelectorAll('#tg-nivel .iv-tg').forEach((b,i) => {
+    if (i===0) { b.style.background='var(--surface3)'; b.style.border='1px solid var(--border)'; b.style.color='var(--text-primary)'; }
+    else { b.style.background='transparent'; b.style.border='none'; b.style.color='var(--text-muted)'; }
+  });
+  ivMatrixData = ivSeed(ivCurrentRua);
+  ivBuildMetrics(ivMatrixData);
+  ivBuildHeatmap(ivMatrixData);
+  ivSwitchTab('mapa');
+  showToast(`Navegando para ${cellId}`);
+}
+
+function ivClearLocator() {
+  document.getElementById('prod-locator-empty').style.display = 'flex';
+  document.getElementById('prod-locator-result').style.display = 'none';
+  document.querySelectorAll('#prod-list .active-prod').forEach(el => {
+    el.classList.remove('active-prod'); el.style.background='transparent'; el.style.border='1px solid transparent';
+  });
+}
+
+// Init
+ivMatrixData = ivSeed('1');
+function ivInit() {
+  ivBuildMetrics(ivMatrixData);
+  ivBuildHeatmap(ivMatrixData);
+}
+
 
 let currentPage = 'dashboard';
 
@@ -1109,11 +1626,16 @@ function navTo(pageId, sidebarEl, tbId) {
   if (tbEl) tbEl.classList.add('active');
 
   // header
-  const info = pageTitles[pageId] || ['LogBeep', ''];
+  const info = pageTitles[pageId] || ['FluxWMS', ''];
   document.getElementById('header-title').textContent = info[0];
   document.getElementById('header-sub').textContent = info[1];
 
   currentPage = pageId;
+
+  // init heatmap on first visit
+  if (pageId === 'heatmap') {
+    setTimeout(() => { ivBuildMetrics(ivMatrixData); ivBuildHeatmap(ivMatrixData); }, 10);
+  }
 
   // close sidebar on mobile
   if (window.innerWidth <= 768) {
@@ -1242,89 +1764,86 @@ document.addEventListener('click', function(e) {
     sb.classList.remove('mobile-open');
   }
 });
-</script>
-  /* ADICIONE ISTO DENTRO DO SEU <script> NO FINAL DO INDEX.HTML */
 
-const RACKS = 12;
-const LEVELS = 4;
-let currentRua = 'A';
-let currentNivel = 'Todos';
+// ── LEITOR DE CÓDIGO DE BARRAS (BIPADOR) ──
+// Leitores de código de barras emitem os caracteres do código em sequência muito
+// rápida e encerram com Enter. O buffer de 50 ms captura essa rajada sem
+// interferir na digitação humana normal (que é mais lenta).
+(function() {
+  let barcodeBuffer = '';
+  let barcodeTimer  = null;
+  const BUFFER_MS   = 50;   // janela de captura (ms)
+  const MIN_LENGTH  = 3;    // tamanho mínimo para considerar um scan válido
 
-function seed(rua) {
-  let data = [];
-  for(let l=LEVELS; l>=1; l--) {
-    let row = [];
-    for(let r=1; r<=RACKS; r++) {
-      let val = Math.floor(Math.random() * 120);
-      if(Math.random() < 0.1) val = 0; 
-      row.push({ id: `${rua}-${r}-${l}`, val: val, max: 100 });
+  // Teclas que não fazem parte do código mas podem aparecer durante a leitura
+  const IGNORE_KEYS = new Set(['Shift','Control','Alt','Meta','CapsLock','Tab']);
+
+  document.addEventListener('keydown', function(e) {
+    // Se o foco está num input/textarea deixa o campo receber normalmente,
+    // mas ainda monitora Enter para detectar fim de scan nesse campo.
+    const focused = document.activeElement;
+    const isTypingField = focused && (focused.tagName === 'INPUT' || focused.tagName === 'TEXTAREA');
+    console.log(e.key)
+
+    // Ignora teclas modificadoras
+    if (IGNORE_KEYS.has(e.key)) return;
+
+    // Enter — fim de código de barras
+    if (e.key === 'Enter') {
+      if (barcodeBuffer.length >= MIN_LENGTH) {
+        e.preventDefault();          // evita submit de formulários
+        handleBarcodeScan(barcodeBuffer.trim());
+      }
+      barcodeBuffer = '';
+      clearTimeout(barcodeTimer);
+      return;
     }
-    data.push({ level: `N${l}`, racks: row });
-  }
-  return data;
-}
 
-let matrixData = seed(currentRua);
+    // Caractere imprimível (1 char) — acumula no buffer
+    if (e.key.length === 1) {
+      // Se o foco está em campo de texto não bloqueia a digitação;
+      // apenas rastreia o buffer em paralelo.
+      barcodeBuffer += e.key;
 
-function getCellColor(val, max) {
-  if(val === 0) return 'var(--surface)';
-  let pct = val / max;
-  if(pct > 0.9) return 'var(--danger-hi)';
-  if(pct > 0.7) return 'var(--amber-hi)';
-  if(pct > 0.4) return 'var(--emerald-hi)';
-  return 'var(--emerald)';
-}
-
-function buildHeatmap(data) {
-  const grid = document.getElementById('heatmap-grid');
-  grid.innerHTML = '';
-  grid.style.gridTemplateColumns = `40px repeat(${RACKS}, 54px)`;
-  grid.style.gap = '4px';
-
-  data.forEach((lvl) => {
-    let rowLabel = document.createElement('div');
-    rowLabel.className = 'hm-row-label';
-    rowLabel.textContent = lvl.level;
-    grid.appendChild(rowLabel);
-
-    lvl.racks.forEach(rack => {
-      let cell = document.createElement('div');
-      cell.className = 'hm-cell';
-      cell.style.background = getCellColor(rack.val, rack.max);
-      
-      let valEl = document.createElement('div');
-      valEl.className = 'hm-cell-val';
-      valEl.textContent = rack.val;
-      
-      let pctEl = document.createElement('div');
-      pctEl.className = 'hm-cell-pct';
-      pctEl.textContent = rack.val === 0 ? 'Vazio' : Math.round((rack.val/rack.max)*100)+'%';
-      
-      cell.appendChild(valEl);
-      cell.appendChild(pctEl);
-      grid.appendChild(cell);
-    });
+      // Reinicia o timer a cada tecla: se ficar 50 ms sem nova tecla,
+      // o buffer é descartado (digitação humana) sem chamar o handler.
+      clearTimeout(barcodeTimer);
+      barcodeTimer = setTimeout(() => {
+        barcodeBuffer = '';
+      }, BUFFER_MS);
+    }
   });
-}
 
-function setToggle(groupId, btn, val) {
-  document.querySelectorAll(`#${groupId} .tg-btn`).forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  if (groupId === 'tg-rua') {
-    currentRua = val;
-    matrixData = seed(currentRua);
-  } else {
-    currentNivel = val;
+  function handleBarcodeScan(code) {
+    // 1. Navega para a aba Mapa de Estoque se não estiver nela
+    if (currentPage !== 'heatmap') {
+      navTo('heatmap');
+    }
+
+    // 2. Garante que a aba correta (Localizar Produto) está visível
+    ivSwitchTab('produto');
+
+    // 3. Preenche o campo de busca de produto
+    const input = document.getElementById('prod-search');
+    if (input) {
+      input.value = code;
+      // Dispara o filtro visual da lista
+      ivFilterProductList(code);
+    }
+
+    // 4. Tenta localizar automaticamente se houver match exato de SKU
+    const exactMatch = IV_CATALOG.find(
+      p => p.id.toLowerCase() === code.toLowerCase()
+    );
+    if (exactMatch) {
+      ivLocateProduct(exactMatch.id);
+      showToast(`📦 Bipado: ${exactMatch.name} (${exactMatch.id})`);
+    } else {
+      // Match parcial — mostra a lista filtrada e avisa
+      showToast(`🔍 Código bipado: ${code}`);
+    }
   }
-  buildHeatmap(matrixData);
-}
-
-function doSearch() {
-  const v = document.getElementById('sku-input').value;
-  if(v) alert(`A pesquisar SKU: ${v}`); // Substitua pela sua função de Toast se tiver
-}
-
-// Inicializar mapa de calor
-buildHeatmap(matrixData);
+})();
+</script>
 </body>
 </html>
