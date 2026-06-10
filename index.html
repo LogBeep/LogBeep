@@ -9,16 +9,45 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0C0C0E;--surface:#141416;--surface2:#1C1C1F;--surface3:#252528;
-  --border:#2A2A2E;--border2:#333338;
-  --text-primary:#F2F2F3;--text-secondary:#8B8B93;--text-muted:#4A4A52;
-  --accent:#E8E0FF;--accent-dim:#3D3760;
-  --success-bg:#1A3D2E;--success:#4ADE80;
-  --warning-bg:#3D2E0E;--warning:#FBB040;
-  --danger-bg:#3D1515;--danger:#F87171;
-  --info-bg:#0E2540;--info:#60A5FA;
-  --font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
-  --r:6px;--r2:8px;--sidebar:220px;
+  --bg:#F5FBFF;
+  --surface:#FFFFFF;
+  --surface2:#EAF6FC;
+  --surface3:#D8EEF7;
+
+  --border:#C8E4EF;
+  --border2:#A9D7E8;
+
+  --text-primary:#1B4965;
+  --text-secondary:#456879;
+  --text-muted:#7A96A4;
+
+  --accent:#62B6CB;
+  --accent-2:#5FA8D3;
+  --accent-light:#CAE9FF;
+  --accent-soft:#BEE9E8;
+  --accent-dim:#E1F2FF;
+
+  --success-bg:#E6F8F7;
+  --success:#2C8C78;
+
+  --warning-bg:#FFF3CD;
+  --warning:#B7791F;
+
+  --danger-bg:#FEE2E2;
+  --danger:#DC2626;
+
+  --info-bg:#E1F2FF;
+  --info:#1B75BB;
+
+  --shadow-sm:0 8px 24px rgba(27,73,101,.06);
+  --shadow-md:0 14px 36px rgba(27,73,101,.10);
+
+  --font:'DM Sans',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+
+  --r:8px;
+  --r2:14px;
+  --sidebar:230px;
 }
 
 html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--bg);color:var(--text-primary);font-size:14px;line-height:1.5}
@@ -281,7 +310,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .cam-rec{width:5px;height:5px;border-radius:50%;background:var(--danger);animation:pulse 1.5s infinite}
 .cam-hint{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,.3);z-index:5;font-family:var(--mono)}
 .scanner-controls{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px}
-.btn-sim{flex:1;background:var(--accent-dim);border:1px solid rgba(232,224,255,.3);border-radius:var(--r);padding:10px;font-family:var(--font);font-size:13px;font-weight:500;color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .15s}
+.btn-sim{flex:1;background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);border-radius:var(--r);padding:10px;font-family:var(--font);font-size:13px;font-weight:500;color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .15s}
 .btn-sim:hover{background:#4A4380}
 .btn-sim svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
 .btn-ghost{background:transparent;border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;font-family:var(--font);font-size:13px;color:var(--text-secondary);cursor:pointer;transition:all .15s}
@@ -395,6 +424,86 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
   .metrics-row{grid-template-columns:1fr 1fr}
   .stock-row{grid-template-columns:1fr 48px 72px}
 }
+
+/* ── LIGHT SAAS REDESIGN OVERRIDES ── */
+body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transparent 34%),var(--bg);color:var(--text-primary)}
+.sidebar{background:linear-gradient(180deg,#1B4965 0%,#153E57 54%,#103247 100%);border-right:none;padding:20px 10px;box-shadow:10px 0 28px rgba(27,73,101,.14)}
+.sidebar-logo{padding:2px 10px 22px;gap:11px}
+.logo-mark{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,rgba(190,233,232,.95),rgba(98,182,203,.95));box-shadow:0 10px 24px rgba(98,182,203,.24)}
+.logo-mark svg{width:17px;height:17px;stroke:#1B4965;stroke-width:2.3}
+.logo-copy{display:flex;flex-direction:column;line-height:1.1}
+.logo-name{font-size:18px;font-weight:700;color:#FFFFFF;letter-spacing:.7px}
+.logo-subtitle{display:block;margin-top:4px;font-size:10px;font-weight:500;letter-spacing:.4px;color:#BEE9E8;text-transform:uppercase}
+.nav-section{padding:0;margin-bottom:10px}
+.nav-label{color:rgba(202,233,255,.64);padding:0 10px;margin:12px 0 7px}
+.nav-item{color:rgba(245,251,255,.78);border:1px solid transparent;border-radius:12px;padding:10px 11px;margin-bottom:4px;font-weight:500}
+.nav-item:hover{background:rgba(202,233,255,.10);color:#FFFFFF;border-color:rgba(202,233,255,.14)}
+.nav-item.active{background:linear-gradient(135deg,#62B6CB 0%,#5FA8D3 100%);color:#FFFFFF;border-color:rgba(255,255,255,.18);box-shadow:0 12px 24px rgba(95,168,211,.25)}
+.nav-item svg{width:17px;height:17px;stroke-width:1.9}
+.nav-badge{background:rgba(202,233,255,.16);color:#EAF6FC;border:1px solid rgba(202,233,255,.12)}
+.nav-item.active .nav-badge{background:rgba(255,255,255,.24);color:#FFFFFF;border-color:rgba(255,255,255,.18)}
+.sidebar-footer{border-top:1px solid rgba(202,233,255,.16);padding:14px 0 0}
+.header{height:68px;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:0 28px;box-shadow:0 4px 18px rgba(27,73,101,.035)}
+.header-title{font-size:20px;font-weight:700;color:var(--text-primary);letter-spacing:-.5px}
+.header-subtitle{font-size:12px;color:var(--text-muted);margin-top:1px}
+.sync-badge{background:linear-gradient(135deg,var(--accent-light),var(--accent-soft));border:1px solid rgba(98,182,203,.35);color:var(--text-primary);font-family:var(--font);font-weight:600;padding:6px 12px;box-shadow:0 6px 18px rgba(98,182,203,.12)}
+.sync-dot{width:7px;height:7px;background:var(--success)}
+.avatar{width:34px;height:34px;background:#F5FBFF;color:var(--text-primary);border:1px solid var(--border);box-shadow:var(--shadow-sm);font-weight:700}
+.content{padding:24px 28px;gap:22px;background:transparent}
+.content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:999px}
+.search-bar{padding:14px 28px;background:rgba(255,255,255,.86);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);gap:12px}
+.search-icon{color:var(--accent-2)}
+.search-input{background:#FFFFFF;border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:var(--text-primary);box-shadow:0 4px 16px rgba(27,73,101,.04)}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(98,182,203,.14)}
+.btn-scan,.btn-primary{background:var(--text-primary);color:#FFFFFF;border:1px solid var(--text-primary);border-radius:12px;padding:10px 14px;font-weight:700;box-shadow:0 10px 22px rgba(27,73,101,.16)}
+.btn-scan:hover,.btn-primary:hover{background:#14384F;border-color:#14384F;color:#FFFFFF;transform:translateY(-1px)}
+.btn-secondary{background:var(--accent-light);border:1px solid var(--accent);color:var(--text-primary);border-radius:12px;font-weight:700}
+.btn-secondary:hover{background:var(--accent-soft);border-color:var(--accent-2);color:var(--text-primary)}
+.btn-sim{background:var(--accent-light);border-color:var(--accent);color:var(--text-primary);border-radius:12px;font-weight:700}
+.btn-sim:hover{background:var(--accent-soft);color:var(--text-primary)}
+.btn-icon,.close-btn,.hamburger{background:#FFFFFF;border:1px solid var(--border);color:var(--text-secondary);border-radius:10px}
+.btn-icon:hover,.close-btn:hover,.hamburger:hover{border-color:var(--accent);color:var(--text-primary);box-shadow:var(--shadow-sm)}
+.metrics-row{gap:16px}
+.metric-card{position:relative;background:#FFFFFF;border:1px solid #D8EEF7;border-radius:16px;padding:18px 18px 16px;box-shadow:var(--shadow-sm);overflow:hidden;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.metric-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:var(--shadow-md)}
+.metric-card::before{content:'↗';position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:12px;background:var(--accent-light);color:var(--text-primary);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:15px;font-weight:700}
+.metric-card:nth-child(2)::before{content:'✓';background:var(--accent-soft)}
+.metric-card:nth-child(3)::before{content:'▦';background:var(--info-bg);color:var(--info)}
+.metric-card:nth-child(4)::before{content:'!';background:var(--warning-bg);color:var(--warning)}
+.metric-label{font-size:12px;color:var(--text-secondary);font-weight:700;margin-bottom:8px;padding-right:44px}
+.metric-value{font-size:30px;font-weight:700;color:var(--text-primary);letter-spacing:-1.4px}
+.metric-delta{font-size:12px;font-weight:700;margin-top:7px}
+.section-header{margin-bottom:12px}
+.section-title{font-size:12px;font-weight:800;color:var(--text-primary);letter-spacing:.7px}
+.section-action{color:var(--accent-2);font-weight:700;border-radius:999px;padding:5px 10px}
+.section-action:hover{background:var(--info-bg);color:var(--text-primary)}
+.cargo-list,.track-list{gap:12px}
+.cargo-card,.track-card,.supplier-card,.stock-table,.carrier-card,.route-visual,.meta-item,.item-row,.choice-card,.modal,.drawer{background:#FFFFFF;border:1px solid #D8EEF7;border-radius:16px;box-shadow:var(--shadow-sm)}
+.cargo-card{padding:18px;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.cargo-card:hover,.track-card:hover,.choice-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:var(--shadow-md)}
+.cargo-id,.track-id,.dh-id,.stock-sku,.item-sku,.success-id,.mono{font-family:var(--mono);color:var(--text-muted)}
+.cargo-title{font-size:15px;font-weight:700;color:var(--text-primary)}
+.badge,.pill{border-radius:999px;padding:4px 10px;font-weight:800;letter-spacing:.2px}
+.b-transit{background:var(--info-bg);color:#155E8A}.b-pending,.b-priority{background:var(--warning-bg);color:var(--warning)}.b-delivered{background:var(--success-bg);color:var(--success)}.b-alert,.b-fragile{background:var(--danger-bg);color:var(--danger)}
+.route{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:14px}
+.route-arrow{color:var(--accent-2);font-weight:800}.route-dest{font-weight:700}
+.timeline-mini{margin-bottom:12px}.tl-step:not(:last-child)::after{height:2px;top:7px;background:var(--border)}.tl-step.done::after{background:var(--accent-2)}
+.tl-dot{border:2px solid var(--border2);background:#FFFFFF}.tl-step.done .tl-dot{border-color:var(--accent-2);background:var(--accent-light)}.tl-step.active .tl-dot{border-color:var(--accent);background:var(--accent-soft)}
+.tl-inner,.tl-step.active .tl-inner{background:var(--accent-2)}.tl-step.done .tl-label,.tl-step.active .tl-label{color:var(--text-primary);font-weight:700}
+.cargo-footer{border-top:1px solid var(--border);padding-top:12px}.cargo-meta,.cargo-eta{font-size:12px}.cargo-eta{font-weight:700;color:var(--text-primary)}
+.stock-table{overflow:hidden}.stock-row{padding:13px 16px;border-bottom:1px solid #E7F4FA;font-size:13px}.stock-row.hdr{background:var(--surface2);color:var(--text-secondary);font-weight:800}.stock-name{font-weight:700}.stock-num{font-weight:700}
+.drawer-overlay,.modal-overlay,#cell-modal-overlay{background:rgba(27,73,101,.34)!important;backdrop-filter:blur(5px)}
+.drawer{box-shadow:-18px 0 42px rgba(27,73,101,.16);border-radius:18px 0 0 18px}.drawer-header,.drawer-tabs,.drawer-footer,.modal-mheader,.form-footer{background:#FFFFFF;border-color:var(--border)}
+.dtab.active{color:var(--text-primary);border-bottom-color:var(--accent)}.dsection-label,.fsection-label{color:var(--text-secondary);font-weight:800}.drawer-body,.modal-body{background:var(--bg)}
+.route-visual,.item-row,.carrier-card,.field input,.field select,.added-item,.add-row{background:var(--surface2);border-color:var(--border);border-radius:12px}.rv-line{background:var(--accent-2);height:2px}.tl-item.done::before{background:var(--accent-2)}.tl-item.done .tl-ico{border-color:var(--accent-2);background:var(--accent-light)}.tl-item.active .tl-ico{border-color:var(--accent);background:var(--accent-soft)}.tl-item.active .tl-event{color:var(--text-primary);font-weight:700}
+.modal{box-shadow:0 24px 70px rgba(27,73,101,.20)}.choice-card{background:#FFFFFF}.ci{background:var(--accent-light)!important;color:var(--text-primary)!important}.scan-frame{background:linear-gradient(180deg,#F5FBFF,#EAF6FC);border-color:var(--border2)}.success-ring{border-color:rgba(44,140,120,.22)}.success-id{color:var(--text-primary);background:var(--accent-light);border:1px solid var(--border)}
+.supplier-logo,.item-ico,.carrier-logo{background:var(--accent-light);color:var(--text-primary)}.supplier-logo svg,.item-ico svg,.carrier-logo svg{stroke:var(--text-primary)}
+.tab-bar{background:#FFFFFF;box-shadow:0 -10px 28px rgba(27,73,101,.08)}.tb-item:hover,.tb-item.active{color:var(--text-primary);background:var(--accent-light)}
+.toast{background:#FFFFFF;border-color:var(--border);box-shadow:var(--shadow-md);color:var(--text-primary)}
+.fab{background:var(--text-primary);color:#FFFFFF;border-radius:16px;box-shadow:0 16px 34px rgba(27,73,101,.24)}.fab:hover{background:#14384F}
+@media(max-width:768px){.sidebar{box-shadow:18px 0 40px rgba(27,73,101,.24)}.header{height:62px;padding:0 16px}.content{padding:18px 16px}.search-bar{padding:12px 16px}.drawer{border-radius:18px 18px 0 0}.metrics-row{gap:12px}}
+@media(max-width:480px){.metric-card{padding:15px 14px}.metric-value{font-size:24px}.metric-card::before{width:30px;height:30px}}
+
 </style>
 </head>
 <body>
@@ -411,7 +520,10 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
       <div class="logo-mark">
         <svg viewBox="0 0 14 14"><path d="M1 7h5M8 7h5M7 1v5M7 8v5" stroke-linecap="round"/></svg>
       </div>
-      <span class="logo-name">F.A.S.T</span>
+      <div class="logo-copy">
+        <span class="logo-name">F.A.S.T</span>
+        <span class="logo-subtitle">Logística Inteligente</span>
+      </div>
     </div>
 
     <div class="nav-section">
@@ -586,7 +698,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
             Localizar Produto
           </div>
           <div style="margin-left:auto;display:flex;align-items:center">
-            <button onclick="showToast('Scanner ativado')" style="background:var(--accent-dim);border:1px solid rgba(124,111,255,.3);border-radius:var(--r);padding:5px 12px;color:#c4beff;font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px">
+            <button onclick="showToast('Scanner ativado')" style="background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);border-radius:var(--r);padding:5px 12px;color:#1B4965;font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px">
               <svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 14 14"><rect x="1" y="1" width="4" height="4" rx="1"/><rect x="9" y="1" width="4" height="4" rx="1"/><rect x="1" y="9" width="4" height="4" rx="1"/><path d="M9 9h1.5v1.5H9zM10.5 10.5H13M10.5 9H13M9 10.5v2.5"/></svg>
               Scan QR
             </button>
@@ -630,17 +742,17 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
               <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-muted)">
                 <span>Vazio</span>
                 <div style="display:flex;gap:2px;align-items:center">
-                  <div style="width:14px;height:10px;border-radius:2px;background:rgba(27,73,45,.3)"></div>
-                  <div style="width:14px;height:10px;border-radius:2px;background:rgba(27,90,50,.55)"></div>
-                  <div style="width:14px;height:10px;border-radius:2px;background:rgba(25,100,52,.85)"></div>
+                  <div style="width:14px;height:10px;border-radius:2px;background:#F0F8FC"></div>
+                  <div style="width:14px;height:10px;border-radius:2px;background:#BEE9E8"></div>
+                  <div style="width:14px;height:10px;border-radius:2px;background:#62B6CB"></div>
                 </div>
                 <span>Cheio</span>
                 <div style="width:1px;height:10px;background:var(--border);margin:0 4px"></div>
-                <div style="width:14px;height:10px;border-radius:2px;background:rgba(100,65,0,.75)"></div><span>Baixo</span>
+                <div style="width:14px;height:10px;border-radius:2px;background:#FFF3CD"></div><span>Baixo</span>
                 <div style="width:1px;height:10px;background:var(--border);margin:0 4px"></div>
-                <div style="width:14px;height:10px;border-radius:2px;background:rgba(180,40,40,.55)"></div><span>Crítico</span>
+                <div style="width:14px;height:10px;border-radius:2px;background:#FEE2E2"></div><span>Crítico</span>
                 <div style="width:1px;height:10px;background:var(--border);margin:0 4px"></div>
-                <div style="width:14px;height:10px;border-radius:2px;background:rgba(99,88,255,.5);border:1px solid rgba(124,111,255,.6)"></div><span>Com produto</span>
+                <div style="width:14px;height:10px;border-radius:2px;background:rgba(95,168,211,.35);border:1px solid rgba(98,182,203,.65)"></div><span>Com produto</span>
               </div>
             </div>
             <div style="overflow-x:auto;overflow-y:auto;flex:1">
@@ -868,15 +980,15 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
           <div class="vfc br"><svg viewBox="0 0 20 20"><path d="M2 11V2h9"/></svg></div>
           <div class="scan-line"></div>
           <svg class="qr-ghost" width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <rect x="5" y="5" width="28" height="28" rx="2" fill="none" stroke="rgba(232,224,255,0.35)" stroke-width="1.5"/>
-            <rect x="10" y="10" width="18" height="18" rx="1" fill="rgba(232,224,255,0.35)"/>
-            <rect x="67" y="5" width="28" height="28" rx="2" fill="none" stroke="rgba(232,224,255,0.35)" stroke-width="1.5"/>
-            <rect x="72" y="10" width="18" height="18" rx="1" fill="rgba(232,224,255,0.35)"/>
-            <rect x="5" y="67" width="28" height="28" rx="2" fill="none" stroke="rgba(232,224,255,0.35)" stroke-width="1.5"/>
-            <rect x="10" y="72" width="18" height="18" rx="1" fill="rgba(232,224,255,0.35)"/>
-            <rect x="40" y="10" width="6" height="6" fill="rgba(232,224,255,0.3)"/><rect x="48" y="10" width="6" height="6" fill="rgba(232,224,255,0.3)"/><rect x="56" y="10" width="6" height="6" fill="rgba(232,224,255,0.3)"/>
-            <rect x="40" y="40" width="6" height="6" fill="rgba(232,224,255,0.3)"/><rect x="48" y="48" width="6" height="6" fill="rgba(232,224,255,0.3)"/><rect x="56" y="40" width="6" height="6" fill="rgba(232,224,255,0.3)"/>
-            <rect x="40" y="56" width="6" height="6" fill="rgba(232,224,255,0.3)"/><rect x="48" y="64" width="6" height="6" fill="rgba(232,224,255,0.3)"/>
+            <rect x="5" y="5" width="28" height="28" rx="2" fill="none" stroke="rgba(98,182,203,0.28)" stroke-width="1.5"/>
+            <rect x="10" y="10" width="18" height="18" rx="1" fill="rgba(98,182,203,0.28)"/>
+            <rect x="67" y="5" width="28" height="28" rx="2" fill="none" stroke="rgba(98,182,203,0.28)" stroke-width="1.5"/>
+            <rect x="72" y="10" width="18" height="18" rx="1" fill="rgba(98,182,203,0.28)"/>
+            <rect x="5" y="67" width="28" height="28" rx="2" fill="none" stroke="rgba(98,182,203,0.28)" stroke-width="1.5"/>
+            <rect x="10" y="72" width="18" height="18" rx="1" fill="rgba(98,182,203,0.28)"/>
+            <rect x="40" y="10" width="6" height="6" fill="rgba(98,182,203,0.24)"/><rect x="48" y="10" width="6" height="6" fill="rgba(98,182,203,0.24)"/><rect x="56" y="10" width="6" height="6" fill="rgba(98,182,203,0.24)"/>
+            <rect x="40" y="40" width="6" height="6" fill="rgba(98,182,203,0.24)"/><rect x="48" y="48" width="6" height="6" fill="rgba(98,182,203,0.24)"/><rect x="56" y="40" width="6" height="6" fill="rgba(98,182,203,0.24)"/>
+            <rect x="40" y="56" width="6" height="6" fill="rgba(98,182,203,0.24)"/><rect x="48" y="64" width="6" height="6" fill="rgba(98,182,203,0.24)"/>
           </svg>
         </div>
         <div class="cam-hint">Posicione o código dentro da área</div>
@@ -1260,13 +1372,13 @@ function ivSeed(rua) {
 }
 
 function ivCellColor(val) {
-  if (val === 0) return {bg:'rgba(20,20,20,.9)',tc:'#333'};
+  if (val === 0) return {bg:'#F0F8FC',tc:'var(--text-muted)'};
   const pct = val / IV_MAX_CAP;
-  if (pct < 0.12) return {bg:'rgba(180,40,40,.55)',tc:'#f88'};
-  if (pct < 0.25) return {bg:'rgba(100,65,0,.75)',tc:'#c87c00'};
-  if (pct < 0.5)  return {bg:'rgba(27,73,45,.5)',tc:'#4aad6a'};
-  if (pct < 0.75) return {bg:'rgba(27,90,50,.7)',tc:'#5dc97a'};
-  return {bg:'rgba(25,100,52,.85)',tc:'#7fdda0'};
+  if (pct < 0.12) return {bg:'#FEE2E2',tc:'var(--danger)'};
+  if (pct < 0.25) return {bg:'#FFF3CD',tc:'var(--warning)'};
+  if (pct < 0.5)  return {bg:'#DFF4F3',tc:'var(--success)'};
+  if (pct < 0.75) return {bg:'#BEE9E8',tc:'var(--success)'};
+  return {bg:'#62B6CB',tc:'#FFFFFF'};
 }
 
 function ivBuildMetrics(data) {
@@ -1283,7 +1395,7 @@ function ivBuildMetrics(data) {
   el.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Unidades totais</div><div style="font-size:18px;font-weight:600;color:var(--text-primary);font-family:var(--mono);letter-spacing:-1px">${total.toLocaleString('pt-BR')}</div><div style="font-size:10px;margin-top:2px;color:#5dc97a">Rua ${ivCurrentRua}</div></div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Posições ocupadas</div><div style="font-size:18px;font-weight:600;color:var(--text-primary);font-family:var(--mono);letter-spacing:-1px">${filled}</div><div style="font-size:10px;margin-top:2px;color:var(--text-muted)">de ${IV_LEVELS*IV_RACKS}</div></div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Produtos mapeados</div><div style="font-size:18px;font-weight:600;color:#c4beff;font-family:var(--mono);letter-spacing:-1px">${withProd}</div><div style="font-size:10px;margin-top:2px;color:#7c6fff">posições com produto</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Produtos mapeados</div><div style="font-size:18px;font-weight:600;color:#1B4965;font-family:var(--mono);letter-spacing:-1px">${withProd}</div><div style="font-size:10px;margin-top:2px;color:#5FA8D3">posições com produto</div></div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Crítico</div><div style="font-size:18px;font-weight:600;color:var(--danger);font-family:var(--mono);letter-spacing:-1px">${crit}</div><div style="font-size:10px;margin-top:2px;color:var(--danger)">requer reposição</div></div>
   `;
 }
@@ -1307,7 +1419,7 @@ function ivBuildHeatmap(data) {
       const pct = Math.round(val/IV_MAX_CAP*100);
       const cellId = `R${ivCurrentRua}-N${lv}-P${rk}`;
       const prod = positionProducts[cellId];
-      if (prod) { bg = 'rgba(99,88,255,.35)'; tc = '#c4beff'; }
+      if (prod) { bg = 'rgba(190,233,232,.85)'; tc = '#1B4965'; }
       const prodLabel = prod
         ? `<div style="font-size:8px;color:${tc};opacity:.85;margin-top:1px;max-width:56px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center">${prod.name.split(' ').slice(0,2).join(' ')}</div>`
         : '';
@@ -1316,13 +1428,13 @@ function ivBuildHeatmap(data) {
         : `${cellId}: ${val.toLocaleString('pt-BR')} un · ${pct}%`;
       html += `
         <div onclick="ivOpenCellModal('${cellId}',${val},${lv},${rk})" title="${titleStr}"
-          style="width:62px;height:52px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .12s;border:1px solid ${prod?'rgba(124,111,255,.5)':'transparent'};background:${bg};position:relative"
+          style="width:62px;height:52px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .12s;border:1px solid ${prod?'rgba(98,182,203,.55)':'transparent'};background:${bg};position:relative"
           onmouseover="this.style.borderColor='rgba(255,255,255,.25)';this.style.transform='scale(1.06)';this.style.zIndex='2'"
-          onmouseout="this.style.borderColor='${prod?'rgba(124,111,255,.5)':'transparent'}';this.style.transform='scale(1)';this.style.zIndex='0'">
+          onmouseout="this.style.borderColor='${prod?'rgba(98,182,203,.55)':'transparent'}';this.style.transform='scale(1)';this.style.zIndex='0'">
           <div style="font-size:10px;font-family:var(--mono);font-weight:500;color:${tc};line-height:1">${val===0?'—':val.toLocaleString('pt-BR')}</div>
           ${val>0&&!prod?`<div style="font-size:8px;margin-top:1px;color:${tc};opacity:.7">${pct}%</div>`:''}
           ${prodLabel}
-          ${prod?`<div style="position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:#7c6fff"></div>`:''}
+          ${prod?`<div style="position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:#5FA8D3"></div>`:''}
         </div>`;
     }
   }
@@ -1460,7 +1572,7 @@ function ivRenderProductList(q) {
       onmouseover="this.style.background='var(--surface2)'" onmouseout="if(!this.classList.contains('active-prod'))this.style.background='transparent'">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
         <div style="font-size:12px;color:var(--text-primary);font-weight:${hasPos?'500':'400'}">${p.name}</div>
-        ${hasPos?`<span style="font-size:9px;padding:2px 6px;border-radius:3px;background:var(--accent-dim);color:#c4beff;font-family:var(--mono)">${count} pos.</span>`:''}
+        ${hasPos?`<span style="font-size:9px;padding:2px 6px;border-radius:3px;background:var(--accent-dim);color:#1B4965;font-family:var(--mono)">${count} pos.</span>`:''}
       </div>
       <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted)">${p.id} · ${p.cat}</div>
     </div>`;
@@ -1489,7 +1601,7 @@ function ivLocateProduct(skuId) {
   });
   const key = skuId.replace(/[^a-z0-9]/gi,'');
   const listEl = document.getElementById('proditem-' + key);
-  if (listEl) { listEl.classList.add('active-prod'); listEl.style.background = 'var(--accent-dim)'; listEl.style.border = '1px solid rgba(124,111,255,.3)'; }
+  if (listEl) { listEl.classList.add('active-prod'); listEl.style.background = 'var(--accent-dim)'; listEl.style.border = '1px solid rgba(98,182,203,.35)'; }
 
   // find all positions
   const positions = Object.entries(positionProducts).filter(([,v]) => v.id === skuId).map(([k]) => k);
@@ -1506,7 +1618,7 @@ function ivLocateProduct(skuId) {
   if (positions.length === 0) {
     posEl.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;font-size:12px;color:var(--text-muted)">
       Nenhuma posição mapeada para este produto.
-      <button onclick="ivSwitchTab('mapa')" style="display:inline;background:none;border:none;color:#c4beff;cursor:pointer;font-size:12px;font-family:var(--font);padding:0 4px">Ir ao mapa →</button>
+      <button onclick="ivSwitchTab('mapa')" style="display:inline;background:none;border:none;color:#1B4965;cursor:pointer;font-size:12px;font-family:var(--font);padding:0 4px">Ir ao mapa →</button>
     </div>`;
   } else {
     posEl.innerHTML = `<div style="font-size:10px;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">${positions.length} posição(ões) encontrada(s)</div>` +
@@ -1514,10 +1626,10 @@ function ivLocateProduct(skuId) {
         const [,ruaPart,nivelPart,predioPart] = pos.match(/R(\d+)-N(\d+)-P(\d+)/)||[];
         const val = ivMatrixData[nivelPart] ? (ivMatrixData[nivelPart][predioPart]||0) : 0;
         const pct = Math.round(val/IV_MAX_CAP*100);
-        return `<div onclick="ivGoToPos('${pos}')" style="background:var(--accent-dim);border:1px solid rgba(124,111,255,.3);border-radius:var(--r);padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s"
-          onmouseover="this.style.background='#2a2060'" onmouseout="this.style.background='var(--accent-dim)'">
+        return `<div onclick="ivGoToPos('${pos}')" style="background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);border-radius:var(--r);padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s"
+          onmouseover="this.style.background='#CAE9FF'" onmouseout="this.style.background='var(--accent-dim)'">
           <div>
-            <div style="font-size:13px;font-family:var(--mono);color:#c4beff;font-weight:500">${pos}</div>
+            <div style="font-size:13px;font-family:var(--mono);color:#1B4965;font-weight:500">${pos}</div>
             <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Rua ${ruaPart} · Nível ${nivelPart} · Prédio ${predioPart}</div>
           </div>
           <div style="text-align:right">
@@ -1537,13 +1649,13 @@ function ivLocateProduct(skuId) {
       Array.from({length:IV_RACKS},(_,rk) => {
         const cid = `R${r}-N${lv+1}-P${rk+1}`;
         const hasProd = ruaPositions.includes(cid);
-        return `<div title="${cid}" style="width:8px;height:8px;border-radius:1px;background:${hasProd?'#7c6fff':'var(--surface3)'}"></div>`;
+        return `<div title="${cid}" style="width:8px;height:8px;border-radius:1px;background:${hasProd?'#5FA8D3':'var(--surface3)'}"></div>`;
       }).join('')
     ).join('');
     mapHtml += `<div style="display:flex;align-items:center;gap:8px">
-      <div style="font-size:10px;font-family:var(--mono);color:${ruaPositions.length?'#c4beff':'var(--text-muted)'};width:18px;font-weight:${ruaPositions.length?'600':'400'}">R${r}</div>
+      <div style="font-size:10px;font-family:var(--mono);color:${ruaPositions.length?'#1B4965':'var(--text-muted)'};width:18px;font-weight:${ruaPositions.length?'600':'400'}">R${r}</div>
       <div style="display:flex;gap:2px;flex-wrap:wrap">${dots}</div>
-      ${ruaPositions.length?`<span style="font-size:10px;color:#c4beff;font-family:var(--mono)">${ruaPositions.length}×</span>`:''}
+      ${ruaPositions.length?`<span style="font-size:10px;color:#1B4965;font-family:var(--mono)">${ruaPositions.length}×</span>`:''}
     </div>`;
   }
   mapGrid.innerHTML = mapHtml;
@@ -1989,12 +2101,12 @@ function openScanCounterPanel(prod, count) {
           padding:8px 14px;border-bottom:1px solid var(--border);
           background:${isActive ? 'var(--accent-dim)' : 'transparent'}">
           <div>
-            <div style="font-size:12px;color:${isActive ? '#c4beff' : 'var(--text-primary)'};font-weight:${isActive ? '500' : '400'}">${name}</div>
+            <div style="font-size:12px;color:${isActive ? '#1B4965' : 'var(--text-primary)'};font-weight:${isActive ? '500' : '400'}">${name}</div>
             <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:1px">${skuId}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <div style="font-size:20px;font-family:var(--mono);font-weight:600;
-              color:${isActive ? '#c4beff' : 'var(--text-primary)'}">×${cnt}</div>
+              color:${isActive ? '#1B4965' : 'var(--text-primary)'}">×${cnt}</div>
           </div>
         </div>`;
     }).join('');
@@ -2094,15 +2206,15 @@ function openNewProductModal(code) {
       </div>
 
       <!-- Banner de código lido -->
-      <div style="margin:14px 18px 0;background:var(--accent-dim);border:1px solid rgba(124,111,255,.35);
+      <div style="margin:14px 18px 0;background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);
         border-radius:var(--r);padding:10px 14px;display:flex;align-items:center;gap:10px">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#c4beff" stroke-width="1.8">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1B4965" stroke-width="1.8">
           <rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/>
           <rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h4M12 10h4M10 12v4"/>
         </svg>
         <div>
           <div style="font-size:10px;color:#9b93cc;margin-bottom:1px">Código lido pelo bipador</div>
-          <div style="font-size:14px;font-family:var(--mono);font-weight:600;color:#c4beff;letter-spacing:.5px">${code}</div>
+          <div style="font-size:14px;font-family:var(--mono);font-weight:600;color:#1B4965;letter-spacing:.5px">${code}</div>
         </div>
       </div>
 
@@ -2169,13 +2281,13 @@ function openNewProductModal(code) {
             </div>
           </div>
           <!-- Preview da posição selecionada -->
-          <div id="np-pos-preview" style="display:none;background:var(--accent-dim);border:1px solid rgba(124,111,255,.35);
+          <div id="np-pos-preview" style="display:none;background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);
             border-radius:var(--r);padding:8px 12px;display:flex;align-items:center;justify-content:space-between">
             <div style="display:flex;align-items:center;gap:8px">
-              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#c4beff" stroke-width="1.8">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#1B4965" stroke-width="1.8">
                 <path d="M7 1v12M1 4h12M3 7h8" stroke-linecap="round"/>
               </svg>
-              <span id="np-pos-label" style="font-size:13px;font-family:var(--mono);font-weight:600;color:#c4beff"></span>
+              <span id="np-pos-label" style="font-size:13px;font-family:var(--mono);font-weight:600;color:#1B4965"></span>
             </div>
             <span style="font-size:10px;color:#9b93cc">posição selecionada</span>
           </div>
