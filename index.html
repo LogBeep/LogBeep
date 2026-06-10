@@ -1308,6 +1308,11 @@ function buildCargoCard(c) {
         <span class="cargo-meta">Responsável: ${c.carrier}</span>
         <span class="cargo-eta" style="${etaColor}">Prev. ${c.eta}</span>
       </div>
+      <div class="recent-loc"><div class="recent-label">Origem</div><div class="recent-value">${c.origin}</div></div>
+      <div class="recent-arrow">→</div>
+      <div class="recent-loc"><div class="recent-label">Destino</div><div class="recent-value">${c.dest}</div></div>
+      <div class="recent-forecast"><div class="recent-label">Previsão</div><div class="recent-value">${c.eta}</div></div>
+      <div class="recent-status"><span class="badge ${meta.badgeCls}">${c.statusLabel}</span></div>
     </div>`;
 }
 
