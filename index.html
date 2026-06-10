@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>F.A.S.T — Dashboard Logístico</title>
+<title>F.A.S.T — Estoque Inteligente para Padarias</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -525,7 +525,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
 .dashboard-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(360px,1fr);gap:16px;align-items:start}
 .dashboard-panel{background:#FFFFFF;border:1px solid #D8EEF7;border-radius:16px;box-shadow:var(--shadow-sm);padding:16px;min-width:0}
 .dashboard-panel .section-header{margin-bottom:12px}.dashboard-panel .section-title{text-transform:none;font-size:15px;letter-spacing:-.2px}.dashboard-panel .section-action{font-size:13px;color:#1E7DD7}
-.stock-table-dashboard .stock-row{grid-template-columns:minmax(180px,1.1fr) minmax(90px,.7fr) minmax(80px,.55fr) minmax(80px,.55fr) minmax(92px,.55fr)}.stock-cat{font-size:12px;color:var(--text-secondary)}
+.stock-row-rich,.stock-table-dashboard .stock-row{grid-template-columns:minmax(180px,1.1fr) minmax(90px,.7fr) minmax(90px,.55fr) minmax(90px,.55fr) minmax(132px,.75fr)}.stock-cat{font-size:12px;color:var(--text-secondary)}
 .metric-card{min-height:132px;display:grid;grid-template-columns:auto 1fr;grid-template-areas:'icon label' 'icon value' 'delta spark';column-gap:14px;align-items:center}
 .metric-card::before{display:none}
 .metric-icon{grid-area:icon;width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,var(--accent-soft),var(--accent-light));display:flex;align-items:center;justify-content:center;color:#16809A}
@@ -537,7 +537,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
 .side-help,.side-user{border:1px solid rgba(202,233,255,.16);background:rgba(202,233,255,.06);border-radius:12px;color:#FFFFFF;display:flex;align-items:center;gap:10px;cursor:pointer}.side-help{padding:12px;margin-bottom:12px}.side-help svg{width:18px;height:18px;stroke:#CAE9FF;fill:none;stroke-width:1.8}.side-help span{font-size:13px;font-weight:700}.side-user{padding:10px}.side-user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#BEE9E8,#CAE9FF);color:#1B4965;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}.side-user-copy{flex:1;display:flex;flex-direction:column;line-height:1.2}.side-user-copy strong{font-size:12px}.side-user-copy span{font-size:10px;color:#CAE9FF}.side-user>svg{width:14px;height:14px;stroke:#CAE9FF;fill:none;stroke-width:2}
 .cmd-overlay{position:fixed;inset:0;background:rgba(27,73,101,.32);backdrop-filter:blur(5px);z-index:650;display:none;align-items:flex-start;justify-content:center;padding-top:9vh}.cmd-overlay.open{display:flex}.cmd-palette{width:620px;max-width:calc(100vw - 28px);background:#FFFFFF;border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 70px rgba(27,73,101,.24);overflow:hidden}.cmd-input-wrap{height:58px;display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:1px solid var(--border)}.cmd-input-wrap svg{width:19px;height:19px;stroke:var(--accent-2);fill:none;stroke-width:1.8}.cmd-input-wrap input{flex:1;border:none;outline:none;font-family:var(--font);font-size:15px;color:var(--text-primary)}.cmd-input-wrap button{border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);border-radius:8px;padding:4px 8px;font-family:var(--mono);font-size:11px;cursor:pointer}.cmd-results{max-height:420px;overflow:auto;padding:8px}.cmd-group-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.7px;font-weight:800;padding:10px 10px 6px}.cmd-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;cursor:pointer;color:var(--text-primary)}.cmd-item:hover{background:var(--surface2)}.cmd-item-ico{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--accent-light);color:var(--text-primary)}.cmd-item-ico svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.9}.cmd-item-copy{flex:1}.cmd-item-copy strong{display:block;font-size:13px}.cmd-item-copy span{font-size:11px;color:var(--text-muted)}.cmd-kbd{font-family:var(--mono);font-size:10px;color:var(--text-muted);border:1px solid var(--border);border-radius:6px;padding:2px 6px;background:#FFFFFF}
 @media(max-width:1120px){.dashboard-grid{grid-template-columns:1fr}.header-search{max-width:none}.recent-order{grid-template-columns:42px minmax(160px,1fr) minmax(90px,.7fr) 20px minmax(90px,.7fr) minmax(90px,.6fr) minmax(96px,.5fr)}}
-@media(max-width:900px){.stock-table-dashboard .stock-row{grid-template-columns:1fr 78px 90px}.stock-table-dashboard .stock-cat,.stock-table-dashboard .stock-row>div:nth-child(4){display:none}.header-search{display:none}.sync-badge{display:none}.header-primary{display:none}.dashboard-mobile-search{display:flex}.recent-order{grid-template-columns:38px 1fr auto}.recent-order .recent-loc,.recent-order .recent-arrow,.recent-order .recent-forecast{display:none}.recent-status{text-align:right}.metric-spark{display:none}.metric-card{grid-template-columns:auto 1fr;grid-template-areas:'icon label' 'icon value' 'icon delta'}}
+@media(max-width:900px){.stock-row-rich,.stock-table-dashboard .stock-row{grid-template-columns:1fr 90px 120px}.stock-row-rich .stock-cat,.stock-row-rich>div:nth-child(4),.stock-table-dashboard .stock-cat,.stock-table-dashboard .stock-row>div:nth-child(4){display:none}.header-search{display:none}.sync-badge{display:none}.header-primary{display:none}.dashboard-mobile-search{display:flex}.recent-order{grid-template-columns:38px 1fr auto}.recent-order .recent-loc,.recent-order .recent-arrow,.recent-order .recent-forecast{display:none}.recent-status{text-align:right}.metric-spark{display:none}.metric-card{grid-template-columns:auto 1fr;grid-template-areas:'icon label' 'icon value' 'icon delta'}}
 @media(max-width:560px){.dashboard-panel{padding:12px}.tracking-steps{grid-template-columns:1fr;gap:8px}.tracking-step{text-align:left;display:flex;align-items:center;gap:10px}.tracking-step:not(:last-child)::after{display:none}.tracking-dot{margin:0}.location-card{align-items:flex-start}.location-card small{display:none}.cmd-overlay{padding-top:4vh}}
 
 </style>
@@ -552,6 +552,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
   <div class="cmd-palette" onclick="event.stopPropagation()">
     <div class="cmd-input-wrap">
       <svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg>
+      <input id="cmd-input" placeholder="Busque insumos, lotes, receitas ou ações..." oninput="renderCommandResults(this.value)" onkeydown="handleCommandKey(event)">
       <input id="cmd-input" placeholder="Busque pedidos, SKUs ou ações..." oninput="renderCommandResults(this.value)" onkeydown="handleCommandKey(event)">
       <button onclick="closeCommandPalette()">Esc</button>
     </div>
@@ -570,7 +571,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
       </div>
       <div class="logo-copy">
         <span class="logo-name">F.A.S.T</span>
-        <span class="logo-subtitle">Logística Inteligente</span>
+        <span class="logo-subtitle">Estoque Inteligente</span>
       </div>
     </div>
 
@@ -581,7 +582,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
       </div>
       <div class="nav-item" data-page="pedidos" onclick="navTo('pedidos',this)">
         <svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h8" stroke-linecap="round"/></svg>
-        Pedidos
+        Produção
         <span class="nav-badge">12</span>
       </div>
       <div class="nav-item" data-page="estoque" onclick="navTo('estoque',this)">
@@ -590,12 +591,12 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
       </div>
       <div class="nav-item" data-page="rastreio" onclick="navTo('rastreio',this)">
         <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>
-        Rastreio
+        Lotes
         <span class="nav-badge">3</span>
       </div>
       <div class="nav-item" data-page="heatmap" onclick="navTo('heatmap',this)">
         <svg viewBox="0 0 16 16"><rect x="1" y="1" width="4" height="4" rx=".5"/><rect x="6" y="1" width="4" height="4" rx=".5"/><rect x="11" y="1" width="4" height="4" rx=".5"/><rect x="1" y="6" width="4" height="4" rx=".5"/><rect x="6" y="6" width="4" height="4" rx=".5"/><rect x="11" y="6" width="4" height="4" rx=".5"/><rect x="1" y="11" width="4" height="4" rx=".5"/><rect x="6" y="11" width="4" height="4" rx=".5"/><rect x="11" y="11" width="4" height="4" rx=".5"/></svg>
-        Mapa de Estoque
+        Mapa FEFO
       </div>
     </div>
 
@@ -605,9 +606,9 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
         <svg viewBox="0 0 16 16"><path d="M2 12V5l6-3 6 3v7"/><path d="M6 16v-5h4v5"/></svg>
         Fornecedores
       </div>
-      <div class="nav-item" onclick="showToast('Relatórios em breve...')">
+      <div class="nav-item" onclick="showToast('Perdas em breve...')">
         <svg viewBox="0 0 16 16"><path d="M3 2h10l1 4H2z"/><path d="M2 6v8h12V6"/></svg>
-        Relatórios
+        Perdas
       </div>
     </div>
 
@@ -645,7 +646,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
       </div>
       <div class="header-search">
         <svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg>
-        <input id="global-search" placeholder="Buscar pedidos, clientes, rastreios..." oninput="globalSearch(this.value)" onfocus="openCommandPalette(this.value)">
+        <input id="global-search" placeholder="Buscar insumos, lotes, receitas..." oninput="globalSearch(this.value)" onfocus="openCommandPalette(this.value)">
         <button type="button" onclick="openCommandPalette(document.getElementById('global-search').value)">⌘ K</button>
       </div>
       <div class="header-right">
@@ -658,7 +659,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
         </button>
         <button class="btn-scan header-primary" onclick="openQR()">
           <svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke-linecap="round"/></svg>
-          Novo pedido
+          Nova entrada
           <svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
@@ -668,10 +669,10 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
     <div class="page active" id="page-dashboard">
       <div class="search-bar dashboard-mobile-search">
         <div class="search-icon"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg></div>
-        <input class="search-input" placeholder="Buscar pedido, SKU ou destinatário..." oninput="filterCards(this.value)">
+        <input class="search-input" placeholder="Buscar insumo, lote ou receita..." oninput="filterCards(this.value)">
         <button class="btn-scan" onclick="openQR()">
           <svg viewBox="0 0 16 16"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/><rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h3M12 10h3M10 12v3"/></svg>
-          Escanear
+          Bipar lote
         </button>
       </div>
 
@@ -681,7 +682,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
         <div class="dashboard-grid">
           <section class="dashboard-panel dashboard-panel-wide">
             <div class="section-header">
-              <div class="section-title">Pedidos recentes</div>
+              <div class="section-title">Produção de hoje</div>
               <div class="section-action" onclick="navToStr('pedidos')">Ver todos</div>
             </div>
             <div class="recent-orders" id="cargo-list"></div>
@@ -689,7 +690,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
 
           <section class="dashboard-panel">
             <div class="section-header">
-              <div class="section-title">Rastreio em andamento</div>
+              <div class="section-title">Produção em andamento</div>
               <div class="section-action" onclick="navToStr('rastreio')">Ver mapa</div>
             </div>
             <div id="dashboard-tracking"></div>
@@ -697,15 +698,15 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
 
           <section class="dashboard-panel dashboard-panel-wide">
             <div class="section-header">
-              <div class="section-title">Estoque</div>
-              <div class="section-action" onclick="navToStr('heatmap')">Ver mapa de estoque</div>
+              <div class="section-title">Lotes FEFO</div>
+              <div class="section-action" onclick="navToStr('heatmap')">Ver mapa FEFO</div>
             </div>
             <div class="stock-table stock-table-dashboard" id="stock-table-critical"></div>
           </section>
 
           <section class="dashboard-panel">
             <div class="section-header">
-              <div class="section-title">Alertas</div>
+              <div class="section-title">Alertas e sugestões IA</div>
               <div class="section-action" onclick="showToast('Abrindo central de alertas')">Ver todos</div>
             </div>
             <div class="alerts-list" id="dashboard-alerts"></div>
@@ -719,10 +720,10 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
     <div class="page" id="page-pedidos">
       <div class="search-bar">
         <div class="search-icon"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg></div>
-        <input class="search-input" placeholder="Buscar por ID, cliente ou status...">
+        <input class="search-input" placeholder="Buscar ordem, receita ou status...">
         <button class="btn-scan" onclick="openQR()">
           <svg viewBox="0 0 16 16"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/><rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h3M12 10h3M10 12v3"/></svg>
-          Novo pedido
+          Nova entrada
         </button>
       </div>
       <div class="content">
@@ -738,13 +739,13 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
         <input class="search-input" id="estoque-search" placeholder="Buscar produto ou SKU..." oninput="renderStockFull(this.value)">
         <button class="btn-scan" onclick="openQR()">
           <svg viewBox="0 0 16 16"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/><rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h3M12 10h3M10 12v3"/></svg>
-          Entrada
+          Entrada de insumo
         </button>
       </div>
       <div class="content">
         <div class="metrics-row" id="estoque-metrics"></div>
         <div>
-          <div class="section-header"><div class="section-title">Todos os itens</div></div>
+          <div class="section-header"><div class="section-title">Insumos, lotes e produtos acabados</div></div>
           <div class="stock-table" id="stock-table-full"></div>
         </div>
         <div style="height:80px"></div>
@@ -754,9 +755,9 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
     <!-- ── PAGE: RASTREIO ── -->
     <div class="page" id="page-rastreio">
       <div class="content">
-        <div class="section-header"><div class="section-title">Pedidos em monitoramento</div></div>
+        <div class="section-header"><div class="section-title">Ordens em monitoramento</div></div>
         <div class="track-list" id="track-list">
-          <div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum pedido em monitoramento</div>
+          <div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhuma ordem em monitoramento</div>
         </div>
         <div style="height:80px"></div>
       </div>
@@ -765,7 +766,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
     <!-- ── PAGE: FORNECEDORES ── -->
     <div class="page" id="page-fornecedores">
       <div class="content">
-        <div class="section-header"><div class="section-title">Parceiros cadastrados</div><div class="section-action" onclick="showToast('Adicionar fornecedor')">+ Novo →</div></div>
+        <div class="section-header"><div class="section-title">Fornecedores homologados</div><div class="section-action" onclick="showToast('Adicionar fornecedor')">+ Novo →</div></div>
         <div class="supplier-grid" id="supplier-grid">
           <div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted);grid-column:1/-1">Nenhum fornecedor cadastrado</div>
         </div>
@@ -961,7 +962,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
         </div>
         <div class="tb-item" id="tb-pedidos" onclick="navTo('pedidos',null,'tb-pedidos')">
           <svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h8" stroke-linecap="round"/></svg>
-          Pedidos
+          Produção
         </div>
         <div class="tb-item" id="tb-estoque" onclick="navTo('estoque',null,'tb-estoque')">
           <svg viewBox="0 0 16 16"><path d="M2 2h12v4H2zM2 8h12v4H2z" stroke-linecap="round"/></svg>
@@ -969,7 +970,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
         </div>
         <div class="tb-item" id="tb-rastreio" onclick="navTo('rastreio',null,'tb-rastreio')">
           <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>
-          Rastreio
+          Lotes
         </div>
       </div>
     </div>
@@ -989,12 +990,12 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
   <div class="drawer-header">
     <button class="close-btn" onclick="closeDrawer()"><svg viewBox="0 0 12 12"><path d="M1 1l10 10M11 1L1 11" stroke-linecap="round"/></svg></button>
     <div>
-      <div class="dh-id" id="d-id">PEDIDO · #BR-4821</div>
-      <div class="dh-title" id="d-title">Eletrônicos — Lote Maio</div>
+      <div class="dh-id" id="d-id">ORDEM/LOTE · #OP-2026-00128</div>
+      <div class="dh-title" id="d-title">Produção — Pão francês</div>
       <div class="dh-badges" id="d-badges">
-        <span class="badge b-transit">Em trânsito</span>
-        <span class="badge b-priority">Prioritário</span>
-        <span class="badge b-fragile">Frágil</span>
+        <span class="badge b-transit">Em produção</span>
+        <span class="badge b-priority">FEFO</span>
+        <span class="badge b-fragile">Validade curta</span>
       </div>
     </div>
   </div>
@@ -1002,7 +1003,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
     <div class="dtab active" onclick="switchDTab('timeline',this)">Timeline</div>
     <div class="dtab" onclick="switchDTab('items',this)">Itens</div>
     <div class="dtab" onclick="switchDTab('info',this)">Detalhes</div>
-    <div class="dtab" onclick="switchDTab('carrier',this)">Transportadora</div>
+    <div class="dtab" onclick="switchDTab('carrier',this)">Responsável</div>
   </div>
   <div class="drawer-body" id="drawer-body">
     <div class="dtab-content active" id="dtab-timeline"><div id="d-timeline-content"></div></div>
@@ -1033,21 +1034,21 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
     <div class="mstep active" id="ms1">
       <div class="modal-mheader">
         <button class="close-btn" onclick="closeQR()"><svg viewBox="0 0 12 12"><path d="M1 1l10 10M11 1L1 11" stroke-linecap="round"/></svg></button>
-        <div><div class="modal-title">Nova entrada</div><div class="modal-sub">Como deseja registrar o pedido?</div></div>
+        <div><div class="modal-title">Nova entrada</div><div class="modal-sub">Como deseja registrar insumo, lote ou produção?</div></div>
       </div>
       <div class="choice-grid">
         <div class="choice-card" onclick="msGo('ms2')">
           <div class="ci ci-qr"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/><rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h3M12 10h3M10 12v3"/></svg></div>
-          <div><div class="choice-label">Escanear QR Code</div><div class="choice-desc">Preenche os campos automaticamente via câmera</div></div>
+          <div><div class="choice-label">Bipar lote QR Code</div><div class="choice-desc">Preenche os campos automaticamente via câmera</div></div>
         </div>
         <div class="choice-card" onclick="msGo('ms4',false)">
           <div class="ci ci-manual"><svg viewBox="0 0 16 16"><path d="M3 3h10M3 7h10M3 11h6" stroke-linecap="round"/></svg></div>
-          <div><div class="choice-label">Entrada manual</div><div class="choice-desc">Preencha campo a campo manualmente</div></div>
+          <div><div class="choice-label">Entrada de insumo manual</div><div class="choice-desc">Preencha campo a campo manualmente</div></div>
         </div>
       </div>
       <div class="choice-wide" onclick="showToast('Selecione um arquivo .csv ou .xlsx')">
         <div class="ci ci-manual"><svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke-linecap="round"/></svg></div>
-        <div><div class="choice-label">Importar planilha</div><div class="choice-desc">Arraste um .csv ou .xlsx com múltiplos pedidos</div></div>
+        <div><div class="choice-label">Importar planilha</div><div class="choice-desc">Arraste um .csv ou .xlsx com múltiplos lotes</div></div>
       </div>
     </div>
 
@@ -1055,7 +1056,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
     <div class="mstep" id="ms2">
       <div class="modal-mheader">
         <button class="close-btn" onclick="msGo('ms1')"><svg viewBox="0 0 12 12"><path d="M8 1L3 6l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        <div><div class="modal-title">Escanear QR Code</div><div class="modal-sub">Aponte para o código na NF ou etiqueta</div></div>
+        <div><div class="modal-title">Bipar lote QR Code</div><div class="modal-sub">Aponte para o código na NF ou etiqueta</div></div>
       </div>
       <div class="camera-area">
         <div class="cam-grid"></div>
@@ -1103,7 +1104,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
         <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
         <div class="ls-list">
           <div class="ls-item" id="ls1"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>QR decodificado com sucesso</div>
-          <div class="ls-item" id="ls2"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>NF-e 000.433 localizada</div>
+          <div class="ls-item" id="ls2"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>NF-e e lote localizados</div>
           <div class="ls-item" id="ls3"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Dados do fornecedor carregados</div>
         </div>
       </div>
@@ -1113,7 +1114,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
     <div class="mstep" id="ms4">
       <div class="modal-mheader">
         <button class="close-btn" onclick="msGo('ms1')"><svg viewBox="0 0 12 12"><path d="M8 1L3 6l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        <div><div class="modal-title" id="form-modal-title">Nova Entrada</div><div class="modal-sub" id="form-modal-sub">Confirme ou edite os dados preenchidos</div></div>
+        <div><div class="modal-title" id="form-modal-title">Nova Entrada de insumo</div><div class="modal-sub" id="form-modal-sub">Confirme ou edite os dados preenchidos</div></div>
       </div>
       <div class="form-body">
         <div class="autofill-banner" id="af-banner">
@@ -1122,7 +1123,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
         </div>
         <div class="fsection">
           <div class="fsection-label">Identificação</div>
-          <div class="frow"><div class="field"><label>Número do Pedido</label><input id="fi-id" value="BR-4899" class="af"></div></div>
+          <div class="frow"><div class="field"><label>Número do lote / OP</label><input id="fi-id" value="LT-0610-4899" class="af"></div></div>
           <div class="frow c2">
             <div class="field"><label>NF-e</label><input id="fi-nfe" value="000.433" class="af"></div>
             <div class="field"><label>Data de emissão</label><input id="fi-date" value="10/04/2026" class="af"></div>
@@ -1139,18 +1140,18 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
         </div>
         <div class="fsection">
           <div class="fsection-label">Itens do lote</div>
-          <div class="added-item"><div class="ai-dot"></div><div class="ai-label">Notebook Dell XPS 13 · SKU-00841</div><div class="ai-qty">× 2</div></div>
-          <div class="added-item"><div class="ai-dot"></div><div class="ai-label">Carregador 65W USB-C · SKU-00142</div><div class="ai-qty">× 2</div></div>
-          <div class="added-item"><div class="ai-dot"></div><div class="ai-label">Mouse Logitech MX3 · SKU-00295</div><div class="ai-qty">× 1</div></div>
+          <div class="added-item"><div class="ai-dot"></div><div class="ai-label">Farinha de Trigo 25kg · FAR-25KG · LT-FAR-0626-A</div><div class="ai-qty">× 2</div></div>
+          <div class="added-item"><div class="ai-dot"></div><div class="ai-label">Fermento biológico fresco · FER-BIO-500 · validade 14/06</div><div class="ai-qty">× 2</div></div>
+          <div class="added-item"><div class="ai-dot"></div><div class="ai-label">Embalagem pão francês · EMB-PF-1000</div><div class="ai-qty">× 1</div></div>
           <div class="add-row" onclick="showToast('Adicionar item manualmente')"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke-linecap="round"/></svg>Adicionar item manualmente</div>
         </div>
         <div class="fsection">
           <div class="fsection-label">Logística</div>
           <div class="frow c2">
-            <div class="field"><label>Peso total (kg)</label><input value="14,2" class="af"></div>
-            <div class="field"><label>Volumes</label><input value="3" class="af"></div>
+            <div class="field"><label>Peso/volume total</label><input value="14,2" class="af"></div>
+            <div class="field"><label>Qtd. recebida</label><input value="3" class="af"></div>
           </div>
-          <div class="frow"><div class="field"><label>Transportadora</label><select><option>Correios SEDEX</option><option>Jadlog</option><option>Loggi</option></select></div></div>
+          <div class="frow"><div class="field"><label>Responsável</label><select><option>Equipe Estoque</option><option>Fornecedor entrega</option><option>Compras</option></select></div></div>
           <div class="frow"><div class="field"><label>Observações</label><input placeholder="Instruções especiais..."></div></div>
         </div>
         <div style="height:8px"></div>
@@ -1168,9 +1169,9 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
     <div class="mstep" id="ms5">
       <div class="success-wrap">
         <div class="success-ring"><svg viewBox="0 0 26 26"><path d="M4 13l6 6L22 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="success-title">Entrada registrada!</div>
-        <div class="success-sub">Os itens foram adicionados ao estoque e o pedido está disponível no sistema.</div>
-        <div class="success-id" id="success-id-val">#BR-4899</div>
+        <div class="success-title">Entrada de insumo registrada!</div>
+        <div class="success-sub">Os lotes foram adicionados ao estoque e já entram na regra FEFO.</div>
+        <div class="success-id" id="success-id-val">#LT-0610-4899</div>
         <div class="success-btns">
           <button class="btn-secondary" onclick="closeQR()">Fechar</button>
           <button class="btn-primary" onclick="closeQR();navToStr('estoque')">
@@ -1188,12 +1189,28 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
 // ── DATABASE CENTRAL ──
 const db = {
   products: [
-    {id:'CX40X30X20', name:'Caixa de Papelão M', cat:'Embalagens', qty:1250, min:300, price:4.8},
-    {id:'PLT-MD-001', name:'Pallet de Madeira', cat:'Paletes', qty:85, min:100, price:42},
-    {id:'FITA-TR-48', name:'Fita Adesiva Transparente', cat:'Suprimentos', qty:12, min:50, price:8.5},
-    {id:'PB-130', name:'Plástico Bolha 1,30m', cat:'Proteção', qty:320, min:150, price:3.2},
-    {id:'ETQ-QR-100', name:'Etiqueta QR térmica', cat:'Identificação', qty:780, min:250, price:0.18},
-    {id:'LAC-AZ-001', name:'Lacre azul numerado', cat:'Segurança', qty:38, min:120, price:0.42}
+    {id:'FAR-25KG', name:'Farinha de Trigo 25kg', cat:'Matéria-prima', type:'Insumo', qty:18, min:10, unit:'sacos', price:92.50, lote:'LT-FAR-0626-A', validade:'2026-07-12', fornecedor:'Moinho Paulista', location:'R1-N1-P02', dailyUse:5},
+    {id:'FER-BIO-500', name:'Fermento biológico fresco 500g', cat:'Matéria-prima', type:'Insumo refrigerado', qty:9, min:12, unit:'un', price:11.90, lote:'LT-FER-0626-C', validade:'2026-06-14', fornecedor:'Fermentos Brasil', location:'Câmara fria A', dailyUse:3},
+    {id:'OVO-BD-30', name:'Ovos brancos bandeja 30un', cat:'Perecível', type:'Insumo', qty:7, min:8, unit:'bandejas', price:24.80, lote:'LT-OVO-0610-B', validade:'2026-06-13', fornecedor:'Granja Boa Vista', location:'Câmara fria B', dailyUse:2},
+    {id:'LEI-UHT-1L', name:'Leite integral UHT 1L', cat:'Perecível', type:'Insumo', qty:22, min:16, unit:'litros', price:5.40, lote:'LT-LEI-0608-D', validade:'2026-06-18', fornecedor:'Laticínios Serra', location:'R2-N1-P04', dailyUse:6},
+    {id:'MARG-15KG', name:'Margarina culinária 15kg', cat:'Matéria-prima', type:'Insumo', qty:3, min:4, unit:'baldes', price:138.00, lote:'LT-MAR-0601-A', validade:'2026-06-22', fornecedor:'Laticínios Serra', location:'R2-N2-P01', dailyUse:1},
+    {id:'ACU-5KG', name:'Açúcar cristal 5kg', cat:'Matéria-prima', type:'Insumo', qty:14, min:10, unit:'pacotes', price:19.70, lote:'LT-ACU-0528-A', validade:'2026-09-30', fornecedor:'Distribuidora Doce Minas', location:'R1-N2-P07', dailyUse:2},
+    {id:'EMB-PF-1000', name:'Embalagem pão francês 1000un', cat:'Embalagem', type:'Embalagem', qty:6, min:5, unit:'fardos', price:42.00, lote:'LT-EMB-0605-A', validade:'2027-01-30', fornecedor:'PackFood', location:'R3-N1-P03', dailyUse:1},
+    {id:'PAO-FRANCES', name:'Pão francês', cat:'Produto acabado', type:'Venda balcão', qty:420, min:180, unit:'un', price:0.85, lote:'PRD-PF-0610-M', validade:'2026-06-11', fornecedor:'Produção própria', location:'Balcão 1', dailyUse:0}
+  ],
+  suppliers: [
+    {id:'SUP-MOINHO', name:'Moinho Paulista', cat:'Farinhas', lead:'2 dias', reliability:98, last:'08/06/2026'},
+    {id:'SUP-FERMENTO', name:'Fermentos Brasil', cat:'Fermentos', lead:'1 dia', reliability:94, last:'09/06/2026'},
+    {id:'SUP-GRANJA', name:'Granja Boa Vista', cat:'Ovos', lead:'1 dia', reliability:91, last:'10/06/2026'},
+    {id:'SUP-PACK', name:'PackFood', cat:'Embalagens', lead:'3 dias', reliability:96, last:'05/06/2026'}
+  ],
+  recipes: [
+    {id:'REC-PF', name:'Pão francês', yield:100, unit:'un', ingredients:[['FAR-25KG',0.2],['FER-BIO-500',0.3],['EMB-PF-1000',0.001]], lossAvg:3.2},
+    {id:'REC-PD', name:'Pão doce', yield:60, unit:'un', ingredients:[['FAR-25KG',0.12],['OVO-BD-30',0.08],['LEI-UHT-1L',0.04]], lossAvg:5.1}
+  ],
+  losses: [
+    {reason:'Sobra de balcão', item:'Pão francês', qty:38, cost:32.30},
+    {reason:'Vencimento próximo', item:'Fermento biológico', qty:2, cost:23.80}
   ]
 };
 
@@ -1208,41 +1225,41 @@ function syncCatalog() {
 
 const cargos = [
   {
-    id:'PED-2026-000128', title:'Cliente: TechSupplies Ltda.', status:'transit', statusLabel:'Em trânsito',
-    origin:'São Paulo, SP', dest:'Campinas, SP', carrier:'Loggi', eta:'24/06 · 14:30', steps:[2,3], badges:['b-transit'],
-    remetente:{empresa:'TechSupplies Ltda.', cnpj:'12.345.678/0001-90', tel:'(11) 4002-7788'},
-    destinatario:{nome:'CD Campinas', endereco:'Rod. Anhanguera, km 112 — Campinas, SP', cnpj:'98.765.432/0001-10', tel:'(19) 3003-1122'},
-    nfe:'000.433', peso:'14,2', volumes:3, seguro:'R$ 18.500', frete:'R$ 182,90', rastreio:'LGG-9A82-128', modalidade:'Expressa', prazo:'24/06 14:30', prazoRev:null, ocorrencia:null,
-    itens:[{name:'Notebook Dell XPS 13', sku:'SKU-00841', qty:2},{name:'Carregador 65W USB-C', sku:'SKU-00142', qty:2},{name:'Mouse Logitech MX3', sku:'SKU-00295', qty:1}],
-    timeline:[{cls:'done',ev:'Coletado',detail:'Carga recebida na origem',time:'23/06 08:40'},{cls:'done',ev:'Em trânsito',detail:'Saiu do centro de distribuição',time:'23/06 11:15'},{cls:'active',ev:'Em rota',detail:'Rod. Anhanguera, km 112',time:'Atualizado há 2 min'},{cls:'pending',ev:'Entrega',detail:'Previsão confirmada',time:'24/06 14:30'}]
+    id:'OP-2026-00128', title:'Produção: Pão francês — fornada manhã', status:'transit', statusLabel:'Em produção',
+    origin:'Masseira', dest:'Forno 2', carrier:'Equipe Panificação', eta:'Hoje · 10:30', steps:[2,3], badges:['b-transit'],
+    remetente:{empresa:'Padaria Três Irmãos', cnpj:'12.345.678/0001-90', tel:'(11) 4002-7788'},
+    destinatario:{nome:'Balcão e encomendas', endereco:'Área de expedição e loja', cnpj:'—', tel:'—'},
+    nfe:'OP-00128', peso:'65', volumes:620, seguro:'Custo estimado R$ 326,40', frete:'—', rastreio:'LOTE-PF-0610-M', modalidade:'Produção interna', prazo:'Hoje 10:30', prazoRev:null, ocorrencia:null,
+    itens:[{name:'Farinha de Trigo 25kg', sku:'FAR-25KG', qty:3},{name:'Fermento biológico fresco 500g', sku:'FER-BIO-500', qty:4},{name:'Embalagem pão francês 1000un', sku:'EMB-PF-1000', qty:1}],
+    timeline:[{cls:'done',ev:'Ingredientes separados',detail:'FEFO aplicado: farinha LT-FAR-0626-A',time:'06:20'},{cls:'done',ev:'Massa em batimento',detail:'Masseira 01 liberada',time:'06:45'},{cls:'active',ev:'Fermentação controlada',detail:'Temperatura 27°C · umidade OK',time:'Atualizado há 2 min'},{cls:'pending',ev:'Forno e balcão',detail:'Previsão de saída da fornada',time:'10:30'}]
   },
   {
-    id:'PED-2026-000127', title:'Cliente: Indústria Bravo', status:'pending', statusLabel:'Pendente',
-    origin:'Curitiba, PR', dest:'Joinville, SC', carrier:'Jadlog', eta:'25/06 · 09:00', steps:[1,2], badges:['b-pending'],
-    remetente:{empresa:'Indústria Bravo', cnpj:'21.222.333/0001-44', tel:'(41) 3333-1200'}, destinatario:{nome:'Bravo Joinville', endereco:'Rua Dona Francisca, 810 — Joinville, SC', cnpj:'21.222.333/0002-25', tel:'(47) 3555-4411'},
-    nfe:'000.434', peso:'26,8', volumes:5, seguro:'R$ 8.200', frete:'R$ 240,00', rastreio:'JDL-771-127', modalidade:'Rodoviário', prazo:'25/06 09:00', prazoRev:null, ocorrencia:'Aguardando confirmação de doca',
-    itens:[{name:'Pallet de Madeira', sku:'PLT-MD-001', qty:8},{name:'Lacre azul numerado', sku:'LAC-AZ-001', qty:50}], timeline:[{cls:'done',ev:'Pedido criado',detail:'Aguardando confirmação',time:'23/06 09:10'},{cls:'active',ev:'Validação fiscal',detail:'NF-e em conferência',time:'hoje 10:12'},{cls:'pending',ev:'Coleta',detail:'Janela solicitada',time:'25/06 06:00'}]
+    id:'OP-2026-00127', title:'Produção: Pão doce — vitrine tarde', status:'pending', statusLabel:'Aguardando insumo',
+    origin:'Pré-pesagem', dest:'Confeitaria', carrier:'Equipe Confeitaria', eta:'Hoje · 14:00', steps:[1,2], badges:['b-pending'],
+    remetente:{empresa:'Padaria Três Irmãos', cnpj:'12.345.678/0001-90', tel:'(11) 4002-7788'}, destinatario:{nome:'Vitrine confeitaria', endereco:'Loja principal', cnpj:'—', tel:'—'},
+    nfe:'OP-00127', peso:'22', volumes:180, seguro:'Custo estimado R$ 214,10', frete:'—', rastreio:'LOTE-PD-0610-T', modalidade:'Produção interna', prazo:'Hoje 14:00', prazoRev:null, ocorrencia:'Ovos abaixo do mínimo — validar compra',
+    itens:[{name:'Ovos brancos bandeja 30un', sku:'OVO-BD-30', qty:2},{name:'Açúcar cristal 5kg', sku:'ACU-5KG', qty:1},{name:'Leite integral UHT 1L', sku:'LEI-UHT-1L', qty:4}], timeline:[{cls:'done',ev:'Receita planejada',detail:'Rendimento previsto 180 un.',time:'08:10'},{cls:'active',ev:'Aguardando confirmação',detail:'Ovos vencem em 3 dias; priorizar uso',time:'agora'},{cls:'pending',ev:'Produção',detail:'Início após liberação do líder',time:'13:15'}]
   },
   {
-    id:'PED-2026-000126', title:'Cliente: Alpha Comércio', status:'delivered', statusLabel:'Entregue',
-    origin:'Rio de Janeiro, RJ', dest:'Belo Horizonte, MG', carrier:'Correios SEDEX', eta:'23/06 · 11:20', steps:[4,4], badges:['b-delivered'],
-    remetente:{empresa:'Alpha Comércio', cnpj:'31.456.789/0001-12', tel:'(21) 3222-9000'}, destinatario:{nome:'Alpha BH', endereco:'Av. Cristiano Machado, 1020 — Belo Horizonte, MG', cnpj:'31.456.789/0002-01', tel:'(31) 3555-8833'},
-    nfe:'000.431', peso:'8,4', volumes:2, seguro:'R$ 4.800', frete:'R$ 98,70', rastreio:'SDX-321-126', modalidade:'SEDEX', prazo:'23/06 11:20', prazoRev:null, ocorrencia:null,
-    itens:[{name:'Caixa de Papelão M', sku:'CX40X30X20', qty:40},{name:'Fita Adesiva Transparente', sku:'FITA-TR-48', qty:12}], timeline:[{cls:'done',ev:'Coletado',detail:'Origem confirmada',time:'22/06 08:00'},{cls:'done',ev:'Em trânsito',detail:'Transferência concluída',time:'22/06 16:00'},{cls:'done',ev:'Entregue',detail:'Recebido por portaria',time:'23/06 11:20'}]
+    id:'OP-2026-00126', title:'Produção: Bolo simples — encomenda local', status:'delivered', statusLabel:'Finalizado',
+    origin:'Confeitaria', dest:'Retirada balcão', carrier:'Equipe Confeitaria', eta:'Hoje · 09:20', steps:[4,4], badges:['b-delivered'],
+    remetente:{empresa:'Padaria Três Irmãos', cnpj:'12.345.678/0001-90', tel:'(11) 4002-7788'}, destinatario:{nome:'Cliente balcão', endereco:'Retirada na loja', cnpj:'—', tel:'—'},
+    nfe:'OP-00126', peso:'4,5', volumes:6, seguro:'Custo estimado R$ 72,80', frete:'—', rastreio:'LOTE-BOLO-0610-M', modalidade:'Encomenda', prazo:'Hoje 09:20', prazoRev:null, ocorrencia:null,
+    itens:[{name:'Farinha de Trigo 25kg', sku:'FAR-25KG', qty:1},{name:'Ovos brancos bandeja 30un', sku:'OVO-BD-30', qty:1},{name:'Margarina culinária 15kg', sku:'MARG-15KG', qty:1}], timeline:[{cls:'done',ev:'Separação',detail:'Ingredientes conferidos',time:'07:00'},{cls:'done',ev:'Assado',detail:'Forno 1 finalizado',time:'08:40'},{cls:'done',ev:'Finalizado',detail:'Disponível para retirada',time:'09:20'}]
   },
   {
-    id:'PED-2026-000125', title:'Cliente: MegaShop', status:'transit', statusLabel:'Em trânsito',
-    origin:'São Paulo, SP', dest:'Porto Alegre, RS', carrier:'Azul Cargo', eta:'26/06 · 16:00', steps:[2,3], badges:['b-transit'],
-    remetente:{empresa:'MegaShop', cnpj:'44.555.666/0001-77', tel:'(11) 3777-8080'}, destinatario:{nome:'MegaShop POA', endereco:'Av. Farrapos, 2100 — Porto Alegre, RS', cnpj:'44.555.666/0003-20', tel:'(51) 3400-1212'},
-    nfe:'000.435', peso:'18,1', volumes:4, seguro:'R$ 12.300', frete:'R$ 318,20', rastreio:'AZL-771-125', modalidade:'Aéreo', prazo:'26/06 16:00', prazoRev:null, ocorrencia:null,
-    itens:[{name:'Etiqueta QR térmica', sku:'ETQ-QR-100', qty:300},{name:'Plástico Bolha 1,30m', sku:'PB-130', qty:20}], timeline:[{cls:'done',ev:'Coletado',detail:'Carga lacrada',time:'23/06 07:45'},{cls:'active',ev:'Terminal aéreo',detail:'Aguardando embarque',time:'hoje 12:30'},{cls:'pending',ev:'Entrega',detail:'Previsão mantida',time:'26/06 16:00'}]
+    id:'OP-2026-00125', title:'Produção: Salgados assados — almoço', status:'transit', statusLabel:'Em produção',
+    origin:'Câmara fria', dest:'Forno 1', carrier:'Equipe Salgados', eta:'Hoje · 11:45', steps:[2,3], badges:['b-transit'],
+    remetente:{empresa:'Padaria Três Irmãos', cnpj:'12.345.678/0001-90', tel:'(11) 4002-7788'}, destinatario:{nome:'Vitrine salgados', endereco:'Loja principal', cnpj:'—', tel:'—'},
+    nfe:'OP-00125', peso:'18', volumes:220, seguro:'Custo estimado R$ 185,30', frete:'—', rastreio:'LOTE-SALG-0610-A', modalidade:'Produção interna', prazo:'Hoje 11:45', prazoRev:null, ocorrencia:null,
+    itens:[{name:'Margarina culinária 15kg', sku:'MARG-15KG', qty:1},{name:'Leite integral UHT 1L', sku:'LEI-UHT-1L', qty:3}], timeline:[{cls:'done',ev:'Recheio liberado',detail:'Câmara fria B',time:'08:00'},{cls:'active',ev:'Modelagem',detail:'Bancada 03',time:'agora'},{cls:'pending',ev:'Forno',detail:'Entrada de insumo programada',time:'11:00'}]
   },
   {
-    id:'PED-2026-000124', title:'Cliente: Construtora Sul', status:'pending', statusLabel:'Pendente',
-    origin:'Florianópolis, SC', dest:'São Paulo, SP', carrier:'Jadlog', eta:'27/06 · 08:00', steps:[0,2], badges:['b-pending'],
-    remetente:{empresa:'Construtora Sul', cnpj:'55.222.123/0001-03', tel:'(48) 3333-7000'}, destinatario:{nome:'Obra SP Norte', endereco:'Av. Braz Leme, 1900 — São Paulo, SP', cnpj:'55.222.123/0004-11', tel:'(11) 3777-3344'},
-    nfe:'000.436', peso:'31,4', volumes:7, seguro:'R$ 6.900', frete:'R$ 278,00', rastreio:'JDL-998-124', modalidade:'Rodoviário', prazo:'27/06 08:00', prazoRev:null, ocorrencia:'Aguardando aprovação do cliente',
-    itens:[{name:'Pallet de Madeira', sku:'PLT-MD-001', qty:4},{name:'Caixa de Papelão M', sku:'CX40X30X20', qty:80}], timeline:[{cls:'active',ev:'Confirmação pendente',detail:'Cliente precisa aprovar coleta',time:'hoje 09:30'},{cls:'pending',ev:'Coleta',detail:'A programar',time:'27/06'}]
+    id:'OP-2026-00124', title:'Compra: reposição de ovos e fermento', status:'pending', statusLabel:'Compra sugerida',
+    origin:'Compras', dest:'Fornecedor', carrier:'Granja Boa Vista / Fermentos Brasil', eta:'Aprovar hoje', steps:[0,2], badges:['b-pending'],
+    remetente:{empresa:'Padaria Três Irmãos', cnpj:'12.345.678/0001-90', tel:'(11) 4002-7788'}, destinatario:{nome:'Fornecedores homologados', endereco:'Compra recomendada', cnpj:'—', tel:'—'},
+    nfe:'PC-00124', peso:'—', volumes:1, seguro:'Sugestão IA R$ 268,40', frete:'—', rastreio:'COMPRA-0610', modalidade:'Compra recomendada', prazo:'Aprovar hoje', prazoRev:null, ocorrencia:'Evita ruptura para produção de amanhã',
+    itens:[{name:'Ovos brancos bandeja 30un', sku:'OVO-BD-30', qty:8},{name:'Fermento biológico fresco 500g', sku:'FER-BIO-500', qty:12}], timeline:[{cls:'active',ev:'Sugestão gerada',detail:'Baseada no consumo médio e validade',time:'agora'},{cls:'pending',ev:'Aprovação',detail:'Gerente precisa confirmar compra',time:'hoje'}]
   }
 ];
 
@@ -1281,9 +1298,27 @@ function buildCargoCard(c) {
       <div class="route"><span class="route-origin">${c.origin}</span><span class="route-arrow">→</span><span class="route-dest">${c.dest}</span></div>
       <div class="timeline-mini">${buildTimeline(c.steps[0], c.steps[1])}</div>
       <div class="cargo-footer">
-        <span class="cargo-meta">Transportadora: ${c.carrier}</span>
-        <span class="cargo-eta" style="${etaColor}">ETA ${c.eta}</span>
+        <span class="cargo-meta">Responsável: ${c.carrier}</span>
+        <span class="cargo-eta" style="${etaColor}">Prev. ${c.eta}</span>
       </div>
+    </div>`;
+}
+
+function buildRecentOrderRow(c) {
+  const meta = getCargoStatusMeta(c);
+  const recipe = (c.title || '').replace(/^(Produção|Compra):\s*/,'');
+  return `
+    <div class="recent-order" onclick="openDrawer('${c.id}')">
+      <div class="recent-ico ${meta.iconState}">${meta.icon}</div>
+      <div>
+        <div class="recent-id">${c.id}</div>
+        <div class="recent-client">${recipe}</div>
+      </div>
+      <div class="recent-loc"><div class="recent-label">Etapa</div><div class="recent-value">${c.origin}</div></div>
+      <div class="recent-arrow">→</div>
+      <div class="recent-loc"><div class="recent-label">Destino</div><div class="recent-value">${c.dest}</div></div>
+      <div class="recent-forecast"><div class="recent-label">Previsão</div><div class="recent-value">${c.eta}</div></div>
+      <div class="recent-status"><span class="badge ${meta.badgeCls}">${c.statusLabel}</span></div>
     </div>`;
 }
 
@@ -1309,7 +1344,7 @@ function renderCards(list, containerId) {
   const el = document.getElementById(containerId);
   if (!el) return;
   if (!list.length) {
-    el.innerHTML = '<div style="padding:24px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum pedido encontrado</div>';
+    el.innerHTML = '<div style="padding:24px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhuma ordem encontrada</div>';
     return;
   }
   el.innerHTML = containerId === 'cargo-list'
@@ -1320,7 +1355,7 @@ function renderCards(list, containerId) {
 renderCards(cargos.slice(0, 5), 'cargo-list');
 renderCards(cargos, 'cargo-list-all');
 
-// ── SEARCH FILTER — Pedidos ──
+// ── SEARCH FILTER — Produção ──
 function filterCards(q) {
   const term = q.toLowerCase();
   const filtered = cargos.filter(c =>
@@ -1335,26 +1370,49 @@ function filterCards(q) {
   renderCards(filtered, 'cargo-list-all');
 }
 
-// ── STOCK STATUS ──
+// ── STOCK STATUS / FEFO ──
+function daysToExpire(p) {
+  if (!p.validade) return null;
+  const today = new Date('2026-06-10T00:00:00');
+  const exp = new Date(p.validade + 'T00:00:00');
+  return Math.ceil((exp - today) / 86400000);
+}
+
+function expiryStatus(p) {
+  const d = daysToExpire(p);
+  if (d === null) return {label:'Sem validade', bg:'var(--surface3)', color:'var(--text-muted)', cls:''};
+  if (d < 0) return {label:'Vencido', bg:'var(--danger-bg)', color:'var(--danger)', cls:'stock-low'};
+  if (d === 0) return {label:'Vence hoje', bg:'var(--danger-bg)', color:'var(--danger)', cls:'stock-low'};
+  if (d <= 3) return {label:`Vence em ${d}d`, bg:'var(--warning-bg)', color:'var(--warning)', cls:'stock-low'};
+  if (d <= 7) return {label:`${d}d validade`, bg:'var(--info-bg)', color:'var(--info)', cls:''};
+  return {label:'Validade OK', bg:'var(--success-bg)', color:'var(--success)', cls:'stock-ok'};
+}
+
 function stockStatus(p) {
   const pct = p.qty / p.min;
   if (p.qty === 0) return {label:'Zerado', bg:'var(--danger-bg)', color:'var(--danger)', cls:'stock-low'};
   if (pct < 0.3)  return {label:'Crítico', bg:'var(--danger-bg)', color:'var(--danger)', cls:'stock-low'};
-  if (pct < 0.8)  return {label:'Baixo',   bg:'var(--warning-bg)', color:'var(--warning)', cls:'stock-low'};
-  return {label:'OK', bg:'var(--success-bg)', color:'var(--success)', cls:'stock-ok'};
+  if (pct < 0.8)  return {label:'Atenção', bg:'var(--warning-bg)', color:'var(--warning)', cls:'stock-low'};
+  return {label:'Normal', bg:'var(--success-bg)', color:'var(--success)', cls:'stock-ok'};
+}
+
+function formatQty(p) {
+  return `${p.qty.toLocaleString('pt-BR')} ${p.unit || 'un'}`;
 }
 
 function stockRowHtml(p, editable) {
   const s = stockStatus(p);
+  const ex = expiryStatus(p);
   const qtyEl = editable
     ? `<div class="stock-num ${s.cls}" style="text-align:right;cursor:pointer;border-bottom:1px dashed var(--border2)"
-         title="Clique para editar" onclick="editQty('${p.id}',${p.qty})">${p.qty}</div>`
-    : `<div class="stock-num ${s.cls}">${p.qty}</div>`;
-  return `<div class="stock-row">
-    <div><div class="stock-name">${p.name}</div><div class="stock-sku">${p.id}</div></div>
+         title="Clique para editar" onclick="editQty('${p.id}',${p.qty})">${formatQty(p)}</div>`
+    : `<div class="stock-num ${s.cls}">${formatQty(p)}</div>`;
+  return `<div class="stock-row stock-row-rich">
+    <div><div class="stock-name">${p.name}</div><div class="stock-sku">${p.id} · ${p.lote || 'sem lote'}</div></div>
+    <div class="stock-cat">${p.cat}</div>
     ${qtyEl}
-    <div class="stock-num">${p.min}</div>
-    <div style="text-align:right"><span class="pill" style="background:${s.bg};color:${s.color}">${s.label}</span></div>
+    <div class="stock-num">${p.min.toLocaleString('pt-BR')} ${p.unit || 'un'}</div>
+    <div style="text-align:right;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap"><span class="pill" style="background:${s.bg};color:${s.color}">${s.label}</span><span class="pill" style="background:${ex.bg};color:${ex.color}">${ex.label}</span></div>
   </div>`;
 }
 
@@ -1364,11 +1422,11 @@ function renderStockFull(q) {
   if (!el) return;
   const term = (q||'').toLowerCase();
   const list = db.products.filter(p =>
-    !term || p.name.toLowerCase().includes(term) || p.id.toLowerCase().includes(term) || p.cat.toLowerCase().includes(term)
+    !term || p.name.toLowerCase().includes(term) || p.id.toLowerCase().includes(term) || p.cat.toLowerCase().includes(term) || (p.lote||'').toLowerCase().includes(term) || (p.fornecedor||'').toLowerCase().includes(term)
   );
-  if (!list.length) { el.innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum produto encontrado</div>'; return; }
+  if (!list.length) { el.innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum insumo ou lote encontrado</div>'; return; }
   el.innerHTML =
-    `<div class="stock-row hdr"><div>Produto / SKU</div><div style="text-align:right">Qtd</div><div style="text-align:right">Mín</div><div style="text-align:right">Status</div></div>` +
+    `<div class="stock-row hdr stock-row-rich"><div>Produto / Lote</div><div>Categoria</div><div style="text-align:right">Disponível</div><div style="text-align:right">Mínimo</div><div style="text-align:right">Status / Validade</div></div>` +
     list.map(p => stockRowHtml(p, true)).join('');
 }
 
@@ -1376,18 +1434,21 @@ function renderStockFull(q) {
 function renderCriticalStock() {
   const el = document.getElementById('stock-table-critical');
   if (!el) return;
-  const list = [...db.products].sort((a,b) => (a.qty/a.min) - (b.qty/b.min)).slice(0, 4);
-  if (!list.length) { el.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--success)">✓ Todos os itens acima do mínimo</div>'; return; }
+  const list = [...db.products]
+    .sort((a,b) => (daysToExpire(a) ?? 999) - (daysToExpire(b) ?? 999) || (a.qty/a.min) - (b.qty/b.min))
+    .slice(0, 5);
+  if (!list.length) { el.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--success)">✓ Lotes e validade sob controle</div>'; return; }
   el.innerHTML =
-    `<div class="stock-row hdr"><div>Produto / SKU</div><div>Categoria</div><div style="text-align:right">Disponível</div><div style="text-align:right">Mínimo</div><div style="text-align:right">Status</div></div>` +
+    `<div class="stock-row hdr stock-row-rich"><div>Produto / Lote FEFO</div><div>Fornecedor</div><div style="text-align:right">Disponível</div><div style="text-align:right">Validade</div><div style="text-align:right">Status</div></div>` +
     list.map(p => {
       const st = stockStatus(p);
+      const ex = expiryStatus(p);
       return `<div class="stock-row stock-row-rich">
-        <div><div class="stock-name">${p.name}</div><div class="stock-sku">${p.id}</div></div>
-        <div class="stock-cat">${p.cat}</div>
-        <div class="stock-num ${st.cls}">${p.qty.toLocaleString('pt-BR')}</div>
-        <div class="stock-num">${p.min.toLocaleString('pt-BR')}</div>
-        <div style="text-align:right"><span class="pill" style="background:${st.bg};color:${st.color}">${st.label === 'OK' ? 'Normal' : st.label}</span></div>
+        <div><div class="stock-name">${p.name}</div><div class="stock-sku">${p.id} · ${p.lote || 'sem lote'}</div></div>
+        <div class="stock-cat">${p.fornecedor || '—'}</div>
+        <div class="stock-num ${st.cls}">${formatQty(p)}</div>
+        <div class="stock-num ${ex.cls}">${p.validade ? p.validade.split('-').reverse().join('/') : '—'}</div>
+        <div style="text-align:right"><span class="pill" style="background:${ex.bg};color:${ex.color}">${ex.label}</span></div>
       </div>`;
     }).join('');
 }
@@ -1400,31 +1461,31 @@ function metricSpark(points) {
 function renderDashMetrics() {
   const el = document.getElementById('dash-metrics');
   if (!el) return;
-  const active = cargos.filter(c => c.status !== 'delivered').length;
-  const delivered = cargos.filter(c => c.status === 'delivered').length;
   const critical = db.products.filter(p => p.qty < p.min).length;
-  const total = Math.max(cargos.length, 1);
-  const efficiency = Math.round((delivered / total) * 100) || 92;
+  const expiring = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 7; }).length;
+  const inProduction = cargos.filter(c => c.status === 'transit').length;
+  const pending = cargos.filter(c => c.status === 'pending').length;
+  const lossRisk = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 3; }).reduce((sum,p) => sum + (p.qty * (p.price || 0)), 0);
   el.innerHTML = `
     <div class="metric-card">
-      <div class="metric-icon"><svg viewBox="0 0 16 16"><path d="M2 3h2l1.4 7.2a1.4 1.4 0 001.4 1.1h4.5a1.4 1.4 0 001.3-1l1-4.3H5"/><circle cx="7" cy="13" r="1"/><circle cx="12" cy="13" r="1"/></svg></div>
-      <div class="metric-label">Pedidos ativos</div><div class="metric-value">${active}</div>
-      <div class="metric-delta" style="color:var(--success)">↑ 18% vs ontem</div>${metricSpark('M4 34 C16 30 18 14 30 23 S47 37 55 21 S71 11 80 18 S94 31 106 12')}
+      <div class="metric-icon"><svg viewBox="0 0 16 16"><path d="M2 4h12M3 4v8h10V4"/><path d="M5 7h6M5 10h4" stroke-linecap="round"/></svg></div>
+      <div class="metric-label">Insumos críticos</div><div class="metric-value">${critical}</div>
+      <div class="metric-delta" style="color:${critical?'var(--warning)':'var(--success)'}">${critical?'reposição recomendada':'estoque saudável'}</div>${metricSpark('M4 34 C16 30 18 14 30 23 S47 37 55 21 S71 11 80 18 S94 31 106 12')}
     </div>
     <div class="metric-card">
-      <div class="metric-icon"><svg viewBox="0 0 16 16"><path d="M2 4h8v7H2z"/><path d="M10 7h2.5l1.5 2v2h-4z"/><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/></svg></div>
-      <div class="metric-label">Entregas hoje</div><div class="metric-value">${delivered + 55}</div>
-      <div class="metric-delta" style="color:var(--success)">↑ 24% vs ontem</div>${metricSpark('M4 35 C14 31 15 10 28 19 S42 34 54 24 S74 16 86 22 S96 30 106 8')}
+      <div class="metric-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2" stroke-linecap="round"/></svg></div>
+      <div class="metric-label">Vencem em 7 dias</div><div class="metric-value">${expiring}</div>
+      <div class="metric-delta" style="color:${expiring?'var(--danger)':'var(--success)'}">FEFO obrigatório</div>${metricSpark('M4 35 C14 31 15 10 28 19 S42 34 54 24 S74 16 86 22 S96 30 106 8')}
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon"><svg viewBox="0 0 16 16"><path d="M3 11c2-4 3-7 5-7s3 3 5 7"/><path d="M2 12h12" stroke-linecap="round"/></svg></div>
+      <div class="metric-label">Produção em andamento</div><div class="metric-value">${inProduction}</div>
+      <div class="metric-delta" style="color:var(--info)">${pending} aguardando liberação</div>${metricSpark('M4 35 C18 32 25 26 34 10 S51 11 58 24 S73 31 82 19 S95 30 106 34')}
     </div>
     <div class="metric-card">
       <div class="metric-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div>
-      <div class="metric-label">Estoque crítico</div><div class="metric-value">${critical}</div>
-      <div class="metric-delta" style="color:${critical?'var(--danger)':'var(--success)'}">${critical?'↓ 8% vs ontem':'✓ estável'}</div>${metricSpark('M4 35 C18 32 25 26 34 10 S51 11 58 24 S73 31 82 19 S95 30 106 34')}
-    </div>
-    <div class="metric-card">
-      <div class="metric-icon"><svg viewBox="0 0 16 16"><path d="M8 2a6 6 0 106 6H8z"/><path d="M8 2v6h6"/></svg></div>
-      <div class="metric-label">Eficiência</div><div class="metric-value">${Math.max(efficiency,92)}%</div>
-      <div class="metric-delta" style="color:var(--success)">↑ 6 p.p. vs ontem</div>${metricSpark('M4 32 C16 31 21 20 30 28 S45 37 53 27 S68 23 76 32 S91 37 106 9')}
+      <div class="metric-label">Risco de perda</div><div class="metric-value">R$ ${Math.round(lossRisk)}</div>
+      <div class="metric-delta" style="color:${lossRisk?'var(--danger)':'var(--success)'}">validade ≤ 3 dias</div>${metricSpark('M4 32 C16 31 21 20 30 28 S45 37 53 27 S68 23 76 32 S91 37 106 9')}
     </div>
   `;
 }
@@ -1435,12 +1496,13 @@ function renderEstoqueMetrics() {
   if (!el) return;
   const total  = db.products.reduce((s,p) => s+p.qty, 0);
   const baixo  = db.products.filter(p => p.qty < p.min).length;
+  const vencendo = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 7; }).length;
   const valor  = db.products.reduce((s,p) => s + p.qty * (p.price||0), 0);
   el.innerHTML = `
-    <div class="metric-card"><div class="metric-label">Total de SKUs</div><div class="metric-value">${db.products.length}</div><div class="metric-delta" style="color:var(--info)">produtos ativos</div></div>
-    <div class="metric-card"><div class="metric-label">Unidades totais</div><div class="metric-value">${total.toLocaleString('pt-BR')}</div><div class="metric-delta" style="color:var(--success)">em estoque</div></div>
-    <div class="metric-card"><div class="metric-label">Abaixo do mínimo</div><div class="metric-value" style="color:${baixo?'var(--warning)':'var(--success)'}">${baixo}</div><div class="metric-delta" style="color:${baixo?'var(--warning)':'var(--text-muted)'}">${baixo?'repor hoje':'OK'}</div></div>
-    <div class="metric-card"><div class="metric-label">Valor estimado</div><div class="metric-value">${valor>=1000?(valor/1000).toFixed(0)+'k':valor.toFixed(0)}</div><div class="metric-delta" style="color:var(--success)">R$ ${valor.toLocaleString('pt-BR',{minimumFractionDigits:0})}</div></div>
+    <div class="metric-card"><div class="metric-label">SKUs e lotes</div><div class="metric-value">${db.products.length}</div><div class="metric-delta" style="color:var(--info)">ativos no estoque</div></div>
+    <div class="metric-card"><div class="metric-label">Volume total</div><div class="metric-value">${total.toLocaleString('pt-BR')}</div><div class="metric-delta" style="color:var(--success)">unidades/sacos/litros</div></div>
+    <div class="metric-card"><div class="metric-label">Abaixo do mínimo</div><div class="metric-value" style="color:${baixo?'var(--warning)':'var(--success)'}">${baixo}</div><div class="metric-delta" style="color:${baixo?'var(--warning)':'var(--text-muted)'}">${baixo?'comprar hoje':'OK'}</div></div>
+    <div class="metric-card"><div class="metric-label">Vencimento próximo</div><div class="metric-value" style="color:${vencendo?'var(--danger)':'var(--success)'}">${vencendo}</div><div class="metric-delta" style="color:var(--text-muted)">R$ ${valor.toLocaleString('pt-BR',{minimumFractionDigits:0})} em estoque</div></div>
   `;
 }
 
@@ -1469,6 +1531,7 @@ function renderAll() {
   renderTrackList();
   renderDashboardTracking();
   renderDashboardAlerts();
+  renderSuppliers();
   syncCatalog();
   // atualiza badge da sidebar
   const badge = document.querySelector('.nav-item[data-page="pedidos"] .nav-badge');
@@ -1481,7 +1544,7 @@ function renderTrackList() {
   if (!el) return;
   const active = cargos.filter(c => c.status !== 'delivered');
   if (!active.length) {
-    el.innerHTML = '<div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum pedido em monitoramento</div>';
+    el.innerHTML = '<div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhuma ordem em monitoramento</div>';
     return;
   }
   const pctMap = { 'pending': 25, 'transit': 65, 'delivered': 100 };
@@ -1502,23 +1565,23 @@ function renderDashboardTracking() {
   const el = document.getElementById('dashboard-tracking');
   if (!el) return;
   const c = cargos.find(x => x.status === 'transit') || cargos.find(x => x.status !== 'delivered') || cargos[0];
-  if (!c) { el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:12px">Nenhum rastreio ativo</div>'; return; }
+  if (!c) { el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:12px">Nenhuma produção ativa</div>'; return; }
   const meta = getCargoStatusMeta(c);
   const current = (c.timeline || []).find(t => t.cls === 'active') || (c.timeline || [])[0] || {};
   const steps = [
-    ['Coletado','23/06 08:40','done',`<svg viewBox="0 0 16 16"><path d="M4 8l2.5 2.5L12 5" stroke-linecap="round" stroke-linejoin="round"/></svg>`],
-    ['Em trânsito','23/06 11:15','done',`<svg viewBox="0 0 16 16"><path d="M4 8l2.5 2.5L12 5" stroke-linecap="round" stroke-linejoin="round"/></svg>`],
-    ['Em rota','23/06 13:20','active',`<svg viewBox="0 0 16 16"><path d="M2 5h8v6H2z"/><path d="M10 7h2l2 2v2h-4z"/></svg>`],
-    ['Entregue',c.eta,'pending',`<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/></svg>`]
+    ['Separação','FEFO', 'done',`<svg viewBox="0 0 16 16"><path d="M4 8l2.5 2.5L12 5" stroke-linecap="round" stroke-linejoin="round"/></svg>`],
+    ['Preparo','Massa', 'done',`<svg viewBox="0 0 16 16"><path d="M4 8l2.5 2.5L12 5" stroke-linecap="round" stroke-linejoin="round"/></svg>`],
+    ['Produção','Agora', 'active',`<svg viewBox="0 0 16 16"><path d="M3 11c2-4 3-7 5-7s3 3 5 7"/><path d="M2 12h12" stroke-linecap="round"/></svg>`],
+    ['Balcão',c.eta,'pending',`<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/></svg>`]
   ];
   el.innerHTML = `
     <div class="tracking-card" onclick="openDrawer('${c.id}')">
       <div class="tracking-title"><div><strong>${c.id}</strong><div class="tracking-route">${c.origin} → ${c.dest}</div></div><span class="badge ${meta.badgeCls}">${c.statusLabel}</span></div>
-      <div class="tracking-eta">Previsão de entrega <strong>${c.eta}</strong></div>
+      <div class="tracking-eta">Saída prevista <strong>${c.eta}</strong></div>
       <div class="tracking-steps">${steps.map(([label,time,cls,icon]) => `<div class="tracking-step ${cls}"><div class="tracking-dot">${icon}</div><span>${label}</span><small>${time}</small></div>`).join('')}</div>
       <div class="location-card">
         <svg viewBox="0 0 16 16"><path d="M8 14s5-4.2 5-8A5 5 0 003 6c0 3.8 5 8 5 8z"/><circle cx="8" cy="6" r="1.6"/></svg>
-        <div><strong>Localização atual</strong><div>${current.detail || 'Atualização de rota indisponível'}</div></div><small>${current.time || 'agora'}</small>
+        <div><strong>Etapa atual</strong><div>${current.detail || 'Produção sem atualização'}</div></div><small>${current.time || 'agora'}</small>
       </div>
     </div>`;
 }
@@ -1527,22 +1590,26 @@ function renderDashboardAlerts() {
   const el = document.getElementById('dashboard-alerts');
   if (!el) return;
   const critical = db.products.filter(p => p.qty < p.min).length;
+  const expiring = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 3; }).length;
   const pending = cargos.filter(c => c.status === 'pending').length;
   el.innerHTML = `
-    <div class="alert-item danger" onclick="navToStr('estoque')"><div class="alert-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${critical} itens com estoque crítico</strong><span>Reabasteça para evitar rupturas.</span></div><div class="alert-chevron">›</div></div>
-    <div class="alert-item warning" onclick="navToStr('pedidos')"><div class="alert-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${pending} pedidos pendentes de confirmação</strong><span>Aguardando aprovação do cliente.</span></div><div class="alert-chevron">›</div></div>
-    <div class="alert-item info" onclick="showToast('Janela de manutenção: 25/06 das 00:00 às 02:00')"><div class="alert-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 5h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>Manutenção programada</strong><span>Sistema ficará indisponível no dia 25/06 das 00:00 às 02:00.</span></div><div class="alert-chevron">›</div></div>
+    <div class="alert-item danger" onclick="navToStr('estoque')"><div class="alert-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${expiring} lotes vencem em até 3 dias</strong><span>Use FEFO ou registre descarte.</span></div><div class="alert-chevron">›</div></div>
+    <div class="alert-item warning" onclick="navToStr('estoque')"><div class="alert-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${critical} insumos abaixo do mínimo</strong><span>Compra sugerida antes da próxima fornada.</span></div><div class="alert-chevron">›</div></div>
+    <div class="alert-item info" onclick="navToStr('pedidos')"><div class="alert-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 5h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${pending} ordens aguardam liberação</strong><span>Valide insumos e aprove compras recomendadas.</span></div><div class="alert-chevron">›</div></div>
   `;
 }
 
 function commandActions() {
   return [
-    {type:'Ações', label:'Novo pedido', desc:'Abrir fluxo de QR/entrada', icon:'+', action:() => openQR()},
-    {type:'Ações', label:'Ir para pedidos', desc:'Visualizar todos os pedidos', icon:'P', action:() => navToStr('pedidos')},
-    {type:'Ações', label:'Ir para estoque', desc:'Consultar produtos e SKUs', icon:'E', action:() => navToStr('estoque')},
-    {type:'Ações', label:'Mapa de estoque', desc:'Abrir heatmap de posições', icon:'M', action:() => navToStr('heatmap')},
-    ...cargos.map(c => ({type:'Pedidos', label:c.id, desc:`${c.title} · ${c.origin} → ${c.dest}`, icon:'↗', action:() => openDrawer(c.id)})),
-    ...db.products.map(p => ({type:'Estoque', label:p.id, desc:`${p.name} · ${p.qty} un.`, icon:'▦', action:() => { navToStr('estoque'); const input=document.getElementById('estoque-search'); if(input){input.value=p.id; renderStockFull(p.id);} }}))
+    {type:'Ações rápidas', label:'Registrar entrada de insumo', desc:'Abrir QR/entrada com fornecedor e lote', icon:'+', action:() => openQR()},
+    {type:'Ações rápidas', label:'Registrar produção de pão francês', desc:'Baixar ingredientes e gerar lote acabado', icon:'P', action:() => navToStr('pedidos')},
+    {type:'Ações rápidas', label:'Ver lotes vencendo', desc:'Ordenar estoque por validade FEFO', icon:'V', action:() => navToStr('estoque')},
+    {type:'Ações rápidas', label:'Gerar sugestão de compra', desc:'Reposição de ovos, fermento e margarina', icon:'IA', action:() => showToast('Sugestão IA: comprar ovos, fermento e margarina hoje')},
+    {type:'Produção', label:'Abrir produção', desc:'Ordens, fornadas e encomendas do dia', icon:'↗', action:() => navToStr('pedidos')},
+    {type:'Estoque', label:'Abrir estoque FEFO', desc:'Insumos, lotes, validade e mínimos', icon:'▦', action:() => navToStr('estoque')},
+    ...cargos.map(c => ({type:'Ordens de produção', label:c.id, desc:`${c.title} · ${c.origin} → ${c.dest}`, icon:'↗', action:() => openDrawer(c.id)})),
+    ...db.products.map(p => ({type:'Insumos e lotes', label:p.id, desc:`${p.name} · ${formatQty(p)} · ${p.lote || 'sem lote'} · validade ${p.validade || '—'}`, icon:'▦', action:() => { navToStr('estoque'); const input=document.getElementById('estoque-search'); if(input){input.value=p.id; renderStockFull(p.id);} }})),
+    ...db.suppliers.map(f => ({type:'Fornecedores', label:f.name, desc:`${f.cat} · lead time ${f.lead} · confiabilidade ${f.reliability}%`, icon:'F', action:() => navToStr('fornecedores')}))
   ];
 }
 
@@ -1608,17 +1675,29 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeCommandPalette();
 });
 
+function renderSuppliers() {
+  const el = document.getElementById('supplier-grid');
+  if (!el) return;
+  el.innerHTML = db.suppliers.map(f => `
+    <div class="supplier-card">
+      <div class="supplier-head"><div class="supplier-logo">${f.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div><div><div class="supplier-name">${f.name}</div><div class="supplier-cat">${f.cat}</div></div></div>
+      <div class="supplier-meta"><span>Lead time</span><strong>${f.lead}</strong></div>
+      <div class="supplier-meta"><span>Confiabilidade</span><strong>${f.reliability}%</strong></div>
+      <div class="supplier-meta"><span>Última compra</span><strong>${f.last}</strong></div>
+    </div>`).join('');
+}
+
 // ── INIT ──
 renderAll();
 
 // ── NAV ──
 const pageTitles = {
-  dashboard: ['Dashboard', ''],
-  pedidos: ['Pedidos', ''],
-  estoque: ['Estoque', ''],
-  rastreio: ['Rastreio', ''],
-  fornecedores: ['Fornecedores', ''],
-  heatmap: ['Mapa de Estoque', 'Visualização de ocupação por posição'],
+  dashboard: ['Dashboard', 'Estoque, validade e produção da padaria'],
+  pedidos: ['Produção', 'Ordens, fornadas e encomendas'],
+  estoque: ['Estoque', 'Insumos, lotes e validade'],
+  rastreio: ['Lotes', 'Rastreabilidade, validade e produção em andamento'],
+  fornecedores: ['Fornecedores', 'Compras, lead time e confiabilidade'],
+  heatmap: ['Mapa FEFO', 'Ocupação e validade por posição'],
 };
 
 // ── HEATMAP MODULE ──
@@ -2039,6 +2118,7 @@ function navTo(pageId, sidebarEl, tbId) {
   // re-renderiza dados ao entrar na página
   if (pageId === 'estoque') { renderEstoqueMetrics(); renderStockFull(document.getElementById('estoque-search')?.value||''); }
   if (pageId === 'dashboard') { renderDashMetrics(); renderCriticalStock(); renderDashboardTracking(); renderDashboardAlerts(); }
+  if (pageId === 'fornecedores') { renderSuppliers(); }
 
   // init heatmap on first visit
   if (pageId === 'heatmap') {
@@ -2077,7 +2157,7 @@ function openDrawer(id) {
   document.getElementById('dtab-timeline').classList.add('active');
 
   // header
-  document.getElementById('d-id').textContent    = 'PEDIDO · #' + c.id;
+  document.getElementById('d-id').textContent    = 'ORDEM/LOTE · #' + c.id;
   document.getElementById('d-title').textContent  = c.title;
   document.getElementById('d-badges').innerHTML   = c.badges.map(b => `<span class="badge ${b}">${c.statusLabel}</span>`).join('');
 
@@ -2090,11 +2170,11 @@ function openDrawer(id) {
   };
   document.getElementById('d-timeline-content').innerHTML = `
     <div class="dsection">
-      <div class="dsection-label">Rota</div>
+      <div class="dsection-label">Fluxo operacional</div>
       <div class="route-visual">
-        <div class="rv-city"><div class="rv-name">${c.origin}</div><div class="rv-sub">Origem</div></div>
+        <div class="rv-city"><div class="rv-name">${c.origin}</div><div class="rv-sub">Etapa inicial</div></div>
         <div class="rv-mid"><div class="rv-line"></div></div>
-        <div class="rv-city" style="text-align:right"><div class="rv-name">${c.dest}</div><div class="rv-sub">Destino</div></div>
+        <div class="rv-city" style="text-align:right"><div class="rv-name">${c.dest}</div><div class="rv-sub">Próxima etapa</div></div>
       </div>
     </div>
     <div class="dsection">
@@ -2124,10 +2204,10 @@ function openDrawer(id) {
       </div>
     </div>
     <div class="dsection">
-      <div class="dsection-label">Embalagem</div>
+      <div class="dsection-label">Rendimento / Custos</div>
       <div class="meta-grid">
-        <div class="meta-item"><div class="meta-key">Volumes</div><div class="meta-val mono">${c.volumes} caixa(s)</div></div>
-        <div class="meta-item"><div class="meta-key">Peso bruto</div><div class="meta-val mono">${c.peso} kg</div></div>
+        <div class="meta-item"><div class="meta-key">Qtd. recebida</div><div class="meta-val mono">${c.volumes} un/lote</div></div>
+        <div class="meta-item"><div class="meta-key">Peso/volume</div><div class="meta-val mono">${c.peso} kg</div></div>
         <div class="meta-item"><div class="meta-key">NF-e</div><div class="meta-val mono">${c.nfe}</div></div>
         <div class="meta-item"><div class="meta-key">Seguro</div><div class="meta-val mono">${c.seguro}</div></div>
       </div>
@@ -2138,7 +2218,7 @@ function openDrawer(id) {
   const rem  = c.remetente||{};
   document.getElementById('d-info-content').innerHTML = `
     <div class="dsection">
-      <div class="dsection-label">Remetente</div>
+      <div class="dsection-label">Unidade produtiva</div>
       <div class="meta-grid">
         <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Empresa</div><div class="meta-val">${rem.empresa||'—'}</div></div>
         <div class="meta-item"><div class="meta-key">CNPJ</div><div class="meta-val mono" style="font-size:11px">${rem.cnpj||'—'}</div></div>
@@ -2146,7 +2226,7 @@ function openDrawer(id) {
       </div>
     </div>
     <div class="dsection">
-      <div class="dsection-label">Destinatário</div>
+      <div class="dsection-label">Destino / consumo</div>
       <div class="meta-grid">
         <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Nome</div><div class="meta-val">${dest.nome||'—'}</div></div>
         <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Endereço</div><div class="meta-val">${dest.endereco||'—'}</div></div>
@@ -2158,7 +2238,7 @@ function openDrawer(id) {
       <div class="dsection-label">Fiscal</div>
       <div class="meta-grid">
         <div class="meta-item"><div class="meta-key">NF-e</div><div class="meta-val mono">${c.nfe}</div></div>
-        <div class="meta-item"><div class="meta-key">Transportadora</div><div class="meta-val mono">${c.carrier}</div></div>
+        <div class="meta-item"><div class="meta-key">Responsável</div><div class="meta-val mono">${c.carrier}</div></div>
       </div>
     </div>`;
 
@@ -2167,25 +2247,25 @@ function openDrawer(id) {
     ? `<div class="dsection">
         <div class="dsection-label">Ocorrência ativa</div>
         <div style="background:var(--danger-bg);border:1px solid rgba(248,113,113,.25);border-radius:var(--r);padding:12px 14px">
-          <div style="font-size:11px;color:var(--danger);font-weight:500;margin-bottom:4px">${c.ocorrencia.tipo}</div>
-          <div style="font-size:12px;color:var(--text-secondary)">${c.ocorrencia.desc}</div>
-          <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:6px">${c.ocorrencia.data}</div>
+          <div style="font-size:11px;color:var(--danger);font-weight:500;margin-bottom:4px">Atenção operacional</div>
+          <div style="font-size:12px;color:var(--text-secondary)">${typeof c.ocorrencia === 'string' ? c.ocorrencia : (c.ocorrencia.desc || 'Verificar ocorrência')}</div>
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:6px">${typeof c.ocorrencia === 'string' ? 'agora' : (c.ocorrencia.data || 'agora')}</div>
         </div>
       </div>` : '';
   document.getElementById('d-carrier-content').innerHTML = `
     <div class="dsection">
-      <div class="dsection-label">Transportadora</div>
+      <div class="dsection-label">Responsável</div>
       <div class="carrier-card">
         <div class="carrier-top">
           <div class="carrier-logo"><svg viewBox="0 0 16 16"><path d="M1 8h10M1 5h10M9 3l4 5-4 5"/></svg></div>
           <div><div class="carrier-name">${c.carrier}</div><div class="carrier-svc">${c.modalidade||''}</div></div>
         </div>
         <div class="carrier-fields">
-          <div><div class="cf-key">Código de rastreio</div><div class="cf-val">${c.rastreio||'—'}</div></div>
+          <div><div class="cf-key">Código do lote/OP</div><div class="cf-val">${c.rastreio||'—'}</div></div>
           <div><div class="cf-key">Prazo original</div><div class="cf-val">${c.prazo||c.eta}</div></div>
           ${c.prazoRev?`<div><div class="cf-key">Prazo revisado</div><div class="cf-val" style="color:var(--warning)">${c.prazoRev}</div></div>`:''}
-          <div><div class="cf-key">Frete</div><div class="cf-val">${c.frete||'—'}</div></div>
-          <div><div class="cf-key">Seguro</div><div class="cf-val">${c.seguro||'—'}</div></div>
+          <div><div class="cf-key">Movimento</div><div class="cf-val">${c.frete||'—'}</div></div>
+          <div><div class="cf-key">Custo/IA</div><div class="cf-val">${c.seguro||'—'}</div></div>
         </div>
       </div>
     </div>
@@ -2241,18 +2321,18 @@ function msGo(id, scan) {
     if (fromScan) {
       banner.style.display = 'flex';
       inputs.forEach(i => i.classList.add('af'));
-      document.getElementById('form-modal-title').textContent = 'Nova Entrada';
+      document.getElementById('form-modal-title').textContent = 'Nova entrada de insumo';
       document.getElementById('form-modal-sub').textContent = 'Confirme ou edite os dados preenchidos';
     } else {
       banner.style.display = 'none';
       inputs.forEach(i => { i.classList.remove('af'); i.value = ''; });
-      document.getElementById('form-modal-title').textContent = 'Entrada Manual';
-      document.getElementById('form-modal-sub').textContent = 'Preencha os dados do pedido';
+      document.getElementById('form-modal-title').textContent = 'Entrada manual de insumo';
+      document.getElementById('form-modal-sub').textContent = 'Preencha lote, validade e fornecedor';
     }
   }
   if (id === 'ms5') {
-    // Salva o novo pedido
-    const pedNum = 'BR-' + (4900 + cargos.length);
+    // Salva a nova entrada/lote
+    const pedNum = 'LT-' + (4900 + cargos.length);
     const empresa = document.getElementById('fi-emp')?.value || 'Fornecedor';
     const tipo = document.querySelector('#ms4 select')?.value || 'Compra de fornecedor';
     const newCargo = {
@@ -2260,17 +2340,17 @@ function msGo(id, scan) {
       title: tipo + ' — ' + empresa,
       status: 'pending', statusLabel: 'Aguardando',
       origin: document.getElementById('fi-uf')?.value || 'SP',
-      dest: 'CD Principal',
-      carrier: document.querySelector('#ms4 select:last-of-type')?.value || 'Correios SEDEX',
+      dest: 'Estoque FEFO',
+      carrier: document.querySelector('#ms4 select:last-of-type')?.value || 'Equipe Estoque',
       eta: 'em breve',
       steps: [0, 3],
       badges: ['b-pending'],
       remetente: {empresa: empresa, cnpj: document.getElementById('fi-cnpj')?.value || '—', tel: '—'},
-      destinatario: {nome: 'CD Principal', endereco: '—', cnpj: '—', tel: '—'},
+      destinatario: {nome: 'Estoque FEFO', endereco: 'Área de armazenagem', cnpj: '—', tel: '—'},
       nfe: document.getElementById('fi-nfe')?.value || '—',
       peso: '—', volumes: 1, seguro: '—', frete: '—',
       rastreio: '—', modalidade: '—', prazo: 'em breve', prazoRev: null, ocorrencia: null,
-      itens: [], timeline: [{cls:'done',ev:'Pedido criado',detail:'Via F.A.S.T',time:'agora'}],
+      itens: [], timeline: [{cls:'done',ev:'Lote registrado',detail:'Via F.A.S.T FEFO',time:'agora'}],
     };
     cargos.unshift(newCargo);
     document.getElementById('success-id-val').textContent = '#' + pedNum;
@@ -2541,7 +2621,7 @@ function openNewProductModal(code) {
         </div>
         <div style="display:flex;flex-direction:column;gap:4px">
           <label style="font-size:11px;color:var(--text-muted)">Nome do produto *</label>
-          <input id="np-name" placeholder="Ex: Cabo HDMI 2m" autofocus style="background:var(--surface2);border:1px solid var(--border);
+          <input id="np-name" placeholder="Ex: Farinha de Trigo 25kg" autofocus style="background:var(--surface2);border:1px solid var(--border);
             border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--font);
             font-size:13px;outline:none;transition:border-color .15s"
             onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'">
@@ -2551,8 +2631,8 @@ function openNewProductModal(code) {
             <label style="font-size:11px;color:var(--text-muted)">Categoria</label>
             <select id="np-cat" style="background:var(--surface2);border:1px solid var(--border);
               border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none">
-              <option>Eletrônicos</option><option>Informática</option><option>Embalagem</option>
-              <option>Vestuário</option><option>Cosméticos</option><option>Utilidades</option><option>Outros</option>
+              <option>Matéria-prima</option><option>Perecível</option><option>Embalagem</option>
+              <option>Produto acabado</option><option>Confeitaria</option><option>Limpeza</option><option>Outros</option>
             </select>
           </div>
           <div style="display:flex;flex-direction:column;gap:4px">
