@@ -190,6 +190,9 @@
       <div class="search-bar">
         <div class="search-icon"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg></div>
         <input class="search-input" placeholder="Buscar ordem, receita ou status...">
+        <button class="btn-secondary" onclick="openProductionSummaryModal()">
+          Resumo produção
+        </button>
         <button class="btn-secondary" onclick="openProductionForm()">
           Registrar produção
         </button>
@@ -209,6 +212,9 @@
       <div class="search-bar">
         <div class="search-icon"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg></div>
         <input class="search-input" id="estoque-search" placeholder="Buscar produto ou SKU..." oninput="renderStockFull(this.value)">
+        <button class="btn-secondary" onclick="openStockModal()">
+          Resumo estoque
+        </button>
         <button class="btn-scan" onclick="openQR()">
           <svg viewBox="0 0 16 16"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/><rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h3M12 10h3M10 12v3"/></svg>
           Entrada de insumo
@@ -301,7 +307,10 @@
             <svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8" viewBox="0 0 14 14"><circle cx="6" cy="6" r="4"/><path d="M9.5 9.5l3 3" stroke-linecap="round"/></svg>
             Localizar Produto
           </div>
-          <div style="margin-left:auto;display:flex;align-items:center">
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+            <button onclick="openFefoMapModal()" style="background:#FFFFFF;border:1px solid var(--border);border-radius:var(--r);padding:5px 12px;color:#1B4965;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px">
+              Resumo FEFO
+            </button>
             <button onclick="openQR()" style="background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);border-radius:var(--r);padding:5px 12px;color:#1B4965;font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px">
               <svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 14 14"><rect x="1" y="1" width="4" height="4" rx="1"/><rect x="9" y="1" width="4" height="4" rx="1"/><rect x="1" y="9" width="4" height="4" rx="1"/><path d="M9 9h1.5v1.5H9zM10.5 10.5H13M10.5 9H13M9 10.5v2.5"/></svg>
               Scan QR
