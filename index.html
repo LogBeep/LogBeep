@@ -272,15 +272,16 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;display:none;opacity:0;transition:opacity .2s;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal-overlay.visible{opacity:1}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:420px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;transform:translateY(16px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:420px;max-height:min(90vh,760px);display:flex;flex-direction:column;overflow:hidden;transform:translateY(16px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
 .modal-overlay.visible .modal{transform:translateY(0)}
 
 .modal-mheader{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
 .modal-title{font-size:14px;font-weight:500;color:var(--text-primary)}
 .modal-sub{font-size:11px;color:var(--text-muted)}
 
-.mstep{display:none;flex-direction:column}
-.mstep.active{display:flex}
+.mstep{display:none;flex-direction:column;min-height:0;overflow:hidden}
+.mstep.active{display:flex;min-height:0}
+#ms4.mstep.active{height:min(86vh,760px)}
 
 /* choice */
 .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 18px}
@@ -297,6 +298,11 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 
 /* scanner */
 .camera-area{height:260px;background:#050507;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.camera-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#050507;z-index:1;opacity:0;transition:opacity .2s}
+.camera-area.camera-live .camera-video{opacity:1}
+.camera-area.camera-live .qr-ghost{display:none}
+.camera-error{position:absolute;left:18px;right:18px;bottom:42px;z-index:6;display:none;background:rgba(27,73,101,.86);border:1px solid rgba(202,233,255,.26);border-radius:12px;padding:10px 12px;color:#FFFFFF;font-size:11px;line-height:1.4;text-align:center}
+.camera-area.camera-fallback .camera-error{display:block}
 .cam-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:28px 28px}
 .viewfinder{width:200px;height:200px;position:relative;z-index:2}
 .vfc{position:absolute;width:20px;height:20px}
@@ -328,7 +334,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .ls-item svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
 
 /* form */
-.form-body{flex:1;overflow-y:auto;padding:16px 18px}
+.form-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:16px 18px}
 .form-body::-webkit-scrollbar{width:3px}
 .form-body::-webkit-scrollbar-thumb{background:var(--border)}
 .autofill-banner{background:var(--success-bg);border:1px solid rgba(74,222,128,.2);border-radius:var(--r);padding:9px 12px;display:flex;align-items:center;gap:8px;margin-bottom:14px}
@@ -553,7 +559,6 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
     <div class="cmd-input-wrap">
       <svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg>
       <input id="cmd-input" placeholder="Busque insumos, lotes, receitas ou ações..." oninput="renderCommandResults(this.value)" onkeydown="handleCommandKey(event)">
-      <input id="cmd-input" placeholder="Busque pedidos, SKUs ou ações..." oninput="renderCommandResults(this.value)" onkeydown="handleCommandKey(event)">
       <button onclick="closeCommandPalette()">Esc</button>
     </div>
     <div class="cmd-results" id="cmd-results"></div>
@@ -606,7 +611,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
         <svg viewBox="0 0 16 16"><path d="M2 12V5l6-3 6 3v7"/><path d="M6 16v-5h4v5"/></svg>
         Fornecedores
       </div>
-      <div class="nav-item" onclick="showToast('Perdas em breve...')">
+      <div class="nav-item" data-page="perdas" onclick="navTo('perdas',this)">
         <svg viewBox="0 0 16 16"><path d="M3 2h10l1 4H2z"/><path d="M2 6v8h12V6"/></svg>
         Perdas
       </div>
@@ -707,7 +712,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
           <section class="dashboard-panel">
             <div class="section-header">
               <div class="section-title">Alertas e sugestões IA</div>
-              <div class="section-action" onclick="showToast('Abrindo central de alertas')">Ver todos</div>
+              <div class="section-action" onclick="navToStr('perdas')">Ver todos</div>
             </div>
             <div class="alerts-list" id="dashboard-alerts"></div>
           </section>
@@ -766,9 +771,28 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
     <!-- ── PAGE: FORNECEDORES ── -->
     <div class="page" id="page-fornecedores">
       <div class="content">
-        <div class="section-header"><div class="section-title">Fornecedores homologados</div><div class="section-action" onclick="showToast('Adicionar fornecedor')">+ Novo →</div></div>
+        <div class="section-header"><div class="section-title">Fornecedores homologados</div><div class="section-action" onclick="openSupplierForm()">+ Novo →</div></div>
         <div class="supplier-grid" id="supplier-grid">
           <div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted);grid-column:1/-1">Nenhum fornecedor cadastrado</div>
+        </div>
+        <div style="height:80px"></div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: PERDAS ── -->
+    <div class="page" id="page-perdas">
+      <div class="content">
+        <div class="section-header"><div class="section-title">Perdas e descartes</div><div class="section-action" onclick="openLossForm()">+ Registrar perda →</div></div>
+        <div class="metrics-row" id="loss-metrics"></div>
+        <div class="dashboard-grid">
+          <section class="dashboard-panel dashboard-panel-wide">
+            <div class="section-header"><div class="section-title">Histórico de perdas</div></div>
+            <div class="stock-table" id="loss-table"></div>
+          </section>
+          <section class="dashboard-panel">
+            <div class="section-header"><div class="section-title">Ações recomendadas</div></div>
+            <div class="alerts-list" id="loss-suggestions"></div>
+          </section>
         </div>
         <div style="height:80px"></div>
       </div>
@@ -789,7 +813,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
             Localizar Produto
           </div>
           <div style="margin-left:auto;display:flex;align-items:center">
-            <button onclick="showToast('Scanner ativado')" style="background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);border-radius:var(--r);padding:5px 12px;color:#1B4965;font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px">
+            <button onclick="openQR()" style="background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);border-radius:var(--r);padding:5px 12px;color:#1B4965;font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px">
               <svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 14 14"><rect x="1" y="1" width="4" height="4" rx="1"/><rect x="9" y="1" width="4" height="4" rx="1"/><rect x="1" y="9" width="4" height="4" rx="1"/><path d="M9 9h1.5v1.5H9zM10.5 10.5H13M10.5 9H13M9 10.5v2.5"/></svg>
               Scan QR
             </button>
@@ -1012,7 +1036,7 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
     <div class="dtab-content" id="dtab-carrier"><div id="d-carrier-content"></div></div>
   </div>
   <div class="drawer-footer">
-    <button class="btn-primary" onclick="showToast('Exportando NF-e...')">
+    <button class="btn-primary" onclick="exportCurrentNfe()">
       <svg viewBox="0 0 14 14"><path d="M7 1v6M4 4l3-3 3 3M2 9v3h10V9" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Exportar NF-e
     </button>
@@ -1046,10 +1070,11 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
           <div><div class="choice-label">Entrada de insumo manual</div><div class="choice-desc">Preencha campo a campo manualmente</div></div>
         </div>
       </div>
-      <div class="choice-wide" onclick="showToast('Selecione um arquivo .csv ou .xlsx')">
+      <div class="choice-wide" onclick="openImportFile()">
         <div class="ci ci-manual"><svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke-linecap="round"/></svg></div>
-        <div><div class="choice-label">Importar planilha</div><div class="choice-desc">Arraste um .csv ou .xlsx com múltiplos lotes</div></div>
+        <div><div class="choice-label">Importar planilha / NF-e</div><div class="choice-desc">Selecione um .csv ou XML de NF-e com múltiplos lotes</div></div>
       </div>
+      <input id="entry-import-file" type="file" accept=".csv,.xml,text/csv,text/xml,application/xml" style="display:none" onchange="handleEntryImport(event)">
     </div>
 
     <!-- STEP 2: SCANNER -->
@@ -1058,7 +1083,9 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
         <button class="close-btn" onclick="msGo('ms1')"><svg viewBox="0 0 12 12"><path d="M8 1L3 6l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <div><div class="modal-title">Bipar lote QR Code</div><div class="modal-sub">Aponte para o código na NF ou etiqueta</div></div>
       </div>
-      <div class="camera-area">
+      <div class="camera-area" id="camera-area">
+        <video id="qr-video" class="camera-video" autoplay playsinline muted></video>
+        <div class="camera-error" id="camera-error">Não foi possível acessar a câmera. Verifique a permissão do navegador ou use a leitura simulada/manual.</div>
         <div class="cam-grid"></div>
         <div class="cam-top">
           <div class="cam-badge"><div class="cam-rec"></div>câmera ativa</div>
@@ -1140,10 +1167,8 @@ body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transpa
         </div>
         <div class="fsection">
           <div class="fsection-label">Itens do lote</div>
-          <div class="added-item"><div class="ai-dot"></div><div class="ai-label">Farinha de Trigo 25kg · FAR-25KG · LT-FAR-0626-A</div><div class="ai-qty">× 2</div></div>
-          <div class="added-item"><div class="ai-dot"></div><div class="ai-label">Fermento biológico fresco · FER-BIO-500 · validade 14/06</div><div class="ai-qty">× 2</div></div>
-          <div class="added-item"><div class="ai-dot"></div><div class="ai-label">Embalagem pão francês · EMB-PF-1000</div><div class="ai-qty">× 1</div></div>
-          <div class="add-row" onclick="showToast('Adicionar item manualmente')"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke-linecap="round"/></svg>Adicionar item manualmente</div>
+          <div id="entry-items-list"></div>
+          <div class="add-row" onclick="addEntryItemManual()"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke-linecap="round"/></svg>Adicionar item manualmente</div>
         </div>
         <div class="fsection">
           <div class="fsection-label">Logística</div>
@@ -1315,24 +1340,6 @@ function buildRecentOrderRow(c) {
         <div class="recent-client">${recipe}</div>
       </div>
       <div class="recent-loc"><div class="recent-label">Etapa</div><div class="recent-value">${c.origin}</div></div>
-      <div class="recent-arrow">→</div>
-      <div class="recent-loc"><div class="recent-label">Destino</div><div class="recent-value">${c.dest}</div></div>
-      <div class="recent-forecast"><div class="recent-label">Previsão</div><div class="recent-value">${c.eta}</div></div>
-      <div class="recent-status"><span class="badge ${meta.badgeCls}">${c.statusLabel}</span></div>
-    </div>`;
-}
-
-function buildRecentOrderRow(c) {
-  const meta = getCargoStatusMeta(c);
-  const client = (c.title || '').replace(/^Cliente:\s*/,'');
-  return `
-    <div class="recent-order" onclick="openDrawer('${c.id}')">
-      <div class="recent-ico ${meta.iconState}">${meta.icon}</div>
-      <div>
-        <div class="recent-id">${c.id}</div>
-        <div class="recent-client">Cliente: ${client}</div>
-      </div>
-      <div class="recent-loc"><div class="recent-label">Origem</div><div class="recent-value">${c.origin}</div></div>
       <div class="recent-arrow">→</div>
       <div class="recent-loc"><div class="recent-label">Destino</div><div class="recent-value">${c.dest}</div></div>
       <div class="recent-forecast"><div class="recent-label">Previsão</div><div class="recent-value">${c.eta}</div></div>
@@ -1532,6 +1539,7 @@ function renderAll() {
   renderDashboardTracking();
   renderDashboardAlerts();
   renderSuppliers();
+  renderLosses();
   syncCatalog();
   // atualiza badge da sidebar
   const badge = document.querySelector('.nav-item[data-page="pedidos"] .nav-badge');
@@ -1593,7 +1601,7 @@ function renderDashboardAlerts() {
   const expiring = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 3; }).length;
   const pending = cargos.filter(c => c.status === 'pending').length;
   el.innerHTML = `
-    <div class="alert-item danger" onclick="navToStr('estoque')"><div class="alert-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${expiring} lotes vencem em até 3 dias</strong><span>Use FEFO ou registre descarte.</span></div><div class="alert-chevron">›</div></div>
+    <div class="alert-item danger" onclick="navToStr('perdas')"><div class="alert-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${expiring} lotes vencem em até 3 dias</strong><span>Use FEFO ou registre descarte.</span></div><div class="alert-chevron">›</div></div>
     <div class="alert-item warning" onclick="navToStr('estoque')"><div class="alert-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${critical} insumos abaixo do mínimo</strong><span>Compra sugerida antes da próxima fornada.</span></div><div class="alert-chevron">›</div></div>
     <div class="alert-item info" onclick="navToStr('pedidos')"><div class="alert-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 5h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${pending} ordens aguardam liberação</strong><span>Valide insumos e aprove compras recomendadas.</span></div><div class="alert-chevron">›</div></div>
   `;
@@ -1603,6 +1611,8 @@ function commandActions() {
   return [
     {type:'Ações rápidas', label:'Registrar entrada de insumo', desc:'Abrir QR/entrada com fornecedor e lote', icon:'+', action:() => openQR()},
     {type:'Ações rápidas', label:'Registrar produção de pão francês', desc:'Baixar ingredientes e gerar lote acabado', icon:'P', action:() => navToStr('pedidos')},
+    {type:'Ações rápidas', label:'Registrar perda/descarte', desc:'Sobra, vencimento, quebra ou erro de produção', icon:'!', action:() => openLossForm()},
+    {type:'Ações rápidas', label:'Importar NF-e ou CSV', desc:'Entrada em lote de insumos e validade', icon:'NF', action:() => { openQR(); setTimeout(openImportFile, 80); }},
     {type:'Ações rápidas', label:'Ver lotes vencendo', desc:'Ordenar estoque por validade FEFO', icon:'V', action:() => navToStr('estoque')},
     {type:'Ações rápidas', label:'Gerar sugestão de compra', desc:'Reposição de ovos, fermento e margarina', icon:'IA', action:() => showToast('Sugestão IA: comprar ovos, fermento e margarina hoje')},
     {type:'Produção', label:'Abrir produção', desc:'Ordens, fornadas e encomendas do dia', icon:'↗', action:() => navToStr('pedidos')},
@@ -1687,6 +1697,69 @@ function renderSuppliers() {
     </div>`).join('');
 }
 
+function renderLosses() {
+  const metrics = document.getElementById('loss-metrics');
+  const table = document.getElementById('loss-table');
+  const suggestions = document.getElementById('loss-suggestions');
+  const totalQty = db.losses.reduce((s,l) => s + Number(l.qty || 0), 0);
+  const totalCost = db.losses.reduce((s,l) => s + Number(l.cost || 0), 0);
+  const expiryLosses = db.losses.filter(l => /venc|valid/i.test(l.reason || '')).length;
+  if (metrics) {
+    metrics.innerHTML = `
+      <div class="metric-card"><div class="metric-label">Registros de perda</div><div class="metric-value">${db.losses.length}</div><div class="metric-delta" style="color:var(--info)">histórico operacional</div></div>
+      <div class="metric-card"><div class="metric-label">Quantidade perdida</div><div class="metric-value">${totalQty}</div><div class="metric-delta" style="color:var(--warning)">unidades/volumes</div></div>
+      <div class="metric-card"><div class="metric-label">Custo estimado</div><div class="metric-value">R$ ${totalCost.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div><div class="metric-delta" style="color:var(--danger)">impacto financeiro</div></div>
+      <div class="metric-card"><div class="metric-label">Por validade</div><div class="metric-value">${expiryLosses}</div><div class="metric-delta" style="color:var(--danger)">corrigir FEFO</div></div>`;
+  }
+  if (table) {
+    table.innerHTML = `<div class="stock-row hdr stock-row-rich"><div>Item</div><div>Motivo</div><div style="text-align:right">Qtd.</div><div style="text-align:right">Custo</div><div style="text-align:right">Data</div></div>` +
+      db.losses.map(l => `<div class="stock-row stock-row-rich">
+        <div><div class="stock-name">${l.item}</div><div class="stock-sku">${l.lote || 'sem lote informado'}</div></div>
+        <div class="stock-cat">${l.reason}</div>
+        <div class="stock-num">${l.qty}</div>
+        <div class="stock-num">R$ ${Number(l.cost || 0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+        <div style="text-align:right"><span class="pill" style="background:var(--warning-bg);color:var(--warning)">${l.date || 'hoje'}</span></div>
+      </div>`).join('');
+  }
+  if (suggestions) {
+    suggestions.innerHTML = `
+      <div class="alert-item danger" onclick="navToStr('estoque')"><div class="alert-icon">FE</div><div class="alert-copy"><strong>Aplicar FEFO antes da produção</strong><span>Priorize lotes com validade menor que 3 dias.</span></div><div class="alert-chevron">›</div></div>
+      <div class="alert-item warning" onclick="openLossForm()"><div class="alert-icon">+</div><div class="alert-copy"><strong>Registrar toda sobra de balcão</strong><span>Dados de perda alimentam compras e produção sugerida.</span></div><div class="alert-chevron">›</div></div>
+      <div class="alert-item info" onclick="openImportFile()"><div class="alert-icon">NF</div><div class="alert-copy"><strong>Importar XML/CSV de entrada</strong><span>Evita digitação e reduz erro em lote/validade.</span></div><div class="alert-chevron">›</div></div>`;
+  }
+}
+
+function openLossForm() {
+  const opts = db.products.map(p => `${p.id} — ${p.name}`).join('\n');
+  const sku = prompt(`SKU do item perdido:\n${opts}`, db.products[0]?.id || '');
+  if (!sku) return;
+  const p = db.products.find(x => x.id.toLowerCase() === sku.trim().toLowerCase());
+  if (!p) { showToast('⚠️ SKU não encontrado'); return; }
+  const qty = Number(prompt(`Quantidade perdida de ${p.name}:`, '1'));
+  if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return; }
+  const reason = prompt('Motivo da perda:', 'Sobra de balcão') || 'Perda operacional';
+  const loss = {reason, item:p.name, lote:p.lote, qty, cost:qty * (p.price || 0), date:new Date().toLocaleDateString('pt-BR')};
+  db.losses.unshift(loss);
+  p.qty = Math.max(0, p.qty - qty);
+  renderAll();
+  navToStr('perdas');
+  showToast(`✅ Perda registrada: ${qty} ${p.unit || 'un'} de ${p.name}`);
+}
+
+function openSupplierForm() {
+  const name = prompt('Nome do fornecedor:', 'Novo Fornecedor');
+  if (!name) return;
+  const cat = prompt('Categoria fornecida:', 'Insumos') || 'Insumos';
+  const lead = prompt('Lead time:', '2 dias') || '2 dias';
+  const reliability = Number(prompt('Confiabilidade (%):', '95')) || 95;
+  db.suppliers.unshift({
+    id:'SUP-' + name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toUpperCase().slice(0,18),
+    name, cat, lead, reliability:Math.max(0, Math.min(100, reliability)), last:new Date().toLocaleDateString('pt-BR')
+  });
+  renderSuppliers();
+  showToast(`✅ Fornecedor "${name}" cadastrado`);
+}
+
 // ── INIT ──
 renderAll();
 
@@ -1697,6 +1770,7 @@ const pageTitles = {
   estoque: ['Estoque', 'Insumos, lotes e validade'],
   rastreio: ['Lotes', 'Rastreabilidade, validade e produção em andamento'],
   fornecedores: ['Fornecedores', 'Compras, lead time e confiabilidade'],
+  perdas: ['Perdas', 'Descartes, sobras e custo de desperdício'],
   heatmap: ['Mapa FEFO', 'Ocupação e validade por posição'],
 };
 
@@ -2090,6 +2164,7 @@ function ivInit() {
 
 
 let currentPage = 'dashboard';
+let currentDrawerCargoId = null;
 
 function navTo(pageId, sidebarEl, tbId) {
   // pages
@@ -2119,6 +2194,7 @@ function navTo(pageId, sidebarEl, tbId) {
   if (pageId === 'estoque') { renderEstoqueMetrics(); renderStockFull(document.getElementById('estoque-search')?.value||''); }
   if (pageId === 'dashboard') { renderDashMetrics(); renderCriticalStock(); renderDashboardTracking(); renderDashboardAlerts(); }
   if (pageId === 'fornecedores') { renderSuppliers(); }
+  if (pageId === 'perdas') { renderLosses(); }
 
   // init heatmap on first visit
   if (pageId === 'heatmap') {
@@ -2144,6 +2220,7 @@ function toggleSidebar() {
 function openDrawer(id) {
   const c = cargos.find(x => x.id === id);
   if (!c) return;
+  currentDrawerCargoId = id;
   const overlay = document.getElementById('drawer-overlay');
   const drawer  = document.getElementById('drawer');
   overlay.classList.add('open');
@@ -2272,6 +2349,51 @@ function openDrawer(id) {
     ${ocEl}`;
 }
 
+function exportCurrentNfe() {
+  const c = cargos.find(x => x.id === currentDrawerCargoId) || cargos[0];
+  if (!c) { showToast('Nenhuma NF-e/OP selecionada para exportar'); return; }
+  const items = (c.itens && c.itens.length ? c.itens : ['Sem itens detalhados']).map(item => {
+    if (typeof item === 'string') return `<li>${item}</li>`;
+    return `<li>${item.name || 'Item'} · <span class="mono">${item.sku || 'sem SKU'}</span> · qtd. ${item.qty || 1}</li>`;
+  }).join('');
+  const html = `<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>${c.nfe || c.id} · F.A.S.T</title>
+  <style>
+    body{font-family:Arial,sans-serif;color:#1B4965;margin:32px;line-height:1.45}h1{margin:0 0 4px}small{color:#456879}.card{border:1px solid #C8E4EF;border-radius:12px;padding:16px;margin:16px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mono{font-family:monospace;color:#14384F}ul{margin-top:8px}
+  </style>
+</head>
+<body>
+  <h1>Espelho de NF-e / Ordem de Produção</h1>
+  <small>Exportado pelo F.A.S.T em ${new Date().toLocaleString('pt-BR')}</small>
+  <div class="card grid">
+    <div><strong>ID</strong><br><span class="mono">${c.id}</span></div>
+    <div><strong>NF-e</strong><br><span class="mono">${c.nfe || '—'}</span></div>
+    <div><strong>Status</strong><br>${c.statusLabel || c.status}</div>
+    <div><strong>Previsão</strong><br>${c.eta || c.prazo || '—'}</div>
+  </div>
+  <div class="card grid">
+    <div><strong>Origem</strong><br>${c.origin || '—'}<br>${c.remetente?.empresa || ''}<br>${c.remetente?.cnpj || ''}</div>
+    <div><strong>Destino</strong><br>${c.dest || '—'}<br>${c.destinatario?.nome || ''}<br>${c.destinatario?.cnpj || ''}</div>
+  </div>
+  <div class="card"><strong>Itens</strong><ul>${items}</ul></div>
+  <div class="card"><strong>Responsável</strong><br>${c.carrier || '—'} · ${c.modalidade || '—'}</div>
+</body>
+</html>`;
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${(c.nfe || c.id).replace(/[^a-z0-9_-]+/gi,'-')}-fast.html`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast(`✅ NF-e/OP ${c.nfe || c.id} exportada`);
+}
+
 function closeDrawer() {
   const overlay = document.getElementById('drawer-overlay');
   const drawer = document.getElementById('drawer');
@@ -2289,9 +2411,107 @@ function switchDTab(id, el) {
 
 // ── QR MODAL ──
 let fromScan = true;
+let entryDraftItems = [
+  {id:'FAR-25KG', name:'Farinha de Trigo 25kg', qty:2, lote:'LT-FAR-0626-A', validade:'2026-07-12', unit:'sacos', price:92.50, cat:'Matéria-prima'},
+  {id:'FER-BIO-500', name:'Fermento biológico fresco 500g', qty:2, lote:'LT-FER-0626-C', validade:'2026-06-14', unit:'un', price:11.90, cat:'Matéria-prima'},
+  {id:'EMB-PF-1000', name:'Embalagem pão francês 1000un', qty:1, lote:'LT-EMB-0605-A', validade:'2027-01-30', unit:'fardos', price:42.00, cat:'Embalagem'}
+];
+
+function renderEntryItems() {
+  const el = document.getElementById('entry-items-list');
+  if (!el) return;
+  el.innerHTML = entryDraftItems.map((it, idx) => `
+    <div class="added-item">
+      <div class="ai-dot"></div>
+      <div class="ai-label">${it.name} · ${it.id} · ${it.lote || 'sem lote'}${it.validade ? ' · validade ' + it.validade.split('-').reverse().join('/') : ''}</div>
+      <div class="ai-qty">× ${it.qty}</div>
+      <button type="button" onclick="removeEntryItem(${idx})" style="border:none;background:transparent;color:var(--danger);cursor:pointer;font-size:16px;line-height:1">×</button>
+    </div>`).join('') || '<div style="padding:10px 0;font-size:12px;color:var(--text-muted)">Nenhum item adicionado ainda.</div>';
+}
+
+function removeEntryItem(idx) {
+  entryDraftItems.splice(idx, 1);
+  renderEntryItems();
+}
+
+function addEntryItemManual() {
+  const sku = prompt('SKU do insumo/lote:', 'FAR-25KG');
+  if (!sku) return;
+  const existing = db.products.find(p => p.id.toLowerCase() === sku.trim().toLowerCase());
+  const name = prompt('Nome do item:', existing?.name || 'Novo insumo') || existing?.name || sku;
+  const qty = Number(prompt('Quantidade recebida:', '1'));
+  if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return; }
+  const lote = prompt('Lote:', existing?.lote || ('LT-' + Date.now().toString().slice(-6))) || '';
+  const validade = prompt('Validade (AAAA-MM-DD):', existing?.validade || '2026-07-30') || '';
+  entryDraftItems.push({
+    id:sku.trim().toUpperCase(), name, qty, lote, validade,
+    unit:existing?.unit || 'un', price:existing?.price || 0, cat:existing?.cat || 'Insumo'
+  });
+  renderEntryItems();
+}
+
+function openImportFile() {
+  const input = document.getElementById('entry-import-file');
+  if (input) input.click();
+}
+
+function parseCsvRows(text) {
+  const lines = text.split(/\r?\n/).filter(Boolean);
+  if (!lines.length) return [];
+  const sep = lines[0].includes(';') ? ';' : ',';
+  const headers = lines.shift().split(sep).map(h => h.trim().toLowerCase());
+  return lines.map(line => {
+    const cols = line.split(sep).map(c => c.trim());
+    const row = {};
+    headers.forEach((h,i) => row[h] = cols[i] || '');
+    return {
+      id:(row.sku || row.id || row.codigo || row.código || '').toUpperCase(),
+      name:row.nome || row.produto || row.descricao || row['descrição'] || 'Item importado',
+      qty:Number((row.qtd || row.quantidade || row.qty || '1').replace(',','.')) || 1,
+      lote:row.lote || row.batch || '',
+      validade:row.validade || row.vencimento || row.expires || '',
+      unit:row.unidade || row.unit || 'un',
+      price:Number((row.preco || row.preço || row.valor || '0').replace(',','.')) || 0,
+      cat:row.categoria || row.cat || 'Insumo'
+    };
+  }).filter(r => r.id);
+}
+
+function parseNfeXml(text) {
+  const doc = new DOMParser().parseFromString(text, 'text/xml');
+  return [...doc.querySelectorAll('det')].map((det, idx) => {
+    const get = tag => det.querySelector(tag)?.textContent?.trim() || '';
+    const name = get('xProd') || `Item NF-e ${idx + 1}`;
+    return {
+      id:(get('cProd') || `NFE-${idx + 1}`).toUpperCase(),
+      name,
+      qty:Number((get('qCom') || '1').replace(',','.')) || 1,
+      lote:get('nLote') || ('NFE-' + Date.now().toString().slice(-6)),
+      validade:get('dVal') || '',
+      unit:get('uCom') || 'un',
+      price:Number((get('vUnCom') || get('vProd') || '0').replace(',','.')) || 0,
+      cat:'Importado NF-e'
+    };
+  });
+}
+
+async function handleEntryImport(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const text = await file.text();
+  const imported = file.name.toLowerCase().endsWith('.xml') ? parseNfeXml(text) : parseCsvRows(text);
+  if (!imported.length) { showToast('⚠️ Nenhum item válido encontrado no arquivo'); return; }
+  entryDraftItems = imported;
+  fromScan = false;
+  msGo('ms4', false);
+  renderEntryItems();
+  event.target.value = '';
+  showToast(`✅ ${imported.length} item(ns) importado(s)`);
+}
 
 function openQR() {
   fromScan = true;
+  renderEntryItems();
   msGoTo('ms1');
   const overlay = document.getElementById('modal-overlay');
   overlay.classList.add('open');
@@ -2299,6 +2519,7 @@ function openQR() {
 }
 
 function closeQR() {
+  stopCameraScanner();
   const overlay = document.getElementById('modal-overlay');
   overlay.classList.remove('visible');
   setTimeout(() => overlay.classList.remove('open'), 250);
@@ -2308,9 +2529,82 @@ function handleModalClick(e) {
   if (e.target === document.getElementById('modal-overlay')) closeQR();
 }
 
+let qrStream = null;
+let qrScanTimer = null;
+let qrDetector = null;
+let qrDetectorReady = false;
+
+async function startCameraScanner() {
+  const video = document.getElementById('qr-video');
+  const area = document.getElementById('camera-area');
+  const err = document.getElementById('camera-error');
+  if (!video || !area || qrStream) return;
+  area.classList.remove('camera-fallback');
+  if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    area.classList.add('camera-fallback');
+    if (err) err.textContent = 'Este navegador não liberou acesso à câmera. Use a leitura simulada/manual.';
+    showToast('Câmera indisponível neste navegador');
+    return;
+  }
+  try {
+    qrStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
+    video.srcObject = qrStream;
+    area.classList.add('camera-live');
+    await video.play();
+    showToast('📷 Câmera iniciada');
+    scanVideoFrame();
+  } catch (error) {
+    qrStream = null;
+    area.classList.add('camera-fallback');
+    if (err) err.textContent = 'Permissão de câmera negada ou dispositivo indisponível. Use a leitura simulada/manual.';
+    showToast('Não foi possível acessar a câmera');
+  }
+}
+
+function stopCameraScanner() {
+  clearTimeout(qrScanTimer);
+  qrScanTimer = null;
+  const video = document.getElementById('qr-video');
+  const area = document.getElementById('camera-area');
+  if (qrStream) {
+    qrStream.getTracks().forEach(track => track.stop());
+    qrStream = null;
+  }
+  if (video) video.srcObject = null;
+  if (area) area.classList.remove('camera-live', 'camera-fallback');
+}
+
+async function scanVideoFrame() {
+  if (!qrStream) return;
+  const video = document.getElementById('qr-video');
+  try {
+    if (typeof window !== 'undefined' && 'BarcodeDetector' in window) {
+      if (!qrDetectorReady) {
+        const supported = await window.BarcodeDetector.getSupportedFormats?.() || [];
+        const formats = supported.length ? supported.filter(f => ['qr_code','code_128','ean_13','ean_8'].includes(f)) : ['qr_code','code_128','ean_13','ean_8'];
+        qrDetector = new window.BarcodeDetector({formats: formats.length ? formats : ['qr_code']});
+        qrDetectorReady = true;
+      }
+      const codes = await qrDetector.detect(video);
+      if (codes.length && codes[0].rawValue) {
+        const code = codes[0].rawValue.trim();
+        stopCameraScanner();
+        processScannedCode(code);
+        msGoLoading();
+        return;
+      }
+    }
+  } catch (error) {
+    // Mantém o preview funcionando mesmo quando o navegador não suporta detecção nativa.
+  }
+  qrScanTimer = setTimeout(scanVideoFrame, 650);
+}
+
 function msGoTo(id) {
+  if (id !== 'ms2') stopCameraScanner();
   document.querySelectorAll('.mstep').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  if (id === 'ms2') startCameraScanner();
 }
 
 function msGo(id, scan) {
@@ -2318,6 +2612,7 @@ function msGo(id, scan) {
   if (id === 'ms4') {
     const banner = document.getElementById('af-banner');
     const inputs = document.querySelectorAll('#ms4 .af');
+    renderEntryItems();
     if (fromScan) {
       banner.style.display = 'flex';
       inputs.forEach(i => i.classList.add('af'));
@@ -2332,9 +2627,26 @@ function msGo(id, scan) {
   }
   if (id === 'ms5') {
     // Salva a nova entrada/lote
-    const pedNum = 'LT-' + (4900 + cargos.length);
+    const pedNum = document.getElementById('fi-id')?.value || ('LT-' + (4900 + cargos.length));
     const empresa = document.getElementById('fi-emp')?.value || 'Fornecedor';
     const tipo = document.querySelector('#ms4 select')?.value || 'Compra de fornecedor';
+    entryDraftItems.forEach(item => {
+      const existing = db.products.find(p => p.id === item.id);
+      if (existing) {
+        existing.qty += Number(item.qty || 0);
+        existing.lote = item.lote || existing.lote;
+        existing.validade = item.validade || existing.validade;
+        existing.fornecedor = empresa;
+        if (item.price) existing.price = item.price;
+      } else {
+        db.products.push({
+          id:item.id, name:item.name, cat:item.cat || 'Insumo', type:'Insumo',
+          qty:Number(item.qty || 0), min:5, unit:item.unit || 'un', price:item.price || 0,
+          lote:item.lote || 'sem lote', validade:item.validade || '', fornecedor:empresa,
+          location:'A definir', dailyUse:0
+        });
+      }
+    });
     const newCargo = {
       id: pedNum,
       title: tipo + ' — ' + empresa,
@@ -2348,9 +2660,9 @@ function msGo(id, scan) {
       remetente: {empresa: empresa, cnpj: document.getElementById('fi-cnpj')?.value || '—', tel: '—'},
       destinatario: {nome: 'Estoque FEFO', endereco: 'Área de armazenagem', cnpj: '—', tel: '—'},
       nfe: document.getElementById('fi-nfe')?.value || '—',
-      peso: '—', volumes: 1, seguro: '—', frete: '—',
+      peso: '—', volumes: entryDraftItems.reduce((s,i)=>s+Number(i.qty||0),0) || 1, seguro: '—', frete: '—',
       rastreio: '—', modalidade: '—', prazo: 'em breve', prazoRev: null, ocorrencia: null,
-      itens: [], timeline: [{cls:'done',ev:'Lote registrado',detail:'Via F.A.S.T FEFO',time:'agora'}],
+      itens: entryDraftItems.map(i => ({name:i.name, sku:i.id, qty:i.qty})), timeline: [{cls:'done',ev:'Lote registrado',detail:'Via F.A.S.T FEFO',time:'agora'}],
     };
     cargos.unshift(newCargo);
     document.getElementById('success-id-val').textContent = '#' + pedNum;
@@ -2396,6 +2708,19 @@ document.addEventListener('click', function(e) {
 
 // ── SCAN SESSION STATE ──
 const scanCounts = {}; // { skuId: count }
+
+function processScannedCode(code) {
+  const exactMatch = IV_CATALOG.find(p => p.id.toLowerCase() === String(code).toLowerCase());
+  if (exactMatch) {
+    if (!scanCounts[exactMatch.id]) scanCounts[exactMatch.id] = 0;
+    scanCounts[exactMatch.id]++;
+    openScanCounterPanel(exactMatch, scanCounts[exactMatch.id]);
+    showToast(`📦 +1 · ${exactMatch.name} (total: ${scanCounts[exactMatch.id]})`);
+  } else {
+    openNewProductModal(code);
+    showToast(`🔍 Produto não encontrado — cadastre agora`);
+  }
+}
 
 // ── LEITOR DE CÓDIGO DE BARRAS (BIPADOR) ──
 // Leitores de código de barras emitem os caracteres do código em sequência muito
@@ -2446,22 +2771,7 @@ const scanCounts = {}; // { skuId: count }
   });
 
   function handleBarcodeScan(code) {
-    // Verifica se o produto existe no catálogo (match exato de SKU)
-    const exactMatch = IV_CATALOG.find(
-      p => p.id.toLowerCase() === code.toLowerCase()
-    );
-
-    if (exactMatch) {
-      // ── PRODUTO EXISTENTE: incrementa contagem e mostra painel ──
-      if (!scanCounts[exactMatch.id]) scanCounts[exactMatch.id] = 0;
-      scanCounts[exactMatch.id]++;
-      openScanCounterPanel(exactMatch, scanCounts[exactMatch.id]);
-      showToast(`📦 +1 · ${exactMatch.name} (total: ${scanCounts[exactMatch.id]})`);
-    } else {
-      // ── PRODUTO DESCONHECIDO: abre modal de cadastro com código preenchido ──
-      openNewProductModal(code);
-      showToast(`🔍 Produto não encontrado — cadastre agora`);
-    }
+    processScannedCode(code);
   }
 })();
 
