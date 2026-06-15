@@ -300,18 +300,86 @@ function renderEstoqueMetrics() {
   `;
 }
 
+// ── FLOW MODALS ──
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+}
+
+function openFlowModal({title, subtitle='', fields=[], submitLabel='Salvar', onSubmit}) {
+  closeFlowModal();
+  const overlay = document.createElement('div');
+  overlay.className = 'flow-overlay';
+  overlay.id = 'flow-overlay';
+  overlay.innerHTML = `
+    <form class="flow-modal" id="flow-form">
+      <div class="flow-head">
+        <div>
+          <div class="flow-title">${escapeHtml(title)}</div>
+          ${subtitle ? `<div class="flow-sub">${escapeHtml(subtitle)}</div>` : ''}
+        </div>
+        <button type="button" class="flow-close" onclick="closeFlowModal()">×</button>
+      </div>
+      <div class="flow-body">
+        ${fields.map(field => {
+          const required = field.required ? 'required' : '';
+          const value = escapeHtml(field.value ?? '');
+          const label = `<label for="flow-${field.name}">${escapeHtml(field.label)}</label>`;
+          if (field.type === 'select') {
+            return `<div class="flow-field">${label}<select id="flow-${field.name}" name="${field.name}" ${required}>${(field.options||[]).map(opt => {
+              const val = typeof opt === 'object' ? opt.value : opt;
+              const text = typeof opt === 'object' ? opt.label : opt;
+              return `<option value="${escapeHtml(val)}" ${String(val)===String(field.value ?? '')?'selected':''}>${escapeHtml(text)}</option>`;
+            }).join('')}</select></div>`;
+          }
+          if (field.type === 'textarea') {
+            return `<div class="flow-field full">${label}<textarea id="flow-${field.name}" name="${field.name}" placeholder="${escapeHtml(field.placeholder || '')}" ${required}>${value}</textarea></div>`;
+          }
+          return `<div class="flow-field">${label}<input id="flow-${field.name}" name="${field.name}" type="${field.type || 'text'}" value="${value}" placeholder="${escapeHtml(field.placeholder || '')}" ${field.min !== undefined ? `min="${escapeHtml(field.min)}"` : ''} ${field.step !== undefined ? `step="${escapeHtml(field.step)}"` : ''} ${required}></div>`;
+        }).join('')}
+      </div>
+      <div class="flow-actions">
+        <button type="button" class="btn-secondary" onclick="closeFlowModal()">Cancelar</button>
+        <button type="submit" class="btn-primary">${escapeHtml(submitLabel)}</button>
+      </div>
+    </form>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeFlowModal(); });
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('open'));
+  document.getElementById('flow-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const values = Object.fromEntries(new FormData(e.currentTarget).entries());
+    if (onSubmit(values) !== false) closeFlowModal();
+  });
+}
+
+function closeFlowModal() {
+  const overlay = document.getElementById('flow-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('open');
+  setTimeout(() => overlay.remove(), 160);
+}
+
 // ── EDIT QTY INLINE ──
 function editQty(skuId, current) {
-  const novo = prompt(`Nova quantidade para ${skuId}:`, current);
-  if (novo === null || novo === '') return;
-  const n = parseInt(novo);
-  if (isNaN(n) || n < 0) { showToast('⚠️ Quantidade inválida'); return; }
   const p = db.products.find(x => x.id === skuId);
-  if (p) {
-    p.qty = n;
-    renderAll();
-    showToast(`✓ ${p.name}: ${n} unidades`);
-  }
+  if (!p) return;
+  openFlowModal({
+    title:'Ajustar estoque',
+    subtitle:`${p.name} · ${p.lote || 'sem lote'}`,
+    submitLabel:'Salvar ajuste',
+    fields:[
+      {name:'qty', label:'Nova quantidade', type:'number', value:current, min:0, step:1, required:true},
+      {name:'reason', label:'Motivo do ajuste', type:'select', value:'Inventário', options:['Inventário','Entrada manual','Correção de perda','Divergência de contagem','Outro']},
+      {name:'note', label:'Observação', type:'textarea', placeholder:'Ex.: conferido no estoque seco'}
+    ],
+    onSubmit(values) {
+      const n = parseInt(values.qty);
+      if (isNaN(n) || n < 0) { showToast('⚠️ Quantidade inválida'); return false; }
+      p.qty = n;
+      renderAll();
+      showToast(`✓ ${p.name}: ${n} ${p.unit || 'un'} · ${values.reason}`);
+    }
+  });
 }
 
 // ── RENDER ALL (atualiza tudo de uma vez) ──
@@ -519,34 +587,74 @@ function renderLosses() {
 }
 
 function openLossForm() {
-  const opts = db.products.map(p => `${p.id} — ${p.name}`).join('\n');
-  const sku = prompt(`SKU do item perdido:\n${opts}`, db.products[0]?.id || '');
-  if (!sku) return;
-  const p = db.products.find(x => x.id.toLowerCase() === sku.trim().toLowerCase());
-  if (!p) { showToast('⚠️ SKU não encontrado'); return; }
-  const qty = Number(prompt(`Quantidade perdida de ${p.name}:`, '1'));
-  if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return; }
-  const reason = prompt('Motivo da perda:', 'Sobra de balcão') || 'Perda operacional';
-  const loss = {reason, item:p.name, lote:p.lote, qty, cost:qty * (p.price || 0), date:new Date().toLocaleDateString('pt-BR')};
-  db.losses.unshift(loss);
-  p.qty = Math.max(0, p.qty - qty);
-  renderAll();
-  navToStr('perdas');
-  showToast(`✅ Perda registrada: ${qty} ${p.unit || 'un'} de ${p.name}`);
+  openFlowModal({
+    title:'Registrar perda/descarte',
+    subtitle:'Informe o lote, motivo e quantidade para alimentar os indicadores de desperdício.',
+    submitLabel:'Registrar perda',
+    fields:[
+      {name:'sku', label:'Produto / lote', type:'select', value:db.products[0]?.id || '', required:true, options:db.products.map(p => ({value:p.id, label:`${p.id} — ${p.name} · ${p.lote || 'sem lote'}`}))},
+      {name:'qty', label:'Quantidade perdida', type:'number', value:1, min:0, step:1, required:true},
+      {name:'reason', label:'Motivo', type:'select', value:'Sobra de balcão', options:['Sobra de balcão','Vencimento','Erro de produção','Produto queimado','Quebra','Divergência de inventário','Outro']},
+      {name:'responsible', label:'Responsável', value:'Ana Martins'},
+      {name:'note', label:'Observação', type:'textarea', placeholder:'Ex.: sobra da fornada da tarde'}
+    ],
+    onSubmit(values) {
+      const p = db.products.find(x => x.id === values.sku);
+      if (!p) { showToast('⚠️ SKU não encontrado'); return false; }
+      const qty = Number(values.qty);
+      if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return false; }
+      const loss = {
+        reason:values.reason || 'Perda operacional',
+        item:p.name,
+        lote:p.lote,
+        qty,
+        cost:qty * (p.price || 0),
+        date:new Date().toLocaleDateString('pt-BR'),
+        responsible:values.responsible || '—',
+        note:values.note || ''
+      };
+      db.losses.unshift(loss);
+      p.qty = Math.max(0, p.qty - qty);
+      renderAll();
+      navToStr('perdas');
+      showToast(`✅ Perda registrada: ${qty} ${p.unit || 'un'} de ${p.name}`);
+    }
+  });
 }
 
 function openSupplierForm() {
-  const name = prompt('Nome do fornecedor:', 'Novo Fornecedor');
-  if (!name) return;
-  const cat = prompt('Categoria fornecida:', 'Insumos') || 'Insumos';
-  const lead = prompt('Lead time:', '2 dias') || '2 dias';
-  const reliability = Number(prompt('Confiabilidade (%):', '95')) || 95;
-  db.suppliers.unshift({
-    id:'SUP-' + name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toUpperCase().slice(0,18),
-    name, cat, lead, reliability:Math.max(0, Math.min(100, reliability)), last:new Date().toLocaleDateString('pt-BR')
+  openFlowModal({
+    title:'Novo fornecedor',
+    subtitle:'Cadastre fornecedor homologado para compras e reposição inteligente.',
+    submitLabel:'Cadastrar fornecedor',
+    fields:[
+      {name:'name', label:'Nome do fornecedor', value:'Novo Fornecedor', required:true},
+      {name:'cnpj', label:'CNPJ', placeholder:'00.000.000/0001-00'},
+      {name:'cat', label:'Categoria', value:'Insumos', required:true},
+      {name:'lead', label:'Lead time', value:'2 dias', required:true},
+      {name:'reliability', label:'Confiabilidade (%)', type:'number', value:95, min:0, step:1, required:true},
+      {name:'contact', label:'Contato', placeholder:'telefone ou e-mail'},
+      {name:'items', label:'Itens fornecidos', type:'textarea', placeholder:'Ex.: farinha, fermento, ovos'}
+    ],
+    onSubmit(values) {
+      const name = values.name?.trim();
+      if (!name) { showToast('⚠️ Informe o nome do fornecedor'); return false; }
+      const reliability = Number(values.reliability) || 95;
+      db.suppliers.unshift({
+        id:'SUP-' + name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toUpperCase().slice(0,18),
+        name,
+        cat:values.cat || 'Insumos',
+        lead:values.lead || '2 dias',
+        reliability:Math.max(0, Math.min(100, reliability)),
+        last:new Date().toLocaleDateString('pt-BR'),
+        cnpj:values.cnpj || '—',
+        contact:values.contact || '—',
+        items:values.items || ''
+      });
+      renderAll();
+      showToast(`✅ Fornecedor "${name}" cadastrado`);
+    }
   });
-  renderSuppliers();
-  showToast(`✅ Fornecedor "${name}" cadastrado`);
 }
 
 // ── LOCAL PERSISTENCE ──
@@ -1264,19 +1372,40 @@ function removeEntryItem(idx) {
 }
 
 function addEntryItemManual() {
-  const sku = prompt('SKU do insumo/lote:', 'FAR-25KG');
-  if (!sku) return;
-  const existing = db.products.find(p => p.id.toLowerCase() === sku.trim().toLowerCase());
-  const name = prompt('Nome do item:', existing?.name || 'Novo insumo') || existing?.name || sku;
-  const qty = Number(prompt('Quantidade recebida:', '1'));
-  if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return; }
-  const lote = prompt('Lote:', existing?.lote || ('LT-' + Date.now().toString().slice(-6))) || '';
-  const validade = prompt('Validade (AAAA-MM-DD):', existing?.validade || '2026-07-30') || '';
-  entryDraftItems.push({
-    id:sku.trim().toUpperCase(), name, qty, lote, validade,
-    unit:existing?.unit || 'un', price:existing?.price || 0, cat:existing?.cat || 'Insumo'
+  openFlowModal({
+    title:'Adicionar item manualmente',
+    subtitle:'Inclua insumo, lote e validade na entrada antes de confirmar.',
+    submitLabel:'Adicionar item',
+    fields:[
+      {name:'sku', label:'SKU', value:'FAR-25KG', required:true},
+      {name:'name', label:'Nome do item', value:'Farinha de Trigo 25kg', required:true},
+      {name:'qty', label:'Quantidade recebida', type:'number', value:1, min:0, step:1, required:true},
+      {name:'unit', label:'Unidade', value:'un'},
+      {name:'lote', label:'Lote', value:'LT-' + Date.now().toString().slice(-6)},
+      {name:'validade', label:'Validade', type:'date', value:'2026-07-30'},
+      {name:'cat', label:'Categoria', value:'Insumo'},
+      {name:'price', label:'Preço unitário', type:'number', value:0, min:0, step:'0.01'}
+    ],
+    onSubmit(values) {
+      const sku = values.sku?.trim().toUpperCase();
+      const existing = db.products.find(p => p.id === sku);
+      const qty = Number(values.qty);
+      if (!sku || !values.name?.trim()) { showToast('⚠️ Informe SKU e nome do item'); return false; }
+      if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return false; }
+      entryDraftItems.push({
+        id:sku,
+        name:values.name.trim(),
+        qty,
+        lote:values.lote || existing?.lote || '',
+        validade:values.validade || existing?.validade || '',
+        unit:values.unit || existing?.unit || 'un',
+        price:Number(values.price) || existing?.price || 0,
+        cat:values.cat || existing?.cat || 'Insumo'
+      });
+      renderEntryItems();
+      showToast(`✓ Item ${sku} adicionado à entrada`);
+    }
   });
-  renderEntryItems();
 }
 
 function openImportFile() {
