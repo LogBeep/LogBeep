@@ -3,22 +3,51 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>F.A.S.T — Dashboard Logístico</title>
+<title>F.A.S.T — Estoque Inteligente para Padarias</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0C0C0E;--surface:#141416;--surface2:#1C1C1F;--surface3:#252528;
-  --border:#2A2A2E;--border2:#333338;
-  --text-primary:#F2F2F3;--text-secondary:#8B8B93;--text-muted:#4A4A52;
-  --accent:#E8E0FF;--accent-dim:#3D3760;
-  --success-bg:#1A3D2E;--success:#4ADE80;
-  --warning-bg:#3D2E0E;--warning:#FBB040;
-  --danger-bg:#3D1515;--danger:#F87171;
-  --info-bg:#0E2540;--info:#60A5FA;
-  --font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
-  --r:6px;--r2:8px;--sidebar:220px;
+  --bg:#F5FBFF;
+  --surface:#FFFFFF;
+  --surface2:#EAF6FC;
+  --surface3:#D8EEF7;
+
+  --border:#C8E4EF;
+  --border2:#A9D7E8;
+
+  --text-primary:#1B4965;
+  --text-secondary:#456879;
+  --text-muted:#7A96A4;
+
+  --accent:#62B6CB;
+  --accent-2:#5FA8D3;
+  --accent-light:#CAE9FF;
+  --accent-soft:#BEE9E8;
+  --accent-dim:#E1F2FF;
+
+  --success-bg:#E6F8F7;
+  --success:#2C8C78;
+
+  --warning-bg:#FFF3CD;
+  --warning:#B7791F;
+
+  --danger-bg:#FEE2E2;
+  --danger:#DC2626;
+
+  --info-bg:#E1F2FF;
+  --info:#1B75BB;
+
+  --shadow-sm:0 8px 24px rgba(27,73,101,.06);
+  --shadow-md:0 14px 36px rgba(27,73,101,.10);
+
+  --font:'DM Sans',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+
+  --r:8px;
+  --r2:14px;
+  --sidebar:230px;
 }
 
 html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--bg);color:var(--text-primary);font-size:14px;line-height:1.5}
@@ -243,15 +272,16 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;display:none;opacity:0;transition:opacity .2s;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal-overlay.visible{opacity:1}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:420px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;transform:translateY(16px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:420px;max-height:min(90vh,760px);display:flex;flex-direction:column;overflow:hidden;transform:translateY(16px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
 .modal-overlay.visible .modal{transform:translateY(0)}
 
 .modal-mheader{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
 .modal-title{font-size:14px;font-weight:500;color:var(--text-primary)}
 .modal-sub{font-size:11px;color:var(--text-muted)}
 
-.mstep{display:none;flex-direction:column}
-.mstep.active{display:flex}
+.mstep{display:none;flex-direction:column;min-height:0;overflow:hidden}
+.mstep.active{display:flex;min-height:0}
+#ms4.mstep.active{height:min(86vh,760px)}
 
 /* choice */
 .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 18px}
@@ -268,6 +298,11 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 
 /* scanner */
 .camera-area{height:260px;background:#050507;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.camera-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#050507;z-index:1;opacity:0;transition:opacity .2s}
+.camera-area.camera-live .camera-video{opacity:1}
+.camera-area.camera-live .qr-ghost{display:none}
+.camera-error{position:absolute;left:18px;right:18px;bottom:42px;z-index:6;display:none;background:rgba(27,73,101,.86);border:1px solid rgba(202,233,255,.26);border-radius:12px;padding:10px 12px;color:#FFFFFF;font-size:11px;line-height:1.4;text-align:center}
+.camera-area.camera-fallback .camera-error{display:block}
 .cam-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:28px 28px}
 .viewfinder{width:200px;height:200px;position:relative;z-index:2}
 .vfc{position:absolute;width:20px;height:20px}
@@ -281,7 +316,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .cam-rec{width:5px;height:5px;border-radius:50%;background:var(--danger);animation:pulse 1.5s infinite}
 .cam-hint{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,.3);z-index:5;font-family:var(--mono)}
 .scanner-controls{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px}
-.btn-sim{flex:1;background:var(--accent-dim);border:1px solid rgba(232,224,255,.3);border-radius:var(--r);padding:10px;font-family:var(--font);font-size:13px;font-weight:500;color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .15s}
+.btn-sim{flex:1;background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);border-radius:var(--r);padding:10px;font-family:var(--font);font-size:13px;font-weight:500;color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .15s}
 .btn-sim:hover{background:#4A4380}
 .btn-sim svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
 .btn-ghost{background:transparent;border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;font-family:var(--font);font-size:13px;color:var(--text-secondary);cursor:pointer;transition:all .15s}
@@ -299,7 +334,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .ls-item svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
 
 /* form */
-.form-body{flex:1;overflow-y:auto;padding:16px 18px}
+.form-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:16px 18px}
 .form-body::-webkit-scrollbar{width:3px}
 .form-body::-webkit-scrollbar-thumb{background:var(--border)}
 .autofill-banner{background:var(--success-bg);border:1px solid rgba(74,222,128,.2);border-radius:var(--r);padding:9px 12px;display:flex;align-items:center;gap:8px;margin-bottom:14px}
@@ -395,12 +430,140 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
   .metrics-row{grid-template-columns:1fr 1fr}
   .stock-row{grid-template-columns:1fr 48px 72px}
 }
+
+/* ── LIGHT SAAS REDESIGN OVERRIDES ── */
+body{background:radial-gradient(circle at top left,rgba(202,233,255,.55),transparent 34%),var(--bg);color:var(--text-primary)}
+.sidebar{background:linear-gradient(180deg,#1B4965 0%,#153E57 54%,#103247 100%);border-right:none;padding:20px 10px;box-shadow:10px 0 28px rgba(27,73,101,.14)}
+.sidebar-logo{padding:2px 10px 22px;gap:11px}
+.logo-mark{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,rgba(190,233,232,.95),rgba(98,182,203,.95));box-shadow:0 10px 24px rgba(98,182,203,.24)}
+.logo-mark svg{width:17px;height:17px;stroke:#1B4965;stroke-width:2.3}
+.logo-copy{display:flex;flex-direction:column;line-height:1.1}
+.logo-name{font-size:18px;font-weight:700;color:#FFFFFF;letter-spacing:.7px}
+.logo-subtitle{display:block;margin-top:4px;font-size:10px;font-weight:500;letter-spacing:.4px;color:#BEE9E8;text-transform:uppercase}
+.nav-section{padding:0;margin-bottom:10px}
+.nav-label{color:rgba(202,233,255,.64);padding:0 10px;margin:12px 0 7px}
+.nav-item{color:rgba(245,251,255,.78);border:1px solid transparent;border-radius:12px;padding:10px 11px;margin-bottom:4px;font-weight:500}
+.nav-item:hover{background:rgba(202,233,255,.10);color:#FFFFFF;border-color:rgba(202,233,255,.14)}
+.nav-item.active{background:linear-gradient(135deg,#62B6CB 0%,#5FA8D3 100%);color:#FFFFFF;border-color:rgba(255,255,255,.18);box-shadow:0 12px 24px rgba(95,168,211,.25)}
+.nav-item svg{width:17px;height:17px;stroke-width:1.9}
+.nav-badge{background:rgba(202,233,255,.16);color:#EAF6FC;border:1px solid rgba(202,233,255,.12)}
+.nav-item.active .nav-badge{background:rgba(255,255,255,.24);color:#FFFFFF;border-color:rgba(255,255,255,.18)}
+.sidebar-footer{border-top:1px solid rgba(202,233,255,.16);padding:14px 0 0}
+.header{height:68px;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:0 28px;box-shadow:0 4px 18px rgba(27,73,101,.035)}
+.header-title{font-size:20px;font-weight:700;color:var(--text-primary);letter-spacing:-.5px}
+.header-subtitle{font-size:12px;color:var(--text-muted);margin-top:1px}
+.sync-badge{background:linear-gradient(135deg,var(--accent-light),var(--accent-soft));border:1px solid rgba(98,182,203,.35);color:var(--text-primary);font-family:var(--font);font-weight:600;padding:6px 12px;box-shadow:0 6px 18px rgba(98,182,203,.12)}
+.sync-dot{width:7px;height:7px;background:var(--success)}
+.avatar{width:34px;height:34px;background:#F5FBFF;color:var(--text-primary);border:1px solid var(--border);box-shadow:var(--shadow-sm);font-weight:700}
+.content{padding:24px 28px;gap:22px;background:transparent}
+.content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:999px}
+.search-bar{padding:14px 28px;background:rgba(255,255,255,.86);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);gap:12px}
+.search-icon{color:var(--accent-2)}
+.search-input{background:#FFFFFF;border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:var(--text-primary);box-shadow:0 4px 16px rgba(27,73,101,.04)}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(98,182,203,.14)}
+.btn-scan,.btn-primary{background:var(--text-primary);color:#FFFFFF;border:1px solid var(--text-primary);border-radius:12px;padding:10px 14px;font-weight:700;box-shadow:0 10px 22px rgba(27,73,101,.16)}
+.btn-scan:hover,.btn-primary:hover{background:#14384F;border-color:#14384F;color:#FFFFFF;transform:translateY(-1px)}
+.btn-secondary{background:var(--accent-light);border:1px solid var(--accent);color:var(--text-primary);border-radius:12px;font-weight:700}
+.btn-secondary:hover{background:var(--accent-soft);border-color:var(--accent-2);color:var(--text-primary)}
+.btn-sim{background:var(--accent-light);border-color:var(--accent);color:var(--text-primary);border-radius:12px;font-weight:700}
+.btn-sim:hover{background:var(--accent-soft);color:var(--text-primary)}
+.btn-icon,.close-btn,.hamburger{background:#FFFFFF;border:1px solid var(--border);color:var(--text-secondary);border-radius:10px}
+.btn-icon:hover,.close-btn:hover,.hamburger:hover{border-color:var(--accent);color:var(--text-primary);box-shadow:var(--shadow-sm)}
+.metrics-row{gap:16px}
+.metric-card{position:relative;background:#FFFFFF;border:1px solid #D8EEF7;border-radius:16px;padding:18px 18px 16px;box-shadow:var(--shadow-sm);overflow:hidden;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.metric-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:var(--shadow-md)}
+.metric-card::before{content:'↗';position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:12px;background:var(--accent-light);color:var(--text-primary);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:15px;font-weight:700}
+.metric-card:nth-child(2)::before{content:'✓';background:var(--accent-soft)}
+.metric-card:nth-child(3)::before{content:'▦';background:var(--info-bg);color:var(--info)}
+.metric-card:nth-child(4)::before{content:'!';background:var(--warning-bg);color:var(--warning)}
+.metric-label{font-size:12px;color:var(--text-secondary);font-weight:700;margin-bottom:8px;padding-right:44px}
+.metric-value{font-size:30px;font-weight:700;color:var(--text-primary);letter-spacing:-1.4px}
+.metric-delta{font-size:12px;font-weight:700;margin-top:7px}
+.section-header{margin-bottom:12px}
+.section-title{font-size:12px;font-weight:800;color:var(--text-primary);letter-spacing:.7px}
+.section-action{color:var(--accent-2);font-weight:700;border-radius:999px;padding:5px 10px}
+.section-action:hover{background:var(--info-bg);color:var(--text-primary)}
+.cargo-list,.track-list{gap:12px}
+.cargo-card,.track-card,.supplier-card,.stock-table,.carrier-card,.route-visual,.meta-item,.item-row,.choice-card,.modal,.drawer{background:#FFFFFF;border:1px solid #D8EEF7;border-radius:16px;box-shadow:var(--shadow-sm)}
+.cargo-card{padding:18px;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.cargo-card:hover,.track-card:hover,.choice-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:var(--shadow-md)}
+.cargo-id,.track-id,.dh-id,.stock-sku,.item-sku,.success-id,.mono{font-family:var(--mono);color:var(--text-muted)}
+.cargo-title{font-size:15px;font-weight:700;color:var(--text-primary)}
+.badge,.pill{border-radius:999px;padding:4px 10px;font-weight:800;letter-spacing:.2px}
+.b-transit{background:var(--info-bg);color:#155E8A}.b-pending,.b-priority{background:var(--warning-bg);color:var(--warning)}.b-delivered{background:var(--success-bg);color:var(--success)}.b-alert,.b-fragile{background:var(--danger-bg);color:var(--danger)}
+.route{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:14px}
+.route-arrow{color:var(--accent-2);font-weight:800}.route-dest{font-weight:700}
+.timeline-mini{margin-bottom:12px}.tl-step:not(:last-child)::after{height:2px;top:7px;background:var(--border)}.tl-step.done::after{background:var(--accent-2)}
+.tl-dot{border:2px solid var(--border2);background:#FFFFFF}.tl-step.done .tl-dot{border-color:var(--accent-2);background:var(--accent-light)}.tl-step.active .tl-dot{border-color:var(--accent);background:var(--accent-soft)}
+.tl-inner,.tl-step.active .tl-inner{background:var(--accent-2)}.tl-step.done .tl-label,.tl-step.active .tl-label{color:var(--text-primary);font-weight:700}
+.cargo-footer{border-top:1px solid var(--border);padding-top:12px}.cargo-meta,.cargo-eta{font-size:12px}.cargo-eta{font-weight:700;color:var(--text-primary)}
+.stock-table{overflow:hidden}.stock-row{padding:13px 16px;border-bottom:1px solid #E7F4FA;font-size:13px}.stock-row.hdr{background:var(--surface2);color:var(--text-secondary);font-weight:800}.stock-name{font-weight:700}.stock-num{font-weight:700}
+.drawer-overlay,.modal-overlay,#cell-modal-overlay{background:rgba(27,73,101,.34)!important;backdrop-filter:blur(5px)}
+.drawer{box-shadow:-18px 0 42px rgba(27,73,101,.16);border-radius:18px 0 0 18px}.drawer-header,.drawer-tabs,.drawer-footer,.modal-mheader,.form-footer{background:#FFFFFF;border-color:var(--border)}
+.dtab.active{color:var(--text-primary);border-bottom-color:var(--accent)}.dsection-label,.fsection-label{color:var(--text-secondary);font-weight:800}.drawer-body,.modal-body{background:var(--bg)}
+.route-visual,.item-row,.carrier-card,.field input,.field select,.added-item,.add-row{background:var(--surface2);border-color:var(--border);border-radius:12px}.rv-line{background:var(--accent-2);height:2px}.tl-item.done::before{background:var(--accent-2)}.tl-item.done .tl-ico{border-color:var(--accent-2);background:var(--accent-light)}.tl-item.active .tl-ico{border-color:var(--accent);background:var(--accent-soft)}.tl-item.active .tl-event{color:var(--text-primary);font-weight:700}
+.modal{box-shadow:0 24px 70px rgba(27,73,101,.20)}.choice-card{background:#FFFFFF}.ci{background:var(--accent-light)!important;color:var(--text-primary)!important}.scan-frame{background:linear-gradient(180deg,#F5FBFF,#EAF6FC);border-color:var(--border2)}.success-ring{border-color:rgba(44,140,120,.22)}.success-id{color:var(--text-primary);background:var(--accent-light);border:1px solid var(--border)}
+.supplier-logo,.item-ico,.carrier-logo{background:var(--accent-light);color:var(--text-primary)}.supplier-logo svg,.item-ico svg,.carrier-logo svg{stroke:var(--text-primary)}
+.tab-bar{background:#FFFFFF;box-shadow:0 -10px 28px rgba(27,73,101,.08)}.tb-item:hover,.tb-item.active{color:var(--text-primary);background:var(--accent-light)}
+.toast{background:#FFFFFF;border-color:var(--border);box-shadow:var(--shadow-md);color:var(--text-primary)}
+.fab{background:var(--text-primary);color:#FFFFFF;border-radius:16px;box-shadow:0 16px 34px rgba(27,73,101,.24)}.fab:hover{background:#14384F}
+@media(max-width:768px){.sidebar{box-shadow:18px 0 40px rgba(27,73,101,.24)}.header{height:62px;padding:0 16px}.content{padding:18px 16px}.search-bar{padding:12px 16px}.drawer{border-radius:18px 18px 0 0}.metrics-row{gap:12px}}
+@media(max-width:480px){.metric-card{padding:15px 14px}.metric-value{font-size:24px}.metric-card::before{width:30px;height:30px}}
+
+
+/* ── EXECUTIVE DASHBOARD MOCKUP POLISH ── */
+.header{gap:18px;min-width:0}
+.header-left{min-width:170px;flex-shrink:0}
+.header-search{height:42px;max-width:520px;min-width:280px;flex:1;display:flex;align-items:center;gap:10px;background:#FFFFFF;border:1px solid var(--border);border-radius:12px;padding:0 10px 0 14px;box-shadow:0 8px 22px rgba(27,73,101,.05)}
+.header-search svg{width:17px;height:17px;stroke:var(--text-muted);fill:none;stroke-width:1.8;flex-shrink:0}
+.header-search input{flex:1;border:none;background:transparent;outline:none;color:var(--text-primary);font-family:var(--font);font-size:13px;min-width:0}
+.header-search input::placeholder{color:#6F87A0}
+.header-search button{border:1px solid var(--border);background:var(--surface2);border-radius:7px;color:var(--text-secondary);font-family:var(--mono);font-size:11px;padding:3px 7px;cursor:pointer}
+.header-icon{position:relative;width:38px;height:38px;border:none;background:transparent;color:var(--text-primary);cursor:pointer;border-radius:12px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.header-icon:hover{background:var(--surface2)}
+.header-icon svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.9}
+.header-icon span{position:absolute;top:1px;right:1px;width:17px;height:17px;border-radius:50%;background:#1E7DD7;color:white;font-size:10px;font-family:var(--mono);display:flex;align-items:center;justify-content:center;border:2px solid white}
+.header-primary{height:42px;padding:0 15px!important;gap:8px!important;background:#1E7DD7!important;border-color:#1E7DD7!important;box-shadow:0 10px 22px rgba(30,125,215,.20)!important}
+.header-primary:hover{background:#176CBF!important;border-color:#176CBF!important}
+.header-primary svg:last-child{width:12px;height:12px}
+.dashboard-mobile-search{display:none}
+.dashboard-content{gap:18px}
+.dashboard-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(360px,1fr);gap:16px;align-items:start}
+.dashboard-panel{background:#FFFFFF;border:1px solid #D8EEF7;border-radius:16px;box-shadow:var(--shadow-sm);padding:16px;min-width:0}
+.dashboard-panel .section-header{margin-bottom:12px}.dashboard-panel .section-title{text-transform:none;font-size:15px;letter-spacing:-.2px}.dashboard-panel .section-action{font-size:13px;color:#1E7DD7}
+.stock-row-rich,.stock-table-dashboard .stock-row{grid-template-columns:minmax(180px,1.1fr) minmax(90px,.7fr) minmax(90px,.55fr) minmax(90px,.55fr) minmax(132px,.75fr)}.stock-cat{font-size:12px;color:var(--text-secondary)}
+.metric-card{min-height:132px;display:grid;grid-template-columns:auto 1fr;grid-template-areas:'icon label' 'icon value' 'delta spark';column-gap:14px;align-items:center}
+.metric-card::before{display:none}
+.metric-icon{grid-area:icon;width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,var(--accent-soft),var(--accent-light));display:flex;align-items:center;justify-content:center;color:#16809A}
+.metric-card:nth-child(even) .metric-icon{background:#E9F4FF;color:#1E7DD7}.metric-card:nth-child(3) .metric-icon{background:#E6F8F7;color:#16809A}.metric-card:nth-child(4) .metric-icon{background:#EAF4FF;color:#1E7DD7}
+.metric-icon svg{width:27px;height:27px;stroke:currentColor;fill:none;stroke-width:1.8}
+.metric-label{grid-area:label;margin:0;padding:0;font-size:13px;color:var(--text-primary);align-self:end}.metric-value{grid-area:value;align-self:start;font-size:28px}.metric-delta{grid-area:delta}.metric-spark{grid-area:spark;justify-self:end;width:102px;height:42px}.metric-spark path{fill:none;stroke:#1E8FE1;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.metric-card:nth-child(1) .metric-spark path,.metric-card:nth-child(3) .metric-spark path{stroke:var(--accent)}
+.recent-orders{display:flex;flex-direction:column}.recent-order{display:grid;grid-template-columns:42px minmax(175px,1.2fr) minmax(90px,.75fr) 22px minmax(90px,.75fr) minmax(92px,.58fr) minmax(100px,.55fr);gap:12px;align-items:center;padding:12px 4px;border-bottom:1px solid #E7F4FA;cursor:pointer;transition:background .15s,border-color .15s}.recent-order:last-child{border-bottom:none}.recent-order:hover{background:#F7FCFF}.recent-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--info-bg);color:#1E7DD7}.recent-ico svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}.recent-ico.pending{background:var(--warning-bg);color:var(--warning)}.recent-ico.delivered{background:var(--success-bg);color:var(--success)}.recent-id{font-family:var(--mono);font-size:13px;font-weight:800;color:var(--text-primary)}.recent-client,.recent-label{font-size:11px;color:#667F95}.recent-value{font-size:12px;font-weight:600;color:#173A56}.recent-arrow{color:#8BAFC4;font-size:18px;text-align:center}.recent-status{text-align:right}.tracking-card{border:1px solid var(--border);border-radius:14px;padding:14px;background:#FFFFFF}.tracking-title{display:flex;justify-content:space-between;gap:12px;align-items:start;margin-bottom:12px}.tracking-title strong{font-family:var(--mono);font-size:15px;color:var(--text-primary)}.tracking-route{font-size:12px;color:var(--text-secondary);margin-top:6px}.tracking-eta{font-size:12px;color:var(--text-secondary);margin:14px 0}.tracking-eta strong{display:block;color:var(--text-primary);font-family:var(--mono);font-size:13px;margin-top:2px}.tracking-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:18px 0 16px}.tracking-step{position:relative;text-align:center}.tracking-step:not(:last-child)::after{content:'';position:absolute;top:17px;left:50%;right:-50%;height:2px;background:#CFE1EE;z-index:0}.tracking-step.done:not(:last-child)::after{background:#1E7DD7}.tracking-dot{position:relative;z-index:1;width:34px;height:34px;border-radius:50%;margin:0 auto 7px;border:2px solid #BCD5E6;background:#FFFFFF;display:flex;align-items:center;justify-content:center;color:#7B98AA}.tracking-step.done .tracking-dot{background:#1E7DD7;border-color:#1E7DD7;color:#FFFFFF}.tracking-step.active .tracking-dot{background:#FFFFFF;border-color:#9BD0FF;color:#1E7DD7;box-shadow:0 0 0 4px #E9F4FF}.tracking-dot svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}.tracking-step span{display:block;font-size:11px;font-weight:700;color:var(--text-primary)}.tracking-step small{font-family:var(--mono);font-size:10px;color:var(--text-muted)}.location-card{display:flex;gap:11px;align-items:center;background:linear-gradient(135deg,#EAF6FC,#DCEFFF);border:1px solid var(--border);border-radius:12px;padding:12px}.location-card svg{width:20px;height:20px;stroke:#1E7DD7;fill:none;stroke-width:2;flex-shrink:0}.location-card strong{font-size:12px;color:#1E7DD7}.location-card div{font-size:12px;color:var(--text-primary)}.location-card small{margin-left:auto;color:var(--text-muted);font-size:10px;white-space:nowrap}
+.alerts-list{display:flex;flex-direction:column;gap:8px}.alert-item{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:12px;padding:11px 12px;background:#FFFFFF;cursor:pointer}.alert-item:hover{background:#F7FCFF}.alert-icon{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center}.alert-icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9}.alert-item.danger .alert-icon{background:var(--danger-bg);color:var(--danger)}.alert-item.warning .alert-icon{background:var(--warning-bg);color:var(--warning)}.alert-item.info .alert-icon{background:var(--info-bg);color:#1E7DD7}.alert-copy{flex:1}.alert-copy strong{display:block;font-size:12px;color:var(--text-primary)}.alert-copy span{font-size:11px;color:var(--text-secondary)}.alert-chevron{color:#7892A4;font-size:22px}
+.side-help,.side-user{border:1px solid rgba(202,233,255,.16);background:rgba(202,233,255,.06);border-radius:12px;color:#FFFFFF;display:flex;align-items:center;gap:10px;cursor:pointer}.side-help{padding:12px;margin-bottom:12px}.side-help svg{width:18px;height:18px;stroke:#CAE9FF;fill:none;stroke-width:1.8}.side-help span{font-size:13px;font-weight:700}.side-user{padding:10px}.side-user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#BEE9E8,#CAE9FF);color:#1B4965;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}.side-user-copy{flex:1;display:flex;flex-direction:column;line-height:1.2}.side-user-copy strong{font-size:12px}.side-user-copy span{font-size:10px;color:#CAE9FF}.side-user>svg{width:14px;height:14px;stroke:#CAE9FF;fill:none;stroke-width:2}
+.cmd-overlay{position:fixed;inset:0;background:rgba(27,73,101,.32);backdrop-filter:blur(5px);z-index:650;display:none;align-items:flex-start;justify-content:center;padding-top:9vh}.cmd-overlay.open{display:flex}.cmd-palette{width:620px;max-width:calc(100vw - 28px);background:#FFFFFF;border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 70px rgba(27,73,101,.24);overflow:hidden}.cmd-input-wrap{height:58px;display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:1px solid var(--border)}.cmd-input-wrap svg{width:19px;height:19px;stroke:var(--accent-2);fill:none;stroke-width:1.8}.cmd-input-wrap input{flex:1;border:none;outline:none;font-family:var(--font);font-size:15px;color:var(--text-primary)}.cmd-input-wrap button{border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);border-radius:8px;padding:4px 8px;font-family:var(--mono);font-size:11px;cursor:pointer}.cmd-results{max-height:420px;overflow:auto;padding:8px}.cmd-group-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.7px;font-weight:800;padding:10px 10px 6px}.cmd-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;cursor:pointer;color:var(--text-primary)}.cmd-item:hover{background:var(--surface2)}.cmd-item-ico{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--accent-light);color:var(--text-primary)}.cmd-item-ico svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.9}.cmd-item-copy{flex:1}.cmd-item-copy strong{display:block;font-size:13px}.cmd-item-copy span{font-size:11px;color:var(--text-muted)}.cmd-kbd{font-family:var(--mono);font-size:10px;color:var(--text-muted);border:1px solid var(--border);border-radius:6px;padding:2px 6px;background:#FFFFFF}
+@media(max-width:1120px){.dashboard-grid{grid-template-columns:1fr}.header-search{max-width:none}.recent-order{grid-template-columns:42px minmax(160px,1fr) minmax(90px,.7fr) 20px minmax(90px,.7fr) minmax(90px,.6fr) minmax(96px,.5fr)}}
+@media(max-width:900px){.stock-row-rich,.stock-table-dashboard .stock-row{grid-template-columns:1fr 90px 120px}.stock-row-rich .stock-cat,.stock-row-rich>div:nth-child(4),.stock-table-dashboard .stock-cat,.stock-table-dashboard .stock-row>div:nth-child(4){display:none}.header-search{display:none}.sync-badge{display:none}.header-primary{display:none}.dashboard-mobile-search{display:flex}.recent-order{grid-template-columns:38px 1fr auto}.recent-order .recent-loc,.recent-order .recent-arrow,.recent-order .recent-forecast{display:none}.recent-status{text-align:right}.metric-spark{display:none}.metric-card{grid-template-columns:auto 1fr;grid-template-areas:'icon label' 'icon value' 'icon delta'}}
+@media(max-width:560px){.dashboard-panel{padding:12px}.tracking-steps{grid-template-columns:1fr;gap:8px}.tracking-step{text-align:left;display:flex;align-items:center;gap:10px}.tracking-step:not(:last-child)::after{display:none}.tracking-dot{margin:0}.location-card{align-items:flex-start}.location-card small{display:none}.cmd-overlay{padding-top:4vh}}
+
 </style>
 </head>
 <body>
 
 <!-- ── TOAST ── -->
 <div class="toast" id="toast"></div>
+
+<!-- ── COMMAND PALETTE ── -->
+<div class="cmd-overlay" id="cmd-overlay" onclick="handleCommandOverlayClick(event)">
+  <div class="cmd-palette" onclick="event.stopPropagation()">
+    <div class="cmd-input-wrap">
+      <svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg>
+      <input id="cmd-input" placeholder="Busque insumos, lotes, receitas ou ações..." oninput="renderCommandResults(this.value)" onkeydown="handleCommandKey(event)">
+      <button onclick="closeCommandPalette()">Esc</button>
+    </div>
+    <div class="cmd-results" id="cmd-results"></div>
+  </div>
+</div>
 
 <!-- ── APP SHELL ── -->
 <div class="app">
@@ -411,7 +574,10 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
       <div class="logo-mark">
         <svg viewBox="0 0 14 14"><path d="M1 7h5M8 7h5M7 1v5M7 8v5" stroke-linecap="round"/></svg>
       </div>
-      <span class="logo-name">F.A.S.T</span>
+      <div class="logo-copy">
+        <span class="logo-name">F.A.S.T</span>
+        <span class="logo-subtitle">Estoque Inteligente</span>
+      </div>
     </div>
 
     <div class="nav-section">
@@ -421,7 +587,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
       </div>
       <div class="nav-item" data-page="pedidos" onclick="navTo('pedidos',this)">
         <svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h8" stroke-linecap="round"/></svg>
-        Pedidos
+        Produção
         <span class="nav-badge">12</span>
       </div>
       <div class="nav-item" data-page="estoque" onclick="navTo('estoque',this)">
@@ -430,12 +596,12 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
       </div>
       <div class="nav-item" data-page="rastreio" onclick="navTo('rastreio',this)">
         <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>
-        Rastreio
+        Lotes
         <span class="nav-badge">3</span>
       </div>
       <div class="nav-item" data-page="heatmap" onclick="navTo('heatmap',this)">
         <svg viewBox="0 0 16 16"><rect x="1" y="1" width="4" height="4" rx=".5"/><rect x="6" y="1" width="4" height="4" rx=".5"/><rect x="11" y="1" width="4" height="4" rx=".5"/><rect x="1" y="6" width="4" height="4" rx=".5"/><rect x="6" y="6" width="4" height="4" rx=".5"/><rect x="11" y="6" width="4" height="4" rx=".5"/><rect x="1" y="11" width="4" height="4" rx=".5"/><rect x="6" y="11" width="4" height="4" rx=".5"/><rect x="11" y="11" width="4" height="4" rx=".5"/></svg>
-        Mapa de Estoque
+        Mapa FEFO
       </div>
     </div>
 
@@ -445,16 +611,24 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
         <svg viewBox="0 0 16 16"><path d="M2 12V5l6-3 6 3v7"/><path d="M6 16v-5h4v5"/></svg>
         Fornecedores
       </div>
-      <div class="nav-item" onclick="showToast('Relatórios em breve...')">
+      <div class="nav-item" data-page="perdas" onclick="navTo('perdas',this)">
         <svg viewBox="0 0 16 16"><path d="M3 2h10l1 4H2z"/><path d="M2 6v8h12V6"/></svg>
-        Relatórios
+        Perdas
       </div>
     </div>
 
     <div class="sidebar-footer">
-      <div class="nav-item" onclick="showToast('Configurações de conta')">
-        <svg viewBox="0 0 16 16"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5"/></svg>
-        Minha Conta
+      <div class="side-help" onclick="showToast('Central de ajuda em breve')">
+        <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M6.5 6a1.6 1.6 0 113 1c-.8.5-1.5 1-1.5 2" stroke-linecap="round"/><path d="M8 12h.01" stroke-linecap="round"/></svg>
+        <span>Centro de Ajuda</span>
+      </div>
+      <div class="side-user" onclick="showToast('Perfil do usuário')">
+        <div class="side-user-avatar">AM</div>
+        <div class="side-user-copy">
+          <strong>Ana Martins</strong>
+          <span>Administrador</span>
+        </div>
+        <svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
     </div>
   </nav>
@@ -464,50 +638,84 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 
     <!-- HEADER -->
     <header class="header">
-      <button class="hamburger" onclick="toggleSidebar()">
+      <button class="hamburger" onclick="toggleSidebar()" aria-label="Abrir menu">
         <svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12" stroke-linecap="round"/></svg>
       </button>
-      <div>
+      <div class="header-left">
         <div class="header-title" id="header-title">Dashboard</div>
         <div class="header-subtitle" id="header-sub">Sexta-feira, 10 abr 2026</div>
       </div>
+      <div class="sync-badge">
+        <div class="sync-dot pulse"></div>
+        <span>Sincronizado há 2 min</span>
+      </div>
+      <div class="header-search">
+        <svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg>
+        <input id="global-search" placeholder="Buscar insumos, lotes, receitas..." oninput="globalSearch(this.value)" onfocus="openCommandPalette(this.value)">
+        <button type="button" onclick="openCommandPalette(document.getElementById('global-search').value)">⌘ K</button>
+      </div>
       <div class="header-right">
-        <div class="sync-badge">
-          <div class="sync-dot pulse"></div>
-          <span>sincronizado</span>
-        </div>
-        <div class="avatar" onclick="showToast('Perfil do usuário')">MR</div>
+        <button class="header-icon" onclick="showToast('3 notificações operacionais')" aria-label="Notificações">
+          <svg viewBox="0 0 16 16"><path d="M4 6a4 4 0 018 0c0 4 1.5 4.5 1.5 4.5h-11S4 10 4 6"/><path d="M6.5 13a1.8 1.8 0 003 0" stroke-linecap="round"/></svg>
+          <span>3</span>
+        </button>
+        <button class="header-icon" onclick="showToast('Configurações em breve')" aria-label="Configurações">
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M2.4 4.2l1.7 1M11.9 10.8l1.7 1M1.5 8h2M12.5 8h2M2.4 11.8l1.7-1M11.9 5.2l1.7-1" stroke-linecap="round"/></svg>
+        </button>
+        <button class="btn-scan header-primary" onclick="openQR()">
+          <svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke-linecap="round"/></svg>
+          Nova entrada
+          <svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       </div>
     </header>
 
     <!-- ── PAGE: DASHBOARD ── -->
     <div class="page active" id="page-dashboard">
-      <div class="search-bar">
+      <div class="search-bar dashboard-mobile-search">
         <div class="search-icon"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg></div>
-        <input class="search-input" placeholder="Buscar pedido, SKU ou destinatário..." oninput="filterCards(this.value)">
+        <input class="search-input" placeholder="Buscar insumo, lote ou receita..." oninput="filterCards(this.value)">
         <button class="btn-scan" onclick="openQR()">
           <svg viewBox="0 0 16 16"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/><rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h3M12 10h3M10 12v3"/></svg>
-          Escanear
+          Bipar lote
         </button>
       </div>
 
-      <div class="content">
+      <div class="content dashboard-content">
         <div class="metrics-row" id="dash-metrics"></div>
 
-        <div>
-          <div class="section-header">
-            <div class="section-title">Entregas ativas</div>
-            <div class="section-action" onclick="navToStr('pedidos')">ver todas →</div>
-          </div>
-          <div class="cargo-list" id="cargo-list"></div>
-        </div>
+        <div class="dashboard-grid">
+          <section class="dashboard-panel dashboard-panel-wide">
+            <div class="section-header">
+              <div class="section-title">Produção de hoje</div>
+              <div class="section-action" onclick="navToStr('pedidos')">Ver todos</div>
+            </div>
+            <div class="recent-orders" id="cargo-list"></div>
+          </section>
 
-        <div>
-          <div class="section-header">
-            <div class="section-title">Estoque crítico</div>
-            <div class="section-action" onclick="navToStr('estoque')">gerenciar →</div>
-          </div>
-          <div class="stock-table" id="stock-table-critical"></div>
+          <section class="dashboard-panel">
+            <div class="section-header">
+              <div class="section-title">Produção em andamento</div>
+              <div class="section-action" onclick="navToStr('rastreio')">Ver mapa</div>
+            </div>
+            <div id="dashboard-tracking"></div>
+          </section>
+
+          <section class="dashboard-panel dashboard-panel-wide">
+            <div class="section-header">
+              <div class="section-title">Lotes FEFO</div>
+              <div class="section-action" onclick="navToStr('heatmap')">Ver mapa FEFO</div>
+            </div>
+            <div class="stock-table stock-table-dashboard" id="stock-table-critical"></div>
+          </section>
+
+          <section class="dashboard-panel">
+            <div class="section-header">
+              <div class="section-title">Alertas e sugestões IA</div>
+              <div class="section-action" onclick="navToStr('perdas')">Ver todos</div>
+            </div>
+            <div class="alerts-list" id="dashboard-alerts"></div>
+          </section>
         </div>
         <div style="height:80px"></div>
       </div>
@@ -517,10 +725,10 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
     <div class="page" id="page-pedidos">
       <div class="search-bar">
         <div class="search-icon"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg></div>
-        <input class="search-input" placeholder="Buscar por ID, cliente ou status...">
+        <input class="search-input" placeholder="Buscar ordem, receita ou status...">
         <button class="btn-scan" onclick="openQR()">
           <svg viewBox="0 0 16 16"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/><rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h3M12 10h3M10 12v3"/></svg>
-          Novo pedido
+          Nova entrada
         </button>
       </div>
       <div class="content">
@@ -536,13 +744,13 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
         <input class="search-input" id="estoque-search" placeholder="Buscar produto ou SKU..." oninput="renderStockFull(this.value)">
         <button class="btn-scan" onclick="openQR()">
           <svg viewBox="0 0 16 16"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/><rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h3M12 10h3M10 12v3"/></svg>
-          Entrada
+          Entrada de insumo
         </button>
       </div>
       <div class="content">
         <div class="metrics-row" id="estoque-metrics"></div>
         <div>
-          <div class="section-header"><div class="section-title">Todos os itens</div></div>
+          <div class="section-header"><div class="section-title">Insumos, lotes e produtos acabados</div></div>
           <div class="stock-table" id="stock-table-full"></div>
         </div>
         <div style="height:80px"></div>
@@ -552,9 +760,9 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
     <!-- ── PAGE: RASTREIO ── -->
     <div class="page" id="page-rastreio">
       <div class="content">
-        <div class="section-header"><div class="section-title">Pedidos em monitoramento</div></div>
+        <div class="section-header"><div class="section-title">Ordens em monitoramento</div></div>
         <div class="track-list" id="track-list">
-          <div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum pedido em monitoramento</div>
+          <div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhuma ordem em monitoramento</div>
         </div>
         <div style="height:80px"></div>
       </div>
@@ -563,9 +771,28 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
     <!-- ── PAGE: FORNECEDORES ── -->
     <div class="page" id="page-fornecedores">
       <div class="content">
-        <div class="section-header"><div class="section-title">Parceiros cadastrados</div><div class="section-action" onclick="showToast('Adicionar fornecedor')">+ Novo →</div></div>
+        <div class="section-header"><div class="section-title">Fornecedores homologados</div><div class="section-action" onclick="openSupplierForm()">+ Novo →</div></div>
         <div class="supplier-grid" id="supplier-grid">
           <div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted);grid-column:1/-1">Nenhum fornecedor cadastrado</div>
+        </div>
+        <div style="height:80px"></div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: PERDAS ── -->
+    <div class="page" id="page-perdas">
+      <div class="content">
+        <div class="section-header"><div class="section-title">Perdas e descartes</div><div class="section-action" onclick="openLossForm()">+ Registrar perda →</div></div>
+        <div class="metrics-row" id="loss-metrics"></div>
+        <div class="dashboard-grid">
+          <section class="dashboard-panel dashboard-panel-wide">
+            <div class="section-header"><div class="section-title">Histórico de perdas</div></div>
+            <div class="stock-table" id="loss-table"></div>
+          </section>
+          <section class="dashboard-panel">
+            <div class="section-header"><div class="section-title">Ações recomendadas</div></div>
+            <div class="alerts-list" id="loss-suggestions"></div>
+          </section>
         </div>
         <div style="height:80px"></div>
       </div>
@@ -586,7 +813,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
             Localizar Produto
           </div>
           <div style="margin-left:auto;display:flex;align-items:center">
-            <button onclick="showToast('Scanner ativado')" style="background:var(--accent-dim);border:1px solid rgba(124,111,255,.3);border-radius:var(--r);padding:5px 12px;color:#c4beff;font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px">
+            <button onclick="openQR()" style="background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);border-radius:var(--r);padding:5px 12px;color:#1B4965;font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px">
               <svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 14 14"><rect x="1" y="1" width="4" height="4" rx="1"/><rect x="9" y="1" width="4" height="4" rx="1"/><rect x="1" y="9" width="4" height="4" rx="1"/><path d="M9 9h1.5v1.5H9zM10.5 10.5H13M10.5 9H13M9 10.5v2.5"/></svg>
               Scan QR
             </button>
@@ -630,17 +857,17 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
               <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-muted)">
                 <span>Vazio</span>
                 <div style="display:flex;gap:2px;align-items:center">
-                  <div style="width:14px;height:10px;border-radius:2px;background:rgba(27,73,45,.3)"></div>
-                  <div style="width:14px;height:10px;border-radius:2px;background:rgba(27,90,50,.55)"></div>
-                  <div style="width:14px;height:10px;border-radius:2px;background:rgba(25,100,52,.85)"></div>
+                  <div style="width:14px;height:10px;border-radius:2px;background:#F0F8FC"></div>
+                  <div style="width:14px;height:10px;border-radius:2px;background:#BEE9E8"></div>
+                  <div style="width:14px;height:10px;border-radius:2px;background:#62B6CB"></div>
                 </div>
                 <span>Cheio</span>
                 <div style="width:1px;height:10px;background:var(--border);margin:0 4px"></div>
-                <div style="width:14px;height:10px;border-radius:2px;background:rgba(100,65,0,.75)"></div><span>Baixo</span>
+                <div style="width:14px;height:10px;border-radius:2px;background:#FFF3CD"></div><span>Baixo</span>
                 <div style="width:1px;height:10px;background:var(--border);margin:0 4px"></div>
-                <div style="width:14px;height:10px;border-radius:2px;background:rgba(180,40,40,.55)"></div><span>Crítico</span>
+                <div style="width:14px;height:10px;border-radius:2px;background:#FEE2E2"></div><span>Crítico</span>
                 <div style="width:1px;height:10px;background:var(--border);margin:0 4px"></div>
-                <div style="width:14px;height:10px;border-radius:2px;background:rgba(99,88,255,.5);border:1px solid rgba(124,111,255,.6)"></div><span>Com produto</span>
+                <div style="width:14px;height:10px;border-radius:2px;background:rgba(95,168,211,.35);border:1px solid rgba(98,182,203,.65)"></div><span>Com produto</span>
               </div>
             </div>
             <div style="overflow-x:auto;overflow-y:auto;flex:1">
@@ -759,7 +986,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
         </div>
         <div class="tb-item" id="tb-pedidos" onclick="navTo('pedidos',null,'tb-pedidos')">
           <svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h8" stroke-linecap="round"/></svg>
-          Pedidos
+          Produção
         </div>
         <div class="tb-item" id="tb-estoque" onclick="navTo('estoque',null,'tb-estoque')">
           <svg viewBox="0 0 16 16"><path d="M2 2h12v4H2zM2 8h12v4H2z" stroke-linecap="round"/></svg>
@@ -767,7 +994,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
         </div>
         <div class="tb-item" id="tb-rastreio" onclick="navTo('rastreio',null,'tb-rastreio')">
           <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>
-          Rastreio
+          Lotes
         </div>
       </div>
     </div>
@@ -787,12 +1014,12 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
   <div class="drawer-header">
     <button class="close-btn" onclick="closeDrawer()"><svg viewBox="0 0 12 12"><path d="M1 1l10 10M11 1L1 11" stroke-linecap="round"/></svg></button>
     <div>
-      <div class="dh-id" id="d-id">PEDIDO · #BR-4821</div>
-      <div class="dh-title" id="d-title">Eletrônicos — Lote Maio</div>
+      <div class="dh-id" id="d-id">ORDEM/LOTE · #OP-2026-00128</div>
+      <div class="dh-title" id="d-title">Produção — Pão francês</div>
       <div class="dh-badges" id="d-badges">
-        <span class="badge b-transit">Em trânsito</span>
-        <span class="badge b-priority">Prioritário</span>
-        <span class="badge b-fragile">Frágil</span>
+        <span class="badge b-transit">Em produção</span>
+        <span class="badge b-priority">FEFO</span>
+        <span class="badge b-fragile">Validade curta</span>
       </div>
     </div>
   </div>
@@ -800,7 +1027,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
     <div class="dtab active" onclick="switchDTab('timeline',this)">Timeline</div>
     <div class="dtab" onclick="switchDTab('items',this)">Itens</div>
     <div class="dtab" onclick="switchDTab('info',this)">Detalhes</div>
-    <div class="dtab" onclick="switchDTab('carrier',this)">Transportadora</div>
+    <div class="dtab" onclick="switchDTab('carrier',this)">Responsável</div>
   </div>
   <div class="drawer-body" id="drawer-body">
     <div class="dtab-content active" id="dtab-timeline"><div id="d-timeline-content"></div></div>
@@ -809,7 +1036,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
     <div class="dtab-content" id="dtab-carrier"><div id="d-carrier-content"></div></div>
   </div>
   <div class="drawer-footer">
-    <button class="btn-primary" onclick="showToast('Exportando NF-e...')">
+    <button class="btn-primary" onclick="exportCurrentNfe()">
       <svg viewBox="0 0 14 14"><path d="M7 1v6M4 4l3-3 3 3M2 9v3h10V9" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Exportar NF-e
     </button>
@@ -831,31 +1058,34 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
     <div class="mstep active" id="ms1">
       <div class="modal-mheader">
         <button class="close-btn" onclick="closeQR()"><svg viewBox="0 0 12 12"><path d="M1 1l10 10M11 1L1 11" stroke-linecap="round"/></svg></button>
-        <div><div class="modal-title">Nova entrada</div><div class="modal-sub">Como deseja registrar o pedido?</div></div>
+        <div><div class="modal-title">Nova entrada</div><div class="modal-sub">Como deseja registrar insumo, lote ou produção?</div></div>
       </div>
       <div class="choice-grid">
         <div class="choice-card" onclick="msGo('ms2')">
           <div class="ci ci-qr"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/><rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h3M12 10h3M10 12v3"/></svg></div>
-          <div><div class="choice-label">Escanear QR Code</div><div class="choice-desc">Preenche os campos automaticamente via câmera</div></div>
+          <div><div class="choice-label">Bipar lote QR Code</div><div class="choice-desc">Preenche os campos automaticamente via câmera</div></div>
         </div>
         <div class="choice-card" onclick="msGo('ms4',false)">
           <div class="ci ci-manual"><svg viewBox="0 0 16 16"><path d="M3 3h10M3 7h10M3 11h6" stroke-linecap="round"/></svg></div>
-          <div><div class="choice-label">Entrada manual</div><div class="choice-desc">Preencha campo a campo manualmente</div></div>
+          <div><div class="choice-label">Entrada de insumo manual</div><div class="choice-desc">Preencha campo a campo manualmente</div></div>
         </div>
       </div>
-      <div class="choice-wide" onclick="showToast('Selecione um arquivo .csv ou .xlsx')">
+      <div class="choice-wide" onclick="openImportFile()">
         <div class="ci ci-manual"><svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke-linecap="round"/></svg></div>
-        <div><div class="choice-label">Importar planilha</div><div class="choice-desc">Arraste um .csv ou .xlsx com múltiplos pedidos</div></div>
+        <div><div class="choice-label">Importar planilha / NF-e</div><div class="choice-desc">Selecione um .csv ou XML de NF-e com múltiplos lotes</div></div>
       </div>
+      <input id="entry-import-file" type="file" accept=".csv,.xml,text/csv,text/xml,application/xml" style="display:none" onchange="handleEntryImport(event)">
     </div>
 
     <!-- STEP 2: SCANNER -->
     <div class="mstep" id="ms2">
       <div class="modal-mheader">
         <button class="close-btn" onclick="msGo('ms1')"><svg viewBox="0 0 12 12"><path d="M8 1L3 6l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        <div><div class="modal-title">Escanear QR Code</div><div class="modal-sub">Aponte para o código na NF ou etiqueta</div></div>
+        <div><div class="modal-title">Bipar lote QR Code</div><div class="modal-sub">Aponte para o código na NF ou etiqueta</div></div>
       </div>
-      <div class="camera-area">
+      <div class="camera-area" id="camera-area">
+        <video id="qr-video" class="camera-video" autoplay playsinline muted></video>
+        <div class="camera-error" id="camera-error">Não foi possível acessar a câmera. Verifique a permissão do navegador ou use a leitura simulada/manual.</div>
         <div class="cam-grid"></div>
         <div class="cam-top">
           <div class="cam-badge"><div class="cam-rec"></div>câmera ativa</div>
@@ -868,15 +1098,15 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
           <div class="vfc br"><svg viewBox="0 0 20 20"><path d="M2 11V2h9"/></svg></div>
           <div class="scan-line"></div>
           <svg class="qr-ghost" width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <rect x="5" y="5" width="28" height="28" rx="2" fill="none" stroke="rgba(232,224,255,0.35)" stroke-width="1.5"/>
-            <rect x="10" y="10" width="18" height="18" rx="1" fill="rgba(232,224,255,0.35)"/>
-            <rect x="67" y="5" width="28" height="28" rx="2" fill="none" stroke="rgba(232,224,255,0.35)" stroke-width="1.5"/>
-            <rect x="72" y="10" width="18" height="18" rx="1" fill="rgba(232,224,255,0.35)"/>
-            <rect x="5" y="67" width="28" height="28" rx="2" fill="none" stroke="rgba(232,224,255,0.35)" stroke-width="1.5"/>
-            <rect x="10" y="72" width="18" height="18" rx="1" fill="rgba(232,224,255,0.35)"/>
-            <rect x="40" y="10" width="6" height="6" fill="rgba(232,224,255,0.3)"/><rect x="48" y="10" width="6" height="6" fill="rgba(232,224,255,0.3)"/><rect x="56" y="10" width="6" height="6" fill="rgba(232,224,255,0.3)"/>
-            <rect x="40" y="40" width="6" height="6" fill="rgba(232,224,255,0.3)"/><rect x="48" y="48" width="6" height="6" fill="rgba(232,224,255,0.3)"/><rect x="56" y="40" width="6" height="6" fill="rgba(232,224,255,0.3)"/>
-            <rect x="40" y="56" width="6" height="6" fill="rgba(232,224,255,0.3)"/><rect x="48" y="64" width="6" height="6" fill="rgba(232,224,255,0.3)"/>
+            <rect x="5" y="5" width="28" height="28" rx="2" fill="none" stroke="rgba(98,182,203,0.28)" stroke-width="1.5"/>
+            <rect x="10" y="10" width="18" height="18" rx="1" fill="rgba(98,182,203,0.28)"/>
+            <rect x="67" y="5" width="28" height="28" rx="2" fill="none" stroke="rgba(98,182,203,0.28)" stroke-width="1.5"/>
+            <rect x="72" y="10" width="18" height="18" rx="1" fill="rgba(98,182,203,0.28)"/>
+            <rect x="5" y="67" width="28" height="28" rx="2" fill="none" stroke="rgba(98,182,203,0.28)" stroke-width="1.5"/>
+            <rect x="10" y="72" width="18" height="18" rx="1" fill="rgba(98,182,203,0.28)"/>
+            <rect x="40" y="10" width="6" height="6" fill="rgba(98,182,203,0.24)"/><rect x="48" y="10" width="6" height="6" fill="rgba(98,182,203,0.24)"/><rect x="56" y="10" width="6" height="6" fill="rgba(98,182,203,0.24)"/>
+            <rect x="40" y="40" width="6" height="6" fill="rgba(98,182,203,0.24)"/><rect x="48" y="48" width="6" height="6" fill="rgba(98,182,203,0.24)"/><rect x="56" y="40" width="6" height="6" fill="rgba(98,182,203,0.24)"/>
+            <rect x="40" y="56" width="6" height="6" fill="rgba(98,182,203,0.24)"/><rect x="48" y="64" width="6" height="6" fill="rgba(98,182,203,0.24)"/>
           </svg>
         </div>
         <div class="cam-hint">Posicione o código dentro da área</div>
@@ -901,7 +1131,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
         <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
         <div class="ls-list">
           <div class="ls-item" id="ls1"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>QR decodificado com sucesso</div>
-          <div class="ls-item" id="ls2"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>NF-e 000.433 localizada</div>
+          <div class="ls-item" id="ls2"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>NF-e e lote localizados</div>
           <div class="ls-item" id="ls3"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Dados do fornecedor carregados</div>
         </div>
       </div>
@@ -911,7 +1141,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
     <div class="mstep" id="ms4">
       <div class="modal-mheader">
         <button class="close-btn" onclick="msGo('ms1')"><svg viewBox="0 0 12 12"><path d="M8 1L3 6l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        <div><div class="modal-title" id="form-modal-title">Nova Entrada</div><div class="modal-sub" id="form-modal-sub">Confirme ou edite os dados preenchidos</div></div>
+        <div><div class="modal-title" id="form-modal-title">Nova Entrada de insumo</div><div class="modal-sub" id="form-modal-sub">Confirme ou edite os dados preenchidos</div></div>
       </div>
       <div class="form-body">
         <div class="autofill-banner" id="af-banner">
@@ -920,7 +1150,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
         </div>
         <div class="fsection">
           <div class="fsection-label">Identificação</div>
-          <div class="frow"><div class="field"><label>Número do Pedido</label><input id="fi-id" value="BR-4899" class="af"></div></div>
+          <div class="frow"><div class="field"><label>Número do lote / OP</label><input id="fi-id" value="LT-0610-4899" class="af"></div></div>
           <div class="frow c2">
             <div class="field"><label>NF-e</label><input id="fi-nfe" value="000.433" class="af"></div>
             <div class="field"><label>Data de emissão</label><input id="fi-date" value="10/04/2026" class="af"></div>
@@ -937,18 +1167,16 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
         </div>
         <div class="fsection">
           <div class="fsection-label">Itens do lote</div>
-          <div class="added-item"><div class="ai-dot"></div><div class="ai-label">Notebook Dell XPS 13 · SKU-00841</div><div class="ai-qty">× 2</div></div>
-          <div class="added-item"><div class="ai-dot"></div><div class="ai-label">Carregador 65W USB-C · SKU-00142</div><div class="ai-qty">× 2</div></div>
-          <div class="added-item"><div class="ai-dot"></div><div class="ai-label">Mouse Logitech MX3 · SKU-00295</div><div class="ai-qty">× 1</div></div>
-          <div class="add-row" onclick="showToast('Adicionar item manualmente')"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke-linecap="round"/></svg>Adicionar item manualmente</div>
+          <div id="entry-items-list"></div>
+          <div class="add-row" onclick="addEntryItemManual()"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke-linecap="round"/></svg>Adicionar item manualmente</div>
         </div>
         <div class="fsection">
           <div class="fsection-label">Logística</div>
           <div class="frow c2">
-            <div class="field"><label>Peso total (kg)</label><input value="14,2" class="af"></div>
-            <div class="field"><label>Volumes</label><input value="3" class="af"></div>
+            <div class="field"><label>Peso/volume total</label><input value="14,2" class="af"></div>
+            <div class="field"><label>Qtd. recebida</label><input value="3" class="af"></div>
           </div>
-          <div class="frow"><div class="field"><label>Transportadora</label><select><option>Correios SEDEX</option><option>Jadlog</option><option>Loggi</option></select></div></div>
+          <div class="frow"><div class="field"><label>Responsável</label><select><option>Equipe Estoque</option><option>Fornecedor entrega</option><option>Compras</option></select></div></div>
           <div class="frow"><div class="field"><label>Observações</label><input placeholder="Instruções especiais..."></div></div>
         </div>
         <div style="height:8px"></div>
@@ -966,9 +1194,9 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
     <div class="mstep" id="ms5">
       <div class="success-wrap">
         <div class="success-ring"><svg viewBox="0 0 26 26"><path d="M4 13l6 6L22 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="success-title">Entrada registrada!</div>
-        <div class="success-sub">Os itens foram adicionados ao estoque e o pedido está disponível no sistema.</div>
-        <div class="success-id" id="success-id-val">#BR-4899</div>
+        <div class="success-title">Entrada de insumo registrada!</div>
+        <div class="success-sub">Os lotes foram adicionados ao estoque e já entram na regra FEFO.</div>
+        <div class="success-id" id="success-id-val">#LT-0610-4899</div>
         <div class="success-btns">
           <button class="btn-secondary" onclick="closeQR()">Fechar</button>
           <button class="btn-primary" onclick="closeQR();navToStr('estoque')">
@@ -985,7 +1213,30 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 <script>
 // ── DATABASE CENTRAL ──
 const db = {
-  products: []
+  products: [
+    {id:'FAR-25KG', name:'Farinha de Trigo 25kg', cat:'Matéria-prima', type:'Insumo', qty:18, min:10, unit:'sacos', price:92.50, lote:'LT-FAR-0626-A', validade:'2026-07-12', fornecedor:'Moinho Paulista', location:'R1-N1-P02', dailyUse:5},
+    {id:'FER-BIO-500', name:'Fermento biológico fresco 500g', cat:'Matéria-prima', type:'Insumo refrigerado', qty:9, min:12, unit:'un', price:11.90, lote:'LT-FER-0626-C', validade:'2026-06-14', fornecedor:'Fermentos Brasil', location:'Câmara fria A', dailyUse:3},
+    {id:'OVO-BD-30', name:'Ovos brancos bandeja 30un', cat:'Perecível', type:'Insumo', qty:7, min:8, unit:'bandejas', price:24.80, lote:'LT-OVO-0610-B', validade:'2026-06-13', fornecedor:'Granja Boa Vista', location:'Câmara fria B', dailyUse:2},
+    {id:'LEI-UHT-1L', name:'Leite integral UHT 1L', cat:'Perecível', type:'Insumo', qty:22, min:16, unit:'litros', price:5.40, lote:'LT-LEI-0608-D', validade:'2026-06-18', fornecedor:'Laticínios Serra', location:'R2-N1-P04', dailyUse:6},
+    {id:'MARG-15KG', name:'Margarina culinária 15kg', cat:'Matéria-prima', type:'Insumo', qty:3, min:4, unit:'baldes', price:138.00, lote:'LT-MAR-0601-A', validade:'2026-06-22', fornecedor:'Laticínios Serra', location:'R2-N2-P01', dailyUse:1},
+    {id:'ACU-5KG', name:'Açúcar cristal 5kg', cat:'Matéria-prima', type:'Insumo', qty:14, min:10, unit:'pacotes', price:19.70, lote:'LT-ACU-0528-A', validade:'2026-09-30', fornecedor:'Distribuidora Doce Minas', location:'R1-N2-P07', dailyUse:2},
+    {id:'EMB-PF-1000', name:'Embalagem pão francês 1000un', cat:'Embalagem', type:'Embalagem', qty:6, min:5, unit:'fardos', price:42.00, lote:'LT-EMB-0605-A', validade:'2027-01-30', fornecedor:'PackFood', location:'R3-N1-P03', dailyUse:1},
+    {id:'PAO-FRANCES', name:'Pão francês', cat:'Produto acabado', type:'Venda balcão', qty:420, min:180, unit:'un', price:0.85, lote:'PRD-PF-0610-M', validade:'2026-06-11', fornecedor:'Produção própria', location:'Balcão 1', dailyUse:0}
+  ],
+  suppliers: [
+    {id:'SUP-MOINHO', name:'Moinho Paulista', cat:'Farinhas', lead:'2 dias', reliability:98, last:'08/06/2026'},
+    {id:'SUP-FERMENTO', name:'Fermentos Brasil', cat:'Fermentos', lead:'1 dia', reliability:94, last:'09/06/2026'},
+    {id:'SUP-GRANJA', name:'Granja Boa Vista', cat:'Ovos', lead:'1 dia', reliability:91, last:'10/06/2026'},
+    {id:'SUP-PACK', name:'PackFood', cat:'Embalagens', lead:'3 dias', reliability:96, last:'05/06/2026'}
+  ],
+  recipes: [
+    {id:'REC-PF', name:'Pão francês', yield:100, unit:'un', ingredients:[['FAR-25KG',0.2],['FER-BIO-500',0.3],['EMB-PF-1000',0.001]], lossAvg:3.2},
+    {id:'REC-PD', name:'Pão doce', yield:60, unit:'un', ingredients:[['FAR-25KG',0.12],['OVO-BD-30',0.08],['LEI-UHT-1L',0.04]], lossAvg:5.1}
+  ],
+  losses: [
+    {reason:'Sobra de balcão', item:'Pão francês', qty:38, cost:32.30},
+    {reason:'Vencimento próximo', item:'Fermento biológico', qty:2, cost:23.80}
+  ]
 };
 
 // ── CATALOG ──
@@ -997,7 +1248,45 @@ function syncCatalog() {
   db.products.forEach(p => IV_CATALOG.push({id:p.id, name:p.name, cat:p.cat}));
 }
 
-const cargos = [];
+const cargos = [
+  {
+    id:'OP-2026-00128', title:'Produção: Pão francês — fornada manhã', status:'transit', statusLabel:'Em produção',
+    origin:'Masseira', dest:'Forno 2', carrier:'Equipe Panificação', eta:'Hoje · 10:30', steps:[2,3], badges:['b-transit'],
+    remetente:{empresa:'Padaria Três Irmãos', cnpj:'12.345.678/0001-90', tel:'(11) 4002-7788'},
+    destinatario:{nome:'Balcão e encomendas', endereco:'Área de expedição e loja', cnpj:'—', tel:'—'},
+    nfe:'OP-00128', peso:'65', volumes:620, seguro:'Custo estimado R$ 326,40', frete:'—', rastreio:'LOTE-PF-0610-M', modalidade:'Produção interna', prazo:'Hoje 10:30', prazoRev:null, ocorrencia:null,
+    itens:[{name:'Farinha de Trigo 25kg', sku:'FAR-25KG', qty:3},{name:'Fermento biológico fresco 500g', sku:'FER-BIO-500', qty:4},{name:'Embalagem pão francês 1000un', sku:'EMB-PF-1000', qty:1}],
+    timeline:[{cls:'done',ev:'Ingredientes separados',detail:'FEFO aplicado: farinha LT-FAR-0626-A',time:'06:20'},{cls:'done',ev:'Massa em batimento',detail:'Masseira 01 liberada',time:'06:45'},{cls:'active',ev:'Fermentação controlada',detail:'Temperatura 27°C · umidade OK',time:'Atualizado há 2 min'},{cls:'pending',ev:'Forno e balcão',detail:'Previsão de saída da fornada',time:'10:30'}]
+  },
+  {
+    id:'OP-2026-00127', title:'Produção: Pão doce — vitrine tarde', status:'pending', statusLabel:'Aguardando insumo',
+    origin:'Pré-pesagem', dest:'Confeitaria', carrier:'Equipe Confeitaria', eta:'Hoje · 14:00', steps:[1,2], badges:['b-pending'],
+    remetente:{empresa:'Padaria Três Irmãos', cnpj:'12.345.678/0001-90', tel:'(11) 4002-7788'}, destinatario:{nome:'Vitrine confeitaria', endereco:'Loja principal', cnpj:'—', tel:'—'},
+    nfe:'OP-00127', peso:'22', volumes:180, seguro:'Custo estimado R$ 214,10', frete:'—', rastreio:'LOTE-PD-0610-T', modalidade:'Produção interna', prazo:'Hoje 14:00', prazoRev:null, ocorrencia:'Ovos abaixo do mínimo — validar compra',
+    itens:[{name:'Ovos brancos bandeja 30un', sku:'OVO-BD-30', qty:2},{name:'Açúcar cristal 5kg', sku:'ACU-5KG', qty:1},{name:'Leite integral UHT 1L', sku:'LEI-UHT-1L', qty:4}], timeline:[{cls:'done',ev:'Receita planejada',detail:'Rendimento previsto 180 un.',time:'08:10'},{cls:'active',ev:'Aguardando confirmação',detail:'Ovos vencem em 3 dias; priorizar uso',time:'agora'},{cls:'pending',ev:'Produção',detail:'Início após liberação do líder',time:'13:15'}]
+  },
+  {
+    id:'OP-2026-00126', title:'Produção: Bolo simples — encomenda local', status:'delivered', statusLabel:'Finalizado',
+    origin:'Confeitaria', dest:'Retirada balcão', carrier:'Equipe Confeitaria', eta:'Hoje · 09:20', steps:[4,4], badges:['b-delivered'],
+    remetente:{empresa:'Padaria Três Irmãos', cnpj:'12.345.678/0001-90', tel:'(11) 4002-7788'}, destinatario:{nome:'Cliente balcão', endereco:'Retirada na loja', cnpj:'—', tel:'—'},
+    nfe:'OP-00126', peso:'4,5', volumes:6, seguro:'Custo estimado R$ 72,80', frete:'—', rastreio:'LOTE-BOLO-0610-M', modalidade:'Encomenda', prazo:'Hoje 09:20', prazoRev:null, ocorrencia:null,
+    itens:[{name:'Farinha de Trigo 25kg', sku:'FAR-25KG', qty:1},{name:'Ovos brancos bandeja 30un', sku:'OVO-BD-30', qty:1},{name:'Margarina culinária 15kg', sku:'MARG-15KG', qty:1}], timeline:[{cls:'done',ev:'Separação',detail:'Ingredientes conferidos',time:'07:00'},{cls:'done',ev:'Assado',detail:'Forno 1 finalizado',time:'08:40'},{cls:'done',ev:'Finalizado',detail:'Disponível para retirada',time:'09:20'}]
+  },
+  {
+    id:'OP-2026-00125', title:'Produção: Salgados assados — almoço', status:'transit', statusLabel:'Em produção',
+    origin:'Câmara fria', dest:'Forno 1', carrier:'Equipe Salgados', eta:'Hoje · 11:45', steps:[2,3], badges:['b-transit'],
+    remetente:{empresa:'Padaria Três Irmãos', cnpj:'12.345.678/0001-90', tel:'(11) 4002-7788'}, destinatario:{nome:'Vitrine salgados', endereco:'Loja principal', cnpj:'—', tel:'—'},
+    nfe:'OP-00125', peso:'18', volumes:220, seguro:'Custo estimado R$ 185,30', frete:'—', rastreio:'LOTE-SALG-0610-A', modalidade:'Produção interna', prazo:'Hoje 11:45', prazoRev:null, ocorrencia:null,
+    itens:[{name:'Margarina culinária 15kg', sku:'MARG-15KG', qty:1},{name:'Leite integral UHT 1L', sku:'LEI-UHT-1L', qty:3}], timeline:[{cls:'done',ev:'Recheio liberado',detail:'Câmara fria B',time:'08:00'},{cls:'active',ev:'Modelagem',detail:'Bancada 03',time:'agora'},{cls:'pending',ev:'Forno',detail:'Entrada de insumo programada',time:'11:00'}]
+  },
+  {
+    id:'OP-2026-00124', title:'Compra: reposição de ovos e fermento', status:'pending', statusLabel:'Compra sugerida',
+    origin:'Compras', dest:'Fornecedor', carrier:'Granja Boa Vista / Fermentos Brasil', eta:'Aprovar hoje', steps:[0,2], badges:['b-pending'],
+    remetente:{empresa:'Padaria Três Irmãos', cnpj:'12.345.678/0001-90', tel:'(11) 4002-7788'}, destinatario:{nome:'Fornecedores homologados', endereco:'Compra recomendada', cnpj:'—', tel:'—'},
+    nfe:'PC-00124', peso:'—', volumes:1, seguro:'Sugestão IA R$ 268,40', frete:'—', rastreio:'COMPRA-0610', modalidade:'Compra recomendada', prazo:'Aprovar hoje', prazoRev:null, ocorrencia:'Evita ruptura para produção de amanhã',
+    itens:[{name:'Ovos brancos bandeja 30un', sku:'OVO-BD-30', qty:8},{name:'Fermento biológico fresco 500g', sku:'FER-BIO-500', qty:12}], timeline:[{cls:'active',ev:'Sugestão gerada',detail:'Baseada no consumo médio e validade',time:'agora'},{cls:'pending',ev:'Aprovação',detail:'Gerente precisa confirmar compra',time:'hoje'}]
+  }
+];
 
 const stepLabels = ['Coleta','Triagem','Rota','Entrega'];
 
@@ -1009,6 +1298,17 @@ function buildTimeline(done, active) {
     const inner = (i < done) ? `<div class="tl-inner"></div>` : (i === done ? `<div class="tl-inner"></div>` : '');
     return `<div class="${cls}"><div class="tl-dot">${inner}</div><div class="tl-label">${label}</div></div>`;
   }).join('');
+}
+
+function getCargoStatusMeta(c) {
+  const badgeCls = c.badges?.[0] || 'b-transit';
+  const iconState = c.status === 'pending' ? 'pending' : (c.status === 'delivered' ? 'delivered' : 'transit');
+  const icon = c.status === 'pending'
+    ? `<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2" stroke-linecap="round"/></svg>`
+    : (c.status === 'delivered'
+      ? `<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M5 8l2 2 4-5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+      : `<svg viewBox="0 0 16 16"><path d="M2 4h8v7H2z"/><path d="M10 7h2.5l1.5 2v2h-4z"/><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/></svg>`);
+  return {badgeCls, iconState, icon};
 }
 
 function buildCargoCard(c) {
@@ -1023,21 +1323,46 @@ function buildCargoCard(c) {
       <div class="route"><span class="route-origin">${c.origin}</span><span class="route-arrow">→</span><span class="route-dest">${c.dest}</span></div>
       <div class="timeline-mini">${buildTimeline(c.steps[0], c.steps[1])}</div>
       <div class="cargo-footer">
-        <span class="cargo-meta">Transportadora: ${c.carrier}</span>
-        <span class="cargo-eta" style="${etaColor}">ETA ${c.eta}</span>
+        <span class="cargo-meta">Responsável: ${c.carrier}</span>
+        <span class="cargo-eta" style="${etaColor}">Prev. ${c.eta}</span>
       </div>
+    </div>`;
+}
+
+function buildRecentOrderRow(c) {
+  const meta = getCargoStatusMeta(c);
+  const recipe = (c.title || '').replace(/^(Produção|Compra):\s*/,'');
+  return `
+    <div class="recent-order" onclick="openDrawer('${c.id}')">
+      <div class="recent-ico ${meta.iconState}">${meta.icon}</div>
+      <div>
+        <div class="recent-id">${c.id}</div>
+        <div class="recent-client">${recipe}</div>
+      </div>
+      <div class="recent-loc"><div class="recent-label">Etapa</div><div class="recent-value">${c.origin}</div></div>
+      <div class="recent-arrow">→</div>
+      <div class="recent-loc"><div class="recent-label">Destino</div><div class="recent-value">${c.dest}</div></div>
+      <div class="recent-forecast"><div class="recent-label">Previsão</div><div class="recent-value">${c.eta}</div></div>
+      <div class="recent-status"><span class="badge ${meta.badgeCls}">${c.statusLabel}</span></div>
     </div>`;
 }
 
 function renderCards(list, containerId) {
   const el = document.getElementById(containerId);
-  if (el) el.innerHTML = list.map(buildCargoCard).join('');
+  if (!el) return;
+  if (!list.length) {
+    el.innerHTML = '<div style="padding:24px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhuma ordem encontrada</div>';
+    return;
+  }
+  el.innerHTML = containerId === 'cargo-list'
+    ? list.slice(0,5).map(buildRecentOrderRow).join('')
+    : list.map(buildCargoCard).join('');
 }
 
-renderCards(cargos.slice(0, 3), 'cargo-list');
+renderCards(cargos.slice(0, 5), 'cargo-list');
 renderCards(cargos, 'cargo-list-all');
 
-// ── SEARCH FILTER — Pedidos ──
+// ── SEARCH FILTER — Produção ──
 function filterCards(q) {
   const term = q.toLowerCase();
   const filtered = cargos.filter(c =>
@@ -1048,30 +1373,53 @@ function filterCards(q) {
     (c.remetente && c.remetente.empresa.toLowerCase().includes(term)) ||
     (c.destinatario && c.destinatario.nome.toLowerCase().includes(term))
   );
-  renderCards(filtered.slice(0, 3), 'cargo-list');
+  renderCards(filtered.slice(0, 5), 'cargo-list');
   renderCards(filtered, 'cargo-list-all');
 }
 
-// ── STOCK STATUS ──
+// ── STOCK STATUS / FEFO ──
+function daysToExpire(p) {
+  if (!p.validade) return null;
+  const today = new Date('2026-06-10T00:00:00');
+  const exp = new Date(p.validade + 'T00:00:00');
+  return Math.ceil((exp - today) / 86400000);
+}
+
+function expiryStatus(p) {
+  const d = daysToExpire(p);
+  if (d === null) return {label:'Sem validade', bg:'var(--surface3)', color:'var(--text-muted)', cls:''};
+  if (d < 0) return {label:'Vencido', bg:'var(--danger-bg)', color:'var(--danger)', cls:'stock-low'};
+  if (d === 0) return {label:'Vence hoje', bg:'var(--danger-bg)', color:'var(--danger)', cls:'stock-low'};
+  if (d <= 3) return {label:`Vence em ${d}d`, bg:'var(--warning-bg)', color:'var(--warning)', cls:'stock-low'};
+  if (d <= 7) return {label:`${d}d validade`, bg:'var(--info-bg)', color:'var(--info)', cls:''};
+  return {label:'Validade OK', bg:'var(--success-bg)', color:'var(--success)', cls:'stock-ok'};
+}
+
 function stockStatus(p) {
   const pct = p.qty / p.min;
   if (p.qty === 0) return {label:'Zerado', bg:'var(--danger-bg)', color:'var(--danger)', cls:'stock-low'};
   if (pct < 0.3)  return {label:'Crítico', bg:'var(--danger-bg)', color:'var(--danger)', cls:'stock-low'};
-  if (pct < 0.8)  return {label:'Baixo',   bg:'var(--warning-bg)', color:'var(--warning)', cls:'stock-low'};
-  return {label:'OK', bg:'var(--success-bg)', color:'var(--success)', cls:'stock-ok'};
+  if (pct < 0.8)  return {label:'Atenção', bg:'var(--warning-bg)', color:'var(--warning)', cls:'stock-low'};
+  return {label:'Normal', bg:'var(--success-bg)', color:'var(--success)', cls:'stock-ok'};
+}
+
+function formatQty(p) {
+  return `${p.qty.toLocaleString('pt-BR')} ${p.unit || 'un'}`;
 }
 
 function stockRowHtml(p, editable) {
   const s = stockStatus(p);
+  const ex = expiryStatus(p);
   const qtyEl = editable
     ? `<div class="stock-num ${s.cls}" style="text-align:right;cursor:pointer;border-bottom:1px dashed var(--border2)"
-         title="Clique para editar" onclick="editQty('${p.id}',${p.qty})">${p.qty}</div>`
-    : `<div class="stock-num ${s.cls}">${p.qty}</div>`;
-  return `<div class="stock-row">
-    <div><div class="stock-name">${p.name}</div><div class="stock-sku">${p.id}</div></div>
+         title="Clique para editar" onclick="editQty('${p.id}',${p.qty})">${formatQty(p)}</div>`
+    : `<div class="stock-num ${s.cls}">${formatQty(p)}</div>`;
+  return `<div class="stock-row stock-row-rich">
+    <div><div class="stock-name">${p.name}</div><div class="stock-sku">${p.id} · ${p.lote || 'sem lote'}</div></div>
+    <div class="stock-cat">${p.cat}</div>
     ${qtyEl}
-    <div class="stock-num">${p.min}</div>
-    <div style="text-align:right"><span class="pill" style="background:${s.bg};color:${s.color}">${s.label}</span></div>
+    <div class="stock-num">${p.min.toLocaleString('pt-BR')} ${p.unit || 'un'}</div>
+    <div style="text-align:right;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap"><span class="pill" style="background:${s.bg};color:${s.color}">${s.label}</span><span class="pill" style="background:${ex.bg};color:${ex.color}">${ex.label}</span></div>
   </div>`;
 }
 
@@ -1081,11 +1429,11 @@ function renderStockFull(q) {
   if (!el) return;
   const term = (q||'').toLowerCase();
   const list = db.products.filter(p =>
-    !term || p.name.toLowerCase().includes(term) || p.id.toLowerCase().includes(term) || p.cat.toLowerCase().includes(term)
+    !term || p.name.toLowerCase().includes(term) || p.id.toLowerCase().includes(term) || p.cat.toLowerCase().includes(term) || (p.lote||'').toLowerCase().includes(term) || (p.fornecedor||'').toLowerCase().includes(term)
   );
-  if (!list.length) { el.innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum produto encontrado</div>'; return; }
+  if (!list.length) { el.innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum insumo ou lote encontrado</div>'; return; }
   el.innerHTML =
-    `<div class="stock-row hdr"><div>Produto / SKU</div><div style="text-align:right">Qtd</div><div style="text-align:right">Mín</div><div style="text-align:right">Status</div></div>` +
+    `<div class="stock-row hdr stock-row-rich"><div>Produto / Lote</div><div>Categoria</div><div style="text-align:right">Disponível</div><div style="text-align:right">Mínimo</div><div style="text-align:right">Status / Validade</div></div>` +
     list.map(p => stockRowHtml(p, true)).join('');
 }
 
@@ -1093,27 +1441,59 @@ function renderStockFull(q) {
 function renderCriticalStock() {
   const el = document.getElementById('stock-table-critical');
   if (!el) return;
-  const critical = db.products.filter(p => p.qty / p.min < 0.8).slice(0, 5);
-  if (!critical.length) { el.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--success)">✓ Todos os itens acima do mínimo</div>'; return; }
+  const list = [...db.products]
+    .sort((a,b) => (daysToExpire(a) ?? 999) - (daysToExpire(b) ?? 999) || (a.qty/a.min) - (b.qty/b.min))
+    .slice(0, 5);
+  if (!list.length) { el.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--success)">✓ Lotes e validade sob controle</div>'; return; }
   el.innerHTML =
-    `<div class="stock-row hdr"><div>Produto / SKU</div><div style="text-align:right">Qtd</div><div style="text-align:right">Mín</div><div style="text-align:right">Status</div></div>` +
-    critical.map(p => stockRowHtml(p, false)).join('');
+    `<div class="stock-row hdr stock-row-rich"><div>Produto / Lote FEFO</div><div>Fornecedor</div><div style="text-align:right">Disponível</div><div style="text-align:right">Validade</div><div style="text-align:right">Status</div></div>` +
+    list.map(p => {
+      const st = stockStatus(p);
+      const ex = expiryStatus(p);
+      return `<div class="stock-row stock-row-rich">
+        <div><div class="stock-name">${p.name}</div><div class="stock-sku">${p.id} · ${p.lote || 'sem lote'}</div></div>
+        <div class="stock-cat">${p.fornecedor || '—'}</div>
+        <div class="stock-num ${st.cls}">${formatQty(p)}</div>
+        <div class="stock-num ${ex.cls}">${p.validade ? p.validade.split('-').reverse().join('/') : '—'}</div>
+        <div style="text-align:right"><span class="pill" style="background:${ex.bg};color:${ex.color}">${ex.label}</span></div>
+      </div>`;
+    }).join('');
 }
 
 // ── RENDER DASHBOARD METRICS ──
+function metricSpark(points) {
+  return `<svg class="metric-spark" viewBox="0 0 110 42" aria-hidden="true"><path d="${points}"/></svg>`;
+}
+
 function renderDashMetrics() {
   const el = document.getElementById('dash-metrics');
   if (!el) return;
-  const transit   = cargos.filter(c => c.status === 'transit').length;
-  const delivered = cargos.filter(c => c.status === 'delivered').length;
-  const totalQty  = db.products.reduce((s,p) => s+p.qty, 0);
-  const belowMin  = db.products.filter(p => p.qty < p.min).length;
-  const alertas   = db.products.filter(p => p.qty / p.min < 0.3).length;
+  const critical = db.products.filter(p => p.qty < p.min).length;
+  const expiring = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 7; }).length;
+  const inProduction = cargos.filter(c => c.status === 'transit').length;
+  const pending = cargos.filter(c => c.status === 'pending').length;
+  const lossRisk = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 3; }).reduce((sum,p) => sum + (p.qty * (p.price || 0)), 0);
   el.innerHTML = `
-    <div class="metric-card"><div class="metric-label">Em trânsito</div><div class="metric-value">${transit}</div><div class="metric-delta" style="color:var(--success)">${cargos.filter(c=>c.status==='pending').length} aguardando</div></div>
-    <div class="metric-card"><div class="metric-label">Entregues</div><div class="metric-value">${delivered}</div><div class="metric-delta" style="color:var(--info)">de ${cargos.length} pedidos</div></div>
-    <div class="metric-card"><div class="metric-label">Estoque total</div><div class="metric-value">${totalQty.toLocaleString('pt-BR')}</div><div class="metric-delta" style="color:${belowMin?'var(--warning)':'var(--success)'}">${belowMin} abaixo do mín</div></div>
-    <div class="metric-card"><div class="metric-label">Alertas</div><div class="metric-value" style="color:${alertas?'var(--danger)':'var(--success)'}">${alertas}</div><div class="metric-delta" style="color:${alertas?'var(--danger)':'var(--text-muted)'}">${alertas?'requer ação':'tudo normal'}</div></div>
+    <div class="metric-card">
+      <div class="metric-icon"><svg viewBox="0 0 16 16"><path d="M2 4h12M3 4v8h10V4"/><path d="M5 7h6M5 10h4" stroke-linecap="round"/></svg></div>
+      <div class="metric-label">Insumos críticos</div><div class="metric-value">${critical}</div>
+      <div class="metric-delta" style="color:${critical?'var(--warning)':'var(--success)'}">${critical?'reposição recomendada':'estoque saudável'}</div>${metricSpark('M4 34 C16 30 18 14 30 23 S47 37 55 21 S71 11 80 18 S94 31 106 12')}
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2" stroke-linecap="round"/></svg></div>
+      <div class="metric-label">Vencem em 7 dias</div><div class="metric-value">${expiring}</div>
+      <div class="metric-delta" style="color:${expiring?'var(--danger)':'var(--success)'}">FEFO obrigatório</div>${metricSpark('M4 35 C14 31 15 10 28 19 S42 34 54 24 S74 16 86 22 S96 30 106 8')}
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon"><svg viewBox="0 0 16 16"><path d="M3 11c2-4 3-7 5-7s3 3 5 7"/><path d="M2 12h12" stroke-linecap="round"/></svg></div>
+      <div class="metric-label">Produção em andamento</div><div class="metric-value">${inProduction}</div>
+      <div class="metric-delta" style="color:var(--info)">${pending} aguardando liberação</div>${metricSpark('M4 35 C18 32 25 26 34 10 S51 11 58 24 S73 31 82 19 S95 30 106 34')}
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div>
+      <div class="metric-label">Risco de perda</div><div class="metric-value">R$ ${Math.round(lossRisk)}</div>
+      <div class="metric-delta" style="color:${lossRisk?'var(--danger)':'var(--success)'}">validade ≤ 3 dias</div>${metricSpark('M4 32 C16 31 21 20 30 28 S45 37 53 27 S68 23 76 32 S91 37 106 9')}
+    </div>
   `;
 }
 
@@ -1123,12 +1503,13 @@ function renderEstoqueMetrics() {
   if (!el) return;
   const total  = db.products.reduce((s,p) => s+p.qty, 0);
   const baixo  = db.products.filter(p => p.qty < p.min).length;
+  const vencendo = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 7; }).length;
   const valor  = db.products.reduce((s,p) => s + p.qty * (p.price||0), 0);
   el.innerHTML = `
-    <div class="metric-card"><div class="metric-label">Total de SKUs</div><div class="metric-value">${db.products.length}</div><div class="metric-delta" style="color:var(--info)">produtos ativos</div></div>
-    <div class="metric-card"><div class="metric-label">Unidades totais</div><div class="metric-value">${total.toLocaleString('pt-BR')}</div><div class="metric-delta" style="color:var(--success)">em estoque</div></div>
-    <div class="metric-card"><div class="metric-label">Abaixo do mínimo</div><div class="metric-value" style="color:${baixo?'var(--warning)':'var(--success)'}">${baixo}</div><div class="metric-delta" style="color:${baixo?'var(--warning)':'var(--text-muted)'}">${baixo?'repor hoje':'OK'}</div></div>
-    <div class="metric-card"><div class="metric-label">Valor estimado</div><div class="metric-value">${valor>=1000?(valor/1000).toFixed(0)+'k':valor.toFixed(0)}</div><div class="metric-delta" style="color:var(--success)">R$ ${valor.toLocaleString('pt-BR',{minimumFractionDigits:0})}</div></div>
+    <div class="metric-card"><div class="metric-label">SKUs e lotes</div><div class="metric-value">${db.products.length}</div><div class="metric-delta" style="color:var(--info)">ativos no estoque</div></div>
+    <div class="metric-card"><div class="metric-label">Volume total</div><div class="metric-value">${total.toLocaleString('pt-BR')}</div><div class="metric-delta" style="color:var(--success)">unidades/sacos/litros</div></div>
+    <div class="metric-card"><div class="metric-label">Abaixo do mínimo</div><div class="metric-value" style="color:${baixo?'var(--warning)':'var(--success)'}">${baixo}</div><div class="metric-delta" style="color:${baixo?'var(--warning)':'var(--text-muted)'}">${baixo?'comprar hoje':'OK'}</div></div>
+    <div class="metric-card"><div class="metric-label">Vencimento próximo</div><div class="metric-value" style="color:${vencendo?'var(--danger)':'var(--success)'}">${vencendo}</div><div class="metric-delta" style="color:var(--text-muted)">R$ ${valor.toLocaleString('pt-BR',{minimumFractionDigits:0})} em estoque</div></div>
   `;
 }
 
@@ -1152,9 +1533,13 @@ function renderAll() {
   renderCriticalStock();
   renderEstoqueMetrics();
   renderStockFull(document.getElementById('estoque-search')?.value || '');
-  renderCards(cargos.slice(0,3), 'cargo-list');
+  renderCards(cargos.slice(0,5), 'cargo-list');
   renderCards(cargos, 'cargo-list-all');
   renderTrackList();
+  renderDashboardTracking();
+  renderDashboardAlerts();
+  renderSuppliers();
+  renderLosses();
   syncCatalog();
   // atualiza badge da sidebar
   const badge = document.querySelector('.nav-item[data-page="pedidos"] .nav-badge');
@@ -1167,7 +1552,7 @@ function renderTrackList() {
   if (!el) return;
   const active = cargos.filter(c => c.status !== 'delivered');
   if (!active.length) {
-    el.innerHTML = '<div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum pedido em monitoramento</div>';
+    el.innerHTML = '<div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhuma ordem em monitoramento</div>';
     return;
   }
   const pctMap = { 'pending': 25, 'transit': 65, 'delivered': 100 };
@@ -1183,17 +1568,210 @@ function renderTrackList() {
   }).join('');
 }
 
+
+function renderDashboardTracking() {
+  const el = document.getElementById('dashboard-tracking');
+  if (!el) return;
+  const c = cargos.find(x => x.status === 'transit') || cargos.find(x => x.status !== 'delivered') || cargos[0];
+  if (!c) { el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:12px">Nenhuma produção ativa</div>'; return; }
+  const meta = getCargoStatusMeta(c);
+  const current = (c.timeline || []).find(t => t.cls === 'active') || (c.timeline || [])[0] || {};
+  const steps = [
+    ['Separação','FEFO', 'done',`<svg viewBox="0 0 16 16"><path d="M4 8l2.5 2.5L12 5" stroke-linecap="round" stroke-linejoin="round"/></svg>`],
+    ['Preparo','Massa', 'done',`<svg viewBox="0 0 16 16"><path d="M4 8l2.5 2.5L12 5" stroke-linecap="round" stroke-linejoin="round"/></svg>`],
+    ['Produção','Agora', 'active',`<svg viewBox="0 0 16 16"><path d="M3 11c2-4 3-7 5-7s3 3 5 7"/><path d="M2 12h12" stroke-linecap="round"/></svg>`],
+    ['Balcão',c.eta,'pending',`<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/></svg>`]
+  ];
+  el.innerHTML = `
+    <div class="tracking-card" onclick="openDrawer('${c.id}')">
+      <div class="tracking-title"><div><strong>${c.id}</strong><div class="tracking-route">${c.origin} → ${c.dest}</div></div><span class="badge ${meta.badgeCls}">${c.statusLabel}</span></div>
+      <div class="tracking-eta">Saída prevista <strong>${c.eta}</strong></div>
+      <div class="tracking-steps">${steps.map(([label,time,cls,icon]) => `<div class="tracking-step ${cls}"><div class="tracking-dot">${icon}</div><span>${label}</span><small>${time}</small></div>`).join('')}</div>
+      <div class="location-card">
+        <svg viewBox="0 0 16 16"><path d="M8 14s5-4.2 5-8A5 5 0 003 6c0 3.8 5 8 5 8z"/><circle cx="8" cy="6" r="1.6"/></svg>
+        <div><strong>Etapa atual</strong><div>${current.detail || 'Produção sem atualização'}</div></div><small>${current.time || 'agora'}</small>
+      </div>
+    </div>`;
+}
+
+function renderDashboardAlerts() {
+  const el = document.getElementById('dashboard-alerts');
+  if (!el) return;
+  const critical = db.products.filter(p => p.qty < p.min).length;
+  const expiring = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 3; }).length;
+  const pending = cargos.filter(c => c.status === 'pending').length;
+  el.innerHTML = `
+    <div class="alert-item danger" onclick="navToStr('perdas')"><div class="alert-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${expiring} lotes vencem em até 3 dias</strong><span>Use FEFO ou registre descarte.</span></div><div class="alert-chevron">›</div></div>
+    <div class="alert-item warning" onclick="navToStr('estoque')"><div class="alert-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${critical} insumos abaixo do mínimo</strong><span>Compra sugerida antes da próxima fornada.</span></div><div class="alert-chevron">›</div></div>
+    <div class="alert-item info" onclick="navToStr('pedidos')"><div class="alert-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 5h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${pending} ordens aguardam liberação</strong><span>Valide insumos e aprove compras recomendadas.</span></div><div class="alert-chevron">›</div></div>
+  `;
+}
+
+function commandActions() {
+  return [
+    {type:'Ações rápidas', label:'Registrar entrada de insumo', desc:'Abrir QR/entrada com fornecedor e lote', icon:'+', action:() => openQR()},
+    {type:'Ações rápidas', label:'Registrar produção de pão francês', desc:'Baixar ingredientes e gerar lote acabado', icon:'P', action:() => navToStr('pedidos')},
+    {type:'Ações rápidas', label:'Registrar perda/descarte', desc:'Sobra, vencimento, quebra ou erro de produção', icon:'!', action:() => openLossForm()},
+    {type:'Ações rápidas', label:'Importar NF-e ou CSV', desc:'Entrada em lote de insumos e validade', icon:'NF', action:() => { openQR(); setTimeout(openImportFile, 80); }},
+    {type:'Ações rápidas', label:'Ver lotes vencendo', desc:'Ordenar estoque por validade FEFO', icon:'V', action:() => navToStr('estoque')},
+    {type:'Ações rápidas', label:'Gerar sugestão de compra', desc:'Reposição de ovos, fermento e margarina', icon:'IA', action:() => showToast('Sugestão IA: comprar ovos, fermento e margarina hoje')},
+    {type:'Produção', label:'Abrir produção', desc:'Ordens, fornadas e encomendas do dia', icon:'↗', action:() => navToStr('pedidos')},
+    {type:'Estoque', label:'Abrir estoque FEFO', desc:'Insumos, lotes, validade e mínimos', icon:'▦', action:() => navToStr('estoque')},
+    ...cargos.map(c => ({type:'Ordens de produção', label:c.id, desc:`${c.title} · ${c.origin} → ${c.dest}`, icon:'↗', action:() => openDrawer(c.id)})),
+    ...db.products.map(p => ({type:'Insumos e lotes', label:p.id, desc:`${p.name} · ${formatQty(p)} · ${p.lote || 'sem lote'} · validade ${p.validade || '—'}`, icon:'▦', action:() => { navToStr('estoque'); const input=document.getElementById('estoque-search'); if(input){input.value=p.id; renderStockFull(p.id);} }})),
+    ...db.suppliers.map(f => ({type:'Fornecedores', label:f.name, desc:`${f.cat} · lead time ${f.lead} · confiabilidade ${f.reliability}%`, icon:'F', action:() => navToStr('fornecedores')}))
+  ];
+}
+
+function renderCommandResults(q) {
+  const el = document.getElementById('cmd-results');
+  if (!el) return;
+  const term = (q || '').toLowerCase();
+  const list = commandActions().filter(item => !term || item.label.toLowerCase().includes(term) || item.desc.toLowerCase().includes(term)).slice(0, 12);
+  if (!list.length) { el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:12px">Nenhum resultado encontrado</div>'; return; }
+  let currentGroup = '';
+  el.innerHTML = list.map((item, idx) => {
+    const group = item.type !== currentGroup ? (currentGroup = item.type, `<div class="cmd-group-label">${item.type}</div>`) : '';
+    return `${group}<div class="cmd-item" onclick="runCommandAction(${idx})"><div class="cmd-item-ico">${item.icon.length > 1 ? item.icon : `<span>${item.icon}</span>`}</div><div class="cmd-item-copy"><strong>${item.label}</strong><span>${item.desc}</span></div><div class="cmd-kbd">Enter</div></div>`;
+  }).join('');
+  window.__cmdList = list;
+}
+
+function openCommandPalette(q='') {
+  const overlay = document.getElementById('cmd-overlay');
+  const input = document.getElementById('cmd-input');
+  if (!overlay || !input) return;
+  overlay.classList.add('open');
+  input.value = q || '';
+  renderCommandResults(input.value);
+  setTimeout(() => input.focus(), 30);
+}
+
+function closeCommandPalette() {
+  const overlay = document.getElementById('cmd-overlay');
+  if (overlay) overlay.classList.remove('open');
+}
+
+function handleCommandOverlayClick(e) {
+  if (e.target === document.getElementById('cmd-overlay')) closeCommandPalette();
+}
+
+function runCommandAction(idx) {
+  const item = (window.__cmdList || [])[idx];
+  if (!item) return;
+  closeCommandPalette();
+  item.action();
+}
+
+function handleCommandKey(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    runCommandAction(0);
+  }
+}
+
+function globalSearch(q) {
+  if (currentPage === 'dashboard' || currentPage === 'pedidos') filterCards(q);
+  if (currentPage === 'estoque') renderStockFull(q);
+  const overlay = document.getElementById('cmd-overlay');
+  if (overlay && overlay.classList.contains('open')) renderCommandResults(q);
+}
+
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    openCommandPalette(document.getElementById('global-search')?.value || '');
+  }
+  if (e.key === 'Escape') closeCommandPalette();
+});
+
+function renderSuppliers() {
+  const el = document.getElementById('supplier-grid');
+  if (!el) return;
+  el.innerHTML = db.suppliers.map(f => `
+    <div class="supplier-card">
+      <div class="supplier-head"><div class="supplier-logo">${f.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div><div><div class="supplier-name">${f.name}</div><div class="supplier-cat">${f.cat}</div></div></div>
+      <div class="supplier-meta"><span>Lead time</span><strong>${f.lead}</strong></div>
+      <div class="supplier-meta"><span>Confiabilidade</span><strong>${f.reliability}%</strong></div>
+      <div class="supplier-meta"><span>Última compra</span><strong>${f.last}</strong></div>
+    </div>`).join('');
+}
+
+function renderLosses() {
+  const metrics = document.getElementById('loss-metrics');
+  const table = document.getElementById('loss-table');
+  const suggestions = document.getElementById('loss-suggestions');
+  const totalQty = db.losses.reduce((s,l) => s + Number(l.qty || 0), 0);
+  const totalCost = db.losses.reduce((s,l) => s + Number(l.cost || 0), 0);
+  const expiryLosses = db.losses.filter(l => /venc|valid/i.test(l.reason || '')).length;
+  if (metrics) {
+    metrics.innerHTML = `
+      <div class="metric-card"><div class="metric-label">Registros de perda</div><div class="metric-value">${db.losses.length}</div><div class="metric-delta" style="color:var(--info)">histórico operacional</div></div>
+      <div class="metric-card"><div class="metric-label">Quantidade perdida</div><div class="metric-value">${totalQty}</div><div class="metric-delta" style="color:var(--warning)">unidades/volumes</div></div>
+      <div class="metric-card"><div class="metric-label">Custo estimado</div><div class="metric-value">R$ ${totalCost.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div><div class="metric-delta" style="color:var(--danger)">impacto financeiro</div></div>
+      <div class="metric-card"><div class="metric-label">Por validade</div><div class="metric-value">${expiryLosses}</div><div class="metric-delta" style="color:var(--danger)">corrigir FEFO</div></div>`;
+  }
+  if (table) {
+    table.innerHTML = `<div class="stock-row hdr stock-row-rich"><div>Item</div><div>Motivo</div><div style="text-align:right">Qtd.</div><div style="text-align:right">Custo</div><div style="text-align:right">Data</div></div>` +
+      db.losses.map(l => `<div class="stock-row stock-row-rich">
+        <div><div class="stock-name">${l.item}</div><div class="stock-sku">${l.lote || 'sem lote informado'}</div></div>
+        <div class="stock-cat">${l.reason}</div>
+        <div class="stock-num">${l.qty}</div>
+        <div class="stock-num">R$ ${Number(l.cost || 0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+        <div style="text-align:right"><span class="pill" style="background:var(--warning-bg);color:var(--warning)">${l.date || 'hoje'}</span></div>
+      </div>`).join('');
+  }
+  if (suggestions) {
+    suggestions.innerHTML = `
+      <div class="alert-item danger" onclick="navToStr('estoque')"><div class="alert-icon">FE</div><div class="alert-copy"><strong>Aplicar FEFO antes da produção</strong><span>Priorize lotes com validade menor que 3 dias.</span></div><div class="alert-chevron">›</div></div>
+      <div class="alert-item warning" onclick="openLossForm()"><div class="alert-icon">+</div><div class="alert-copy"><strong>Registrar toda sobra de balcão</strong><span>Dados de perda alimentam compras e produção sugerida.</span></div><div class="alert-chevron">›</div></div>
+      <div class="alert-item info" onclick="openImportFile()"><div class="alert-icon">NF</div><div class="alert-copy"><strong>Importar XML/CSV de entrada</strong><span>Evita digitação e reduz erro em lote/validade.</span></div><div class="alert-chevron">›</div></div>`;
+  }
+}
+
+function openLossForm() {
+  const opts = db.products.map(p => `${p.id} — ${p.name}`).join('\n');
+  const sku = prompt(`SKU do item perdido:\n${opts}`, db.products[0]?.id || '');
+  if (!sku) return;
+  const p = db.products.find(x => x.id.toLowerCase() === sku.trim().toLowerCase());
+  if (!p) { showToast('⚠️ SKU não encontrado'); return; }
+  const qty = Number(prompt(`Quantidade perdida de ${p.name}:`, '1'));
+  if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return; }
+  const reason = prompt('Motivo da perda:', 'Sobra de balcão') || 'Perda operacional';
+  const loss = {reason, item:p.name, lote:p.lote, qty, cost:qty * (p.price || 0), date:new Date().toLocaleDateString('pt-BR')};
+  db.losses.unshift(loss);
+  p.qty = Math.max(0, p.qty - qty);
+  renderAll();
+  navToStr('perdas');
+  showToast(`✅ Perda registrada: ${qty} ${p.unit || 'un'} de ${p.name}`);
+}
+
+function openSupplierForm() {
+  const name = prompt('Nome do fornecedor:', 'Novo Fornecedor');
+  if (!name) return;
+  const cat = prompt('Categoria fornecida:', 'Insumos') || 'Insumos';
+  const lead = prompt('Lead time:', '2 dias') || '2 dias';
+  const reliability = Number(prompt('Confiabilidade (%):', '95')) || 95;
+  db.suppliers.unshift({
+    id:'SUP-' + name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toUpperCase().slice(0,18),
+    name, cat, lead, reliability:Math.max(0, Math.min(100, reliability)), last:new Date().toLocaleDateString('pt-BR')
+  });
+  renderSuppliers();
+  showToast(`✅ Fornecedor "${name}" cadastrado`);
+}
+
 // ── INIT ──
 renderAll();
 
 // ── NAV ──
 const pageTitles = {
-  dashboard: ['Dashboard', ''],
-  pedidos: ['Pedidos', ''],
-  estoque: ['Estoque', ''],
-  rastreio: ['Rastreio', ''],
-  fornecedores: ['Fornecedores', ''],
-  heatmap: ['Mapa de Estoque', 'Visualização de ocupação por posição'],
+  dashboard: ['Dashboard', 'Estoque, validade e produção da padaria'],
+  pedidos: ['Produção', 'Ordens, fornadas e encomendas'],
+  estoque: ['Estoque', 'Insumos, lotes e validade'],
+  rastreio: ['Lotes', 'Rastreabilidade, validade e produção em andamento'],
+  fornecedores: ['Fornecedores', 'Compras, lead time e confiabilidade'],
+  perdas: ['Perdas', 'Descartes, sobras e custo de desperdício'],
+  heatmap: ['Mapa FEFO', 'Ocupação e validade por posição'],
 };
 
 // ── HEATMAP MODULE ──
@@ -1260,13 +1838,13 @@ function ivSeed(rua) {
 }
 
 function ivCellColor(val) {
-  if (val === 0) return {bg:'rgba(20,20,20,.9)',tc:'#333'};
+  if (val === 0) return {bg:'#F0F8FC',tc:'var(--text-muted)'};
   const pct = val / IV_MAX_CAP;
-  if (pct < 0.12) return {bg:'rgba(180,40,40,.55)',tc:'#f88'};
-  if (pct < 0.25) return {bg:'rgba(100,65,0,.75)',tc:'#c87c00'};
-  if (pct < 0.5)  return {bg:'rgba(27,73,45,.5)',tc:'#4aad6a'};
-  if (pct < 0.75) return {bg:'rgba(27,90,50,.7)',tc:'#5dc97a'};
-  return {bg:'rgba(25,100,52,.85)',tc:'#7fdda0'};
+  if (pct < 0.12) return {bg:'#FEE2E2',tc:'var(--danger)'};
+  if (pct < 0.25) return {bg:'#FFF3CD',tc:'var(--warning)'};
+  if (pct < 0.5)  return {bg:'#DFF4F3',tc:'var(--success)'};
+  if (pct < 0.75) return {bg:'#BEE9E8',tc:'var(--success)'};
+  return {bg:'#62B6CB',tc:'#FFFFFF'};
 }
 
 function ivBuildMetrics(data) {
@@ -1283,7 +1861,7 @@ function ivBuildMetrics(data) {
   el.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Unidades totais</div><div style="font-size:18px;font-weight:600;color:var(--text-primary);font-family:var(--mono);letter-spacing:-1px">${total.toLocaleString('pt-BR')}</div><div style="font-size:10px;margin-top:2px;color:#5dc97a">Rua ${ivCurrentRua}</div></div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Posições ocupadas</div><div style="font-size:18px;font-weight:600;color:var(--text-primary);font-family:var(--mono);letter-spacing:-1px">${filled}</div><div style="font-size:10px;margin-top:2px;color:var(--text-muted)">de ${IV_LEVELS*IV_RACKS}</div></div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Produtos mapeados</div><div style="font-size:18px;font-weight:600;color:#c4beff;font-family:var(--mono);letter-spacing:-1px">${withProd}</div><div style="font-size:10px;margin-top:2px;color:#7c6fff">posições com produto</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Produtos mapeados</div><div style="font-size:18px;font-weight:600;color:#1B4965;font-family:var(--mono);letter-spacing:-1px">${withProd}</div><div style="font-size:10px;margin-top:2px;color:#5FA8D3">posições com produto</div></div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Crítico</div><div style="font-size:18px;font-weight:600;color:var(--danger);font-family:var(--mono);letter-spacing:-1px">${crit}</div><div style="font-size:10px;margin-top:2px;color:var(--danger)">requer reposição</div></div>
   `;
 }
@@ -1307,7 +1885,7 @@ function ivBuildHeatmap(data) {
       const pct = Math.round(val/IV_MAX_CAP*100);
       const cellId = `R${ivCurrentRua}-N${lv}-P${rk}`;
       const prod = positionProducts[cellId];
-      if (prod) { bg = 'rgba(99,88,255,.35)'; tc = '#c4beff'; }
+      if (prod) { bg = 'rgba(190,233,232,.85)'; tc = '#1B4965'; }
       const prodLabel = prod
         ? `<div style="font-size:8px;color:${tc};opacity:.85;margin-top:1px;max-width:56px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center">${prod.name.split(' ').slice(0,2).join(' ')}</div>`
         : '';
@@ -1316,13 +1894,13 @@ function ivBuildHeatmap(data) {
         : `${cellId}: ${val.toLocaleString('pt-BR')} un · ${pct}%`;
       html += `
         <div onclick="ivOpenCellModal('${cellId}',${val},${lv},${rk})" title="${titleStr}"
-          style="width:62px;height:52px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .12s;border:1px solid ${prod?'rgba(124,111,255,.5)':'transparent'};background:${bg};position:relative"
+          style="width:62px;height:52px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .12s;border:1px solid ${prod?'rgba(98,182,203,.55)':'transparent'};background:${bg};position:relative"
           onmouseover="this.style.borderColor='rgba(255,255,255,.25)';this.style.transform='scale(1.06)';this.style.zIndex='2'"
-          onmouseout="this.style.borderColor='${prod?'rgba(124,111,255,.5)':'transparent'}';this.style.transform='scale(1)';this.style.zIndex='0'">
+          onmouseout="this.style.borderColor='${prod?'rgba(98,182,203,.55)':'transparent'}';this.style.transform='scale(1)';this.style.zIndex='0'">
           <div style="font-size:10px;font-family:var(--mono);font-weight:500;color:${tc};line-height:1">${val===0?'—':val.toLocaleString('pt-BR')}</div>
           ${val>0&&!prod?`<div style="font-size:8px;margin-top:1px;color:${tc};opacity:.7">${pct}%</div>`:''}
           ${prodLabel}
-          ${prod?`<div style="position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:#7c6fff"></div>`:''}
+          ${prod?`<div style="position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:#5FA8D3"></div>`:''}
         </div>`;
     }
   }
@@ -1460,7 +2038,7 @@ function ivRenderProductList(q) {
       onmouseover="this.style.background='var(--surface2)'" onmouseout="if(!this.classList.contains('active-prod'))this.style.background='transparent'">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
         <div style="font-size:12px;color:var(--text-primary);font-weight:${hasPos?'500':'400'}">${p.name}</div>
-        ${hasPos?`<span style="font-size:9px;padding:2px 6px;border-radius:3px;background:var(--accent-dim);color:#c4beff;font-family:var(--mono)">${count} pos.</span>`:''}
+        ${hasPos?`<span style="font-size:9px;padding:2px 6px;border-radius:3px;background:var(--accent-dim);color:#1B4965;font-family:var(--mono)">${count} pos.</span>`:''}
       </div>
       <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted)">${p.id} · ${p.cat}</div>
     </div>`;
@@ -1489,7 +2067,7 @@ function ivLocateProduct(skuId) {
   });
   const key = skuId.replace(/[^a-z0-9]/gi,'');
   const listEl = document.getElementById('proditem-' + key);
-  if (listEl) { listEl.classList.add('active-prod'); listEl.style.background = 'var(--accent-dim)'; listEl.style.border = '1px solid rgba(124,111,255,.3)'; }
+  if (listEl) { listEl.classList.add('active-prod'); listEl.style.background = 'var(--accent-dim)'; listEl.style.border = '1px solid rgba(98,182,203,.35)'; }
 
   // find all positions
   const positions = Object.entries(positionProducts).filter(([,v]) => v.id === skuId).map(([k]) => k);
@@ -1506,7 +2084,7 @@ function ivLocateProduct(skuId) {
   if (positions.length === 0) {
     posEl.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;font-size:12px;color:var(--text-muted)">
       Nenhuma posição mapeada para este produto.
-      <button onclick="ivSwitchTab('mapa')" style="display:inline;background:none;border:none;color:#c4beff;cursor:pointer;font-size:12px;font-family:var(--font);padding:0 4px">Ir ao mapa →</button>
+      <button onclick="ivSwitchTab('mapa')" style="display:inline;background:none;border:none;color:#1B4965;cursor:pointer;font-size:12px;font-family:var(--font);padding:0 4px">Ir ao mapa →</button>
     </div>`;
   } else {
     posEl.innerHTML = `<div style="font-size:10px;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">${positions.length} posição(ões) encontrada(s)</div>` +
@@ -1514,10 +2092,10 @@ function ivLocateProduct(skuId) {
         const [,ruaPart,nivelPart,predioPart] = pos.match(/R(\d+)-N(\d+)-P(\d+)/)||[];
         const val = ivMatrixData[nivelPart] ? (ivMatrixData[nivelPart][predioPart]||0) : 0;
         const pct = Math.round(val/IV_MAX_CAP*100);
-        return `<div onclick="ivGoToPos('${pos}')" style="background:var(--accent-dim);border:1px solid rgba(124,111,255,.3);border-radius:var(--r);padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s"
-          onmouseover="this.style.background='#2a2060'" onmouseout="this.style.background='var(--accent-dim)'">
+        return `<div onclick="ivGoToPos('${pos}')" style="background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);border-radius:var(--r);padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s"
+          onmouseover="this.style.background='#CAE9FF'" onmouseout="this.style.background='var(--accent-dim)'">
           <div>
-            <div style="font-size:13px;font-family:var(--mono);color:#c4beff;font-weight:500">${pos}</div>
+            <div style="font-size:13px;font-family:var(--mono);color:#1B4965;font-weight:500">${pos}</div>
             <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Rua ${ruaPart} · Nível ${nivelPart} · Prédio ${predioPart}</div>
           </div>
           <div style="text-align:right">
@@ -1537,13 +2115,13 @@ function ivLocateProduct(skuId) {
       Array.from({length:IV_RACKS},(_,rk) => {
         const cid = `R${r}-N${lv+1}-P${rk+1}`;
         const hasProd = ruaPositions.includes(cid);
-        return `<div title="${cid}" style="width:8px;height:8px;border-radius:1px;background:${hasProd?'#7c6fff':'var(--surface3)'}"></div>`;
+        return `<div title="${cid}" style="width:8px;height:8px;border-radius:1px;background:${hasProd?'#5FA8D3':'var(--surface3)'}"></div>`;
       }).join('')
     ).join('');
     mapHtml += `<div style="display:flex;align-items:center;gap:8px">
-      <div style="font-size:10px;font-family:var(--mono);color:${ruaPositions.length?'#c4beff':'var(--text-muted)'};width:18px;font-weight:${ruaPositions.length?'600':'400'}">R${r}</div>
+      <div style="font-size:10px;font-family:var(--mono);color:${ruaPositions.length?'#1B4965':'var(--text-muted)'};width:18px;font-weight:${ruaPositions.length?'600':'400'}">R${r}</div>
       <div style="display:flex;gap:2px;flex-wrap:wrap">${dots}</div>
-      ${ruaPositions.length?`<span style="font-size:10px;color:#c4beff;font-family:var(--mono)">${ruaPositions.length}×</span>`:''}
+      ${ruaPositions.length?`<span style="font-size:10px;color:#1B4965;font-family:var(--mono)">${ruaPositions.length}×</span>`:''}
     </div>`;
   }
   mapGrid.innerHTML = mapHtml;
@@ -1586,6 +2164,7 @@ function ivInit() {
 
 
 let currentPage = 'dashboard';
+let currentDrawerCargoId = null;
 
 function navTo(pageId, sidebarEl, tbId) {
   // pages
@@ -1613,7 +2192,9 @@ function navTo(pageId, sidebarEl, tbId) {
 
   // re-renderiza dados ao entrar na página
   if (pageId === 'estoque') { renderEstoqueMetrics(); renderStockFull(document.getElementById('estoque-search')?.value||''); }
-  if (pageId === 'dashboard') { renderDashMetrics(); renderCriticalStock(); }
+  if (pageId === 'dashboard') { renderDashMetrics(); renderCriticalStock(); renderDashboardTracking(); renderDashboardAlerts(); }
+  if (pageId === 'fornecedores') { renderSuppliers(); }
+  if (pageId === 'perdas') { renderLosses(); }
 
   // init heatmap on first visit
   if (pageId === 'heatmap') {
@@ -1639,6 +2220,7 @@ function toggleSidebar() {
 function openDrawer(id) {
   const c = cargos.find(x => x.id === id);
   if (!c) return;
+  currentDrawerCargoId = id;
   const overlay = document.getElementById('drawer-overlay');
   const drawer  = document.getElementById('drawer');
   overlay.classList.add('open');
@@ -1652,7 +2234,7 @@ function openDrawer(id) {
   document.getElementById('dtab-timeline').classList.add('active');
 
   // header
-  document.getElementById('d-id').textContent    = 'PEDIDO · #' + c.id;
+  document.getElementById('d-id').textContent    = 'ORDEM/LOTE · #' + c.id;
   document.getElementById('d-title').textContent  = c.title;
   document.getElementById('d-badges').innerHTML   = c.badges.map(b => `<span class="badge ${b}">${c.statusLabel}</span>`).join('');
 
@@ -1665,11 +2247,11 @@ function openDrawer(id) {
   };
   document.getElementById('d-timeline-content').innerHTML = `
     <div class="dsection">
-      <div class="dsection-label">Rota</div>
+      <div class="dsection-label">Fluxo operacional</div>
       <div class="route-visual">
-        <div class="rv-city"><div class="rv-name">${c.origin}</div><div class="rv-sub">Origem</div></div>
+        <div class="rv-city"><div class="rv-name">${c.origin}</div><div class="rv-sub">Etapa inicial</div></div>
         <div class="rv-mid"><div class="rv-line"></div></div>
-        <div class="rv-city" style="text-align:right"><div class="rv-name">${c.dest}</div><div class="rv-sub">Destino</div></div>
+        <div class="rv-city" style="text-align:right"><div class="rv-name">${c.dest}</div><div class="rv-sub">Próxima etapa</div></div>
       </div>
     </div>
     <div class="dsection">
@@ -1699,10 +2281,10 @@ function openDrawer(id) {
       </div>
     </div>
     <div class="dsection">
-      <div class="dsection-label">Embalagem</div>
+      <div class="dsection-label">Rendimento / Custos</div>
       <div class="meta-grid">
-        <div class="meta-item"><div class="meta-key">Volumes</div><div class="meta-val mono">${c.volumes} caixa(s)</div></div>
-        <div class="meta-item"><div class="meta-key">Peso bruto</div><div class="meta-val mono">${c.peso} kg</div></div>
+        <div class="meta-item"><div class="meta-key">Qtd. recebida</div><div class="meta-val mono">${c.volumes} un/lote</div></div>
+        <div class="meta-item"><div class="meta-key">Peso/volume</div><div class="meta-val mono">${c.peso} kg</div></div>
         <div class="meta-item"><div class="meta-key">NF-e</div><div class="meta-val mono">${c.nfe}</div></div>
         <div class="meta-item"><div class="meta-key">Seguro</div><div class="meta-val mono">${c.seguro}</div></div>
       </div>
@@ -1713,7 +2295,7 @@ function openDrawer(id) {
   const rem  = c.remetente||{};
   document.getElementById('d-info-content').innerHTML = `
     <div class="dsection">
-      <div class="dsection-label">Remetente</div>
+      <div class="dsection-label">Unidade produtiva</div>
       <div class="meta-grid">
         <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Empresa</div><div class="meta-val">${rem.empresa||'—'}</div></div>
         <div class="meta-item"><div class="meta-key">CNPJ</div><div class="meta-val mono" style="font-size:11px">${rem.cnpj||'—'}</div></div>
@@ -1721,7 +2303,7 @@ function openDrawer(id) {
       </div>
     </div>
     <div class="dsection">
-      <div class="dsection-label">Destinatário</div>
+      <div class="dsection-label">Destino / consumo</div>
       <div class="meta-grid">
         <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Nome</div><div class="meta-val">${dest.nome||'—'}</div></div>
         <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Endereço</div><div class="meta-val">${dest.endereco||'—'}</div></div>
@@ -1733,7 +2315,7 @@ function openDrawer(id) {
       <div class="dsection-label">Fiscal</div>
       <div class="meta-grid">
         <div class="meta-item"><div class="meta-key">NF-e</div><div class="meta-val mono">${c.nfe}</div></div>
-        <div class="meta-item"><div class="meta-key">Transportadora</div><div class="meta-val mono">${c.carrier}</div></div>
+        <div class="meta-item"><div class="meta-key">Responsável</div><div class="meta-val mono">${c.carrier}</div></div>
       </div>
     </div>`;
 
@@ -1742,29 +2324,74 @@ function openDrawer(id) {
     ? `<div class="dsection">
         <div class="dsection-label">Ocorrência ativa</div>
         <div style="background:var(--danger-bg);border:1px solid rgba(248,113,113,.25);border-radius:var(--r);padding:12px 14px">
-          <div style="font-size:11px;color:var(--danger);font-weight:500;margin-bottom:4px">${c.ocorrencia.tipo}</div>
-          <div style="font-size:12px;color:var(--text-secondary)">${c.ocorrencia.desc}</div>
-          <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:6px">${c.ocorrencia.data}</div>
+          <div style="font-size:11px;color:var(--danger);font-weight:500;margin-bottom:4px">Atenção operacional</div>
+          <div style="font-size:12px;color:var(--text-secondary)">${typeof c.ocorrencia === 'string' ? c.ocorrencia : (c.ocorrencia.desc || 'Verificar ocorrência')}</div>
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:6px">${typeof c.ocorrencia === 'string' ? 'agora' : (c.ocorrencia.data || 'agora')}</div>
         </div>
       </div>` : '';
   document.getElementById('d-carrier-content').innerHTML = `
     <div class="dsection">
-      <div class="dsection-label">Transportadora</div>
+      <div class="dsection-label">Responsável</div>
       <div class="carrier-card">
         <div class="carrier-top">
           <div class="carrier-logo"><svg viewBox="0 0 16 16"><path d="M1 8h10M1 5h10M9 3l4 5-4 5"/></svg></div>
           <div><div class="carrier-name">${c.carrier}</div><div class="carrier-svc">${c.modalidade||''}</div></div>
         </div>
         <div class="carrier-fields">
-          <div><div class="cf-key">Código de rastreio</div><div class="cf-val">${c.rastreio||'—'}</div></div>
+          <div><div class="cf-key">Código do lote/OP</div><div class="cf-val">${c.rastreio||'—'}</div></div>
           <div><div class="cf-key">Prazo original</div><div class="cf-val">${c.prazo||c.eta}</div></div>
           ${c.prazoRev?`<div><div class="cf-key">Prazo revisado</div><div class="cf-val" style="color:var(--warning)">${c.prazoRev}</div></div>`:''}
-          <div><div class="cf-key">Frete</div><div class="cf-val">${c.frete||'—'}</div></div>
-          <div><div class="cf-key">Seguro</div><div class="cf-val">${c.seguro||'—'}</div></div>
+          <div><div class="cf-key">Movimento</div><div class="cf-val">${c.frete||'—'}</div></div>
+          <div><div class="cf-key">Custo/IA</div><div class="cf-val">${c.seguro||'—'}</div></div>
         </div>
       </div>
     </div>
     ${ocEl}`;
+}
+
+function exportCurrentNfe() {
+  const c = cargos.find(x => x.id === currentDrawerCargoId) || cargos[0];
+  if (!c) { showToast('Nenhuma NF-e/OP selecionada para exportar'); return; }
+  const items = (c.itens && c.itens.length ? c.itens : ['Sem itens detalhados']).map(item => {
+    if (typeof item === 'string') return `<li>${item}</li>`;
+    return `<li>${item.name || 'Item'} · <span class="mono">${item.sku || 'sem SKU'}</span> · qtd. ${item.qty || 1}</li>`;
+  }).join('');
+  const html = `<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>${c.nfe || c.id} · F.A.S.T</title>
+  <style>
+    body{font-family:Arial,sans-serif;color:#1B4965;margin:32px;line-height:1.45}h1{margin:0 0 4px}small{color:#456879}.card{border:1px solid #C8E4EF;border-radius:12px;padding:16px;margin:16px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mono{font-family:monospace;color:#14384F}ul{margin-top:8px}
+  </style>
+</head>
+<body>
+  <h1>Espelho de NF-e / Ordem de Produção</h1>
+  <small>Exportado pelo F.A.S.T em ${new Date().toLocaleString('pt-BR')}</small>
+  <div class="card grid">
+    <div><strong>ID</strong><br><span class="mono">${c.id}</span></div>
+    <div><strong>NF-e</strong><br><span class="mono">${c.nfe || '—'}</span></div>
+    <div><strong>Status</strong><br>${c.statusLabel || c.status}</div>
+    <div><strong>Previsão</strong><br>${c.eta || c.prazo || '—'}</div>
+  </div>
+  <div class="card grid">
+    <div><strong>Origem</strong><br>${c.origin || '—'}<br>${c.remetente?.empresa || ''}<br>${c.remetente?.cnpj || ''}</div>
+    <div><strong>Destino</strong><br>${c.dest || '—'}<br>${c.destinatario?.nome || ''}<br>${c.destinatario?.cnpj || ''}</div>
+  </div>
+  <div class="card"><strong>Itens</strong><ul>${items}</ul></div>
+  <div class="card"><strong>Responsável</strong><br>${c.carrier || '—'} · ${c.modalidade || '—'}</div>
+</body>
+</html>`;
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${(c.nfe || c.id).replace(/[^a-z0-9_-]+/gi,'-')}-fast.html`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast(`✅ NF-e/OP ${c.nfe || c.id} exportada`);
 }
 
 function closeDrawer() {
@@ -1784,9 +2411,107 @@ function switchDTab(id, el) {
 
 // ── QR MODAL ──
 let fromScan = true;
+let entryDraftItems = [
+  {id:'FAR-25KG', name:'Farinha de Trigo 25kg', qty:2, lote:'LT-FAR-0626-A', validade:'2026-07-12', unit:'sacos', price:92.50, cat:'Matéria-prima'},
+  {id:'FER-BIO-500', name:'Fermento biológico fresco 500g', qty:2, lote:'LT-FER-0626-C', validade:'2026-06-14', unit:'un', price:11.90, cat:'Matéria-prima'},
+  {id:'EMB-PF-1000', name:'Embalagem pão francês 1000un', qty:1, lote:'LT-EMB-0605-A', validade:'2027-01-30', unit:'fardos', price:42.00, cat:'Embalagem'}
+];
+
+function renderEntryItems() {
+  const el = document.getElementById('entry-items-list');
+  if (!el) return;
+  el.innerHTML = entryDraftItems.map((it, idx) => `
+    <div class="added-item">
+      <div class="ai-dot"></div>
+      <div class="ai-label">${it.name} · ${it.id} · ${it.lote || 'sem lote'}${it.validade ? ' · validade ' + it.validade.split('-').reverse().join('/') : ''}</div>
+      <div class="ai-qty">× ${it.qty}</div>
+      <button type="button" onclick="removeEntryItem(${idx})" style="border:none;background:transparent;color:var(--danger);cursor:pointer;font-size:16px;line-height:1">×</button>
+    </div>`).join('') || '<div style="padding:10px 0;font-size:12px;color:var(--text-muted)">Nenhum item adicionado ainda.</div>';
+}
+
+function removeEntryItem(idx) {
+  entryDraftItems.splice(idx, 1);
+  renderEntryItems();
+}
+
+function addEntryItemManual() {
+  const sku = prompt('SKU do insumo/lote:', 'FAR-25KG');
+  if (!sku) return;
+  const existing = db.products.find(p => p.id.toLowerCase() === sku.trim().toLowerCase());
+  const name = prompt('Nome do item:', existing?.name || 'Novo insumo') || existing?.name || sku;
+  const qty = Number(prompt('Quantidade recebida:', '1'));
+  if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return; }
+  const lote = prompt('Lote:', existing?.lote || ('LT-' + Date.now().toString().slice(-6))) || '';
+  const validade = prompt('Validade (AAAA-MM-DD):', existing?.validade || '2026-07-30') || '';
+  entryDraftItems.push({
+    id:sku.trim().toUpperCase(), name, qty, lote, validade,
+    unit:existing?.unit || 'un', price:existing?.price || 0, cat:existing?.cat || 'Insumo'
+  });
+  renderEntryItems();
+}
+
+function openImportFile() {
+  const input = document.getElementById('entry-import-file');
+  if (input) input.click();
+}
+
+function parseCsvRows(text) {
+  const lines = text.split(/\r?\n/).filter(Boolean);
+  if (!lines.length) return [];
+  const sep = lines[0].includes(';') ? ';' : ',';
+  const headers = lines.shift().split(sep).map(h => h.trim().toLowerCase());
+  return lines.map(line => {
+    const cols = line.split(sep).map(c => c.trim());
+    const row = {};
+    headers.forEach((h,i) => row[h] = cols[i] || '');
+    return {
+      id:(row.sku || row.id || row.codigo || row.código || '').toUpperCase(),
+      name:row.nome || row.produto || row.descricao || row['descrição'] || 'Item importado',
+      qty:Number((row.qtd || row.quantidade || row.qty || '1').replace(',','.')) || 1,
+      lote:row.lote || row.batch || '',
+      validade:row.validade || row.vencimento || row.expires || '',
+      unit:row.unidade || row.unit || 'un',
+      price:Number((row.preco || row.preço || row.valor || '0').replace(',','.')) || 0,
+      cat:row.categoria || row.cat || 'Insumo'
+    };
+  }).filter(r => r.id);
+}
+
+function parseNfeXml(text) {
+  const doc = new DOMParser().parseFromString(text, 'text/xml');
+  return [...doc.querySelectorAll('det')].map((det, idx) => {
+    const get = tag => det.querySelector(tag)?.textContent?.trim() || '';
+    const name = get('xProd') || `Item NF-e ${idx + 1}`;
+    return {
+      id:(get('cProd') || `NFE-${idx + 1}`).toUpperCase(),
+      name,
+      qty:Number((get('qCom') || '1').replace(',','.')) || 1,
+      lote:get('nLote') || ('NFE-' + Date.now().toString().slice(-6)),
+      validade:get('dVal') || '',
+      unit:get('uCom') || 'un',
+      price:Number((get('vUnCom') || get('vProd') || '0').replace(',','.')) || 0,
+      cat:'Importado NF-e'
+    };
+  });
+}
+
+async function handleEntryImport(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const text = await file.text();
+  const imported = file.name.toLowerCase().endsWith('.xml') ? parseNfeXml(text) : parseCsvRows(text);
+  if (!imported.length) { showToast('⚠️ Nenhum item válido encontrado no arquivo'); return; }
+  entryDraftItems = imported;
+  fromScan = false;
+  msGo('ms4', false);
+  renderEntryItems();
+  event.target.value = '';
+  showToast(`✅ ${imported.length} item(ns) importado(s)`);
+}
 
 function openQR() {
   fromScan = true;
+  renderEntryItems();
   msGoTo('ms1');
   const overlay = document.getElementById('modal-overlay');
   overlay.classList.add('open');
@@ -1794,6 +2519,7 @@ function openQR() {
 }
 
 function closeQR() {
+  stopCameraScanner();
   const overlay = document.getElementById('modal-overlay');
   overlay.classList.remove('visible');
   setTimeout(() => overlay.classList.remove('open'), 250);
@@ -1803,9 +2529,82 @@ function handleModalClick(e) {
   if (e.target === document.getElementById('modal-overlay')) closeQR();
 }
 
+let qrStream = null;
+let qrScanTimer = null;
+let qrDetector = null;
+let qrDetectorReady = false;
+
+async function startCameraScanner() {
+  const video = document.getElementById('qr-video');
+  const area = document.getElementById('camera-area');
+  const err = document.getElementById('camera-error');
+  if (!video || !area || qrStream) return;
+  area.classList.remove('camera-fallback');
+  if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    area.classList.add('camera-fallback');
+    if (err) err.textContent = 'Este navegador não liberou acesso à câmera. Use a leitura simulada/manual.';
+    showToast('Câmera indisponível neste navegador');
+    return;
+  }
+  try {
+    qrStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
+    video.srcObject = qrStream;
+    area.classList.add('camera-live');
+    await video.play();
+    showToast('📷 Câmera iniciada');
+    scanVideoFrame();
+  } catch (error) {
+    qrStream = null;
+    area.classList.add('camera-fallback');
+    if (err) err.textContent = 'Permissão de câmera negada ou dispositivo indisponível. Use a leitura simulada/manual.';
+    showToast('Não foi possível acessar a câmera');
+  }
+}
+
+function stopCameraScanner() {
+  clearTimeout(qrScanTimer);
+  qrScanTimer = null;
+  const video = document.getElementById('qr-video');
+  const area = document.getElementById('camera-area');
+  if (qrStream) {
+    qrStream.getTracks().forEach(track => track.stop());
+    qrStream = null;
+  }
+  if (video) video.srcObject = null;
+  if (area) area.classList.remove('camera-live', 'camera-fallback');
+}
+
+async function scanVideoFrame() {
+  if (!qrStream) return;
+  const video = document.getElementById('qr-video');
+  try {
+    if (typeof window !== 'undefined' && 'BarcodeDetector' in window) {
+      if (!qrDetectorReady) {
+        const supported = await window.BarcodeDetector.getSupportedFormats?.() || [];
+        const formats = supported.length ? supported.filter(f => ['qr_code','code_128','ean_13','ean_8'].includes(f)) : ['qr_code','code_128','ean_13','ean_8'];
+        qrDetector = new window.BarcodeDetector({formats: formats.length ? formats : ['qr_code']});
+        qrDetectorReady = true;
+      }
+      const codes = await qrDetector.detect(video);
+      if (codes.length && codes[0].rawValue) {
+        const code = codes[0].rawValue.trim();
+        stopCameraScanner();
+        processScannedCode(code);
+        msGoLoading();
+        return;
+      }
+    }
+  } catch (error) {
+    // Mantém o preview funcionando mesmo quando o navegador não suporta detecção nativa.
+  }
+  qrScanTimer = setTimeout(scanVideoFrame, 650);
+}
+
 function msGoTo(id) {
+  if (id !== 'ms2') stopCameraScanner();
   document.querySelectorAll('.mstep').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  if (id === 'ms2') startCameraScanner();
 }
 
 function msGo(id, scan) {
@@ -1813,39 +2612,57 @@ function msGo(id, scan) {
   if (id === 'ms4') {
     const banner = document.getElementById('af-banner');
     const inputs = document.querySelectorAll('#ms4 .af');
+    renderEntryItems();
     if (fromScan) {
       banner.style.display = 'flex';
       inputs.forEach(i => i.classList.add('af'));
-      document.getElementById('form-modal-title').textContent = 'Nova Entrada';
+      document.getElementById('form-modal-title').textContent = 'Nova entrada de insumo';
       document.getElementById('form-modal-sub').textContent = 'Confirme ou edite os dados preenchidos';
     } else {
       banner.style.display = 'none';
       inputs.forEach(i => { i.classList.remove('af'); i.value = ''; });
-      document.getElementById('form-modal-title').textContent = 'Entrada Manual';
-      document.getElementById('form-modal-sub').textContent = 'Preencha os dados do pedido';
+      document.getElementById('form-modal-title').textContent = 'Entrada manual de insumo';
+      document.getElementById('form-modal-sub').textContent = 'Preencha lote, validade e fornecedor';
     }
   }
   if (id === 'ms5') {
-    // Salva o novo pedido
-    const pedNum = 'BR-' + (4900 + cargos.length);
+    // Salva a nova entrada/lote
+    const pedNum = document.getElementById('fi-id')?.value || ('LT-' + (4900 + cargos.length));
     const empresa = document.getElementById('fi-emp')?.value || 'Fornecedor';
     const tipo = document.querySelector('#ms4 select')?.value || 'Compra de fornecedor';
+    entryDraftItems.forEach(item => {
+      const existing = db.products.find(p => p.id === item.id);
+      if (existing) {
+        existing.qty += Number(item.qty || 0);
+        existing.lote = item.lote || existing.lote;
+        existing.validade = item.validade || existing.validade;
+        existing.fornecedor = empresa;
+        if (item.price) existing.price = item.price;
+      } else {
+        db.products.push({
+          id:item.id, name:item.name, cat:item.cat || 'Insumo', type:'Insumo',
+          qty:Number(item.qty || 0), min:5, unit:item.unit || 'un', price:item.price || 0,
+          lote:item.lote || 'sem lote', validade:item.validade || '', fornecedor:empresa,
+          location:'A definir', dailyUse:0
+        });
+      }
+    });
     const newCargo = {
       id: pedNum,
       title: tipo + ' — ' + empresa,
       status: 'pending', statusLabel: 'Aguardando',
       origin: document.getElementById('fi-uf')?.value || 'SP',
-      dest: 'CD Principal',
-      carrier: document.querySelector('#ms4 select:last-of-type')?.value || 'Correios SEDEX',
+      dest: 'Estoque FEFO',
+      carrier: document.querySelector('#ms4 select:last-of-type')?.value || 'Equipe Estoque',
       eta: 'em breve',
       steps: [0, 3],
       badges: ['b-pending'],
       remetente: {empresa: empresa, cnpj: document.getElementById('fi-cnpj')?.value || '—', tel: '—'},
-      destinatario: {nome: 'CD Principal', endereco: '—', cnpj: '—', tel: '—'},
+      destinatario: {nome: 'Estoque FEFO', endereco: 'Área de armazenagem', cnpj: '—', tel: '—'},
       nfe: document.getElementById('fi-nfe')?.value || '—',
-      peso: '—', volumes: 1, seguro: '—', frete: '—',
+      peso: '—', volumes: entryDraftItems.reduce((s,i)=>s+Number(i.qty||0),0) || 1, seguro: '—', frete: '—',
       rastreio: '—', modalidade: '—', prazo: 'em breve', prazoRev: null, ocorrencia: null,
-      itens: [], timeline: [{cls:'done',ev:'Pedido criado',detail:'Via F.A.S.T',time:'agora'}],
+      itens: entryDraftItems.map(i => ({name:i.name, sku:i.id, qty:i.qty})), timeline: [{cls:'done',ev:'Lote registrado',detail:'Via F.A.S.T FEFO',time:'agora'}],
     };
     cargos.unshift(newCargo);
     document.getElementById('success-id-val').textContent = '#' + pedNum;
@@ -1892,6 +2709,19 @@ document.addEventListener('click', function(e) {
 // ── SCAN SESSION STATE ──
 const scanCounts = {}; // { skuId: count }
 
+function processScannedCode(code) {
+  const exactMatch = IV_CATALOG.find(p => p.id.toLowerCase() === String(code).toLowerCase());
+  if (exactMatch) {
+    if (!scanCounts[exactMatch.id]) scanCounts[exactMatch.id] = 0;
+    scanCounts[exactMatch.id]++;
+    openScanCounterPanel(exactMatch, scanCounts[exactMatch.id]);
+    showToast(`📦 +1 · ${exactMatch.name} (total: ${scanCounts[exactMatch.id]})`);
+  } else {
+    openNewProductModal(code);
+    showToast(`🔍 Produto não encontrado — cadastre agora`);
+  }
+}
+
 // ── LEITOR DE CÓDIGO DE BARRAS (BIPADOR) ──
 // Leitores de código de barras emitem os caracteres do código em sequência muito
 // rápida e encerram com Enter. O buffer de 50 ms captura essa rajada sem
@@ -1911,8 +2741,8 @@ const scanCounts = {}; // { skuId: count }
     const focused = document.activeElement;
     const isTypingField = focused && (focused.tagName === 'INPUT' || focused.tagName === 'TEXTAREA');
 
-    // Ignora teclas modificadoras
-    if (IGNORE_KEYS.has(e.key)) return;
+    // Ignora atalhos/modificadores para não conflitar com Cmd/Ctrl+K e navegação por teclado
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || IGNORE_KEYS.has(e.key)) return;
 
     // Enter — fim de código de barras
     if (e.key === 'Enter') {
@@ -1941,22 +2771,7 @@ const scanCounts = {}; // { skuId: count }
   });
 
   function handleBarcodeScan(code) {
-    // Verifica se o produto existe no catálogo (match exato de SKU)
-    const exactMatch = IV_CATALOG.find(
-      p => p.id.toLowerCase() === code.toLowerCase()
-    );
-
-    if (exactMatch) {
-      // ── PRODUTO EXISTENTE: incrementa contagem e mostra painel ──
-      if (!scanCounts[exactMatch.id]) scanCounts[exactMatch.id] = 0;
-      scanCounts[exactMatch.id]++;
-      openScanCounterPanel(exactMatch, scanCounts[exactMatch.id]);
-      showToast(`📦 +1 · ${exactMatch.name} (total: ${scanCounts[exactMatch.id]})`);
-    } else {
-      // ── PRODUTO DESCONHECIDO: abre modal de cadastro com código preenchido ──
-      openNewProductModal(code);
-      showToast(`🔍 Produto não encontrado — cadastre agora`);
-    }
+    processScannedCode(code);
   }
 })();
 
@@ -1989,12 +2804,12 @@ function openScanCounterPanel(prod, count) {
           padding:8px 14px;border-bottom:1px solid var(--border);
           background:${isActive ? 'var(--accent-dim)' : 'transparent'}">
           <div>
-            <div style="font-size:12px;color:${isActive ? '#c4beff' : 'var(--text-primary)'};font-weight:${isActive ? '500' : '400'}">${name}</div>
+            <div style="font-size:12px;color:${isActive ? '#1B4965' : 'var(--text-primary)'};font-weight:${isActive ? '500' : '400'}">${name}</div>
             <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:1px">${skuId}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <div style="font-size:20px;font-family:var(--mono);font-weight:600;
-              color:${isActive ? '#c4beff' : 'var(--text-primary)'}">×${cnt}</div>
+              color:${isActive ? '#1B4965' : 'var(--text-primary)'}">×${cnt}</div>
           </div>
         </div>`;
     }).join('');
@@ -2094,15 +2909,15 @@ function openNewProductModal(code) {
       </div>
 
       <!-- Banner de código lido -->
-      <div style="margin:14px 18px 0;background:var(--accent-dim);border:1px solid rgba(124,111,255,.35);
+      <div style="margin:14px 18px 0;background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);
         border-radius:var(--r);padding:10px 14px;display:flex;align-items:center;gap:10px">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#c4beff" stroke-width="1.8">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1B4965" stroke-width="1.8">
           <rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/>
           <rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h4M12 10h4M10 12v4"/>
         </svg>
         <div>
           <div style="font-size:10px;color:#9b93cc;margin-bottom:1px">Código lido pelo bipador</div>
-          <div style="font-size:14px;font-family:var(--mono);font-weight:600;color:#c4beff;letter-spacing:.5px">${code}</div>
+          <div style="font-size:14px;font-family:var(--mono);font-weight:600;color:#1B4965;letter-spacing:.5px">${code}</div>
         </div>
       </div>
 
@@ -2116,7 +2931,7 @@ function openNewProductModal(code) {
         </div>
         <div style="display:flex;flex-direction:column;gap:4px">
           <label style="font-size:11px;color:var(--text-muted)">Nome do produto *</label>
-          <input id="np-name" placeholder="Ex: Cabo HDMI 2m" autofocus style="background:var(--surface2);border:1px solid var(--border);
+          <input id="np-name" placeholder="Ex: Farinha de Trigo 25kg" autofocus style="background:var(--surface2);border:1px solid var(--border);
             border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--font);
             font-size:13px;outline:none;transition:border-color .15s"
             onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'">
@@ -2126,8 +2941,8 @@ function openNewProductModal(code) {
             <label style="font-size:11px;color:var(--text-muted)">Categoria</label>
             <select id="np-cat" style="background:var(--surface2);border:1px solid var(--border);
               border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none">
-              <option>Eletrônicos</option><option>Informática</option><option>Embalagem</option>
-              <option>Vestuário</option><option>Cosméticos</option><option>Utilidades</option><option>Outros</option>
+              <option>Matéria-prima</option><option>Perecível</option><option>Embalagem</option>
+              <option>Produto acabado</option><option>Confeitaria</option><option>Limpeza</option><option>Outros</option>
             </select>
           </div>
           <div style="display:flex;flex-direction:column;gap:4px">
@@ -2169,13 +2984,13 @@ function openNewProductModal(code) {
             </div>
           </div>
           <!-- Preview da posição selecionada -->
-          <div id="np-pos-preview" style="display:none;background:var(--accent-dim);border:1px solid rgba(124,111,255,.35);
+          <div id="np-pos-preview" style="display:none;background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);
             border-radius:var(--r);padding:8px 12px;display:flex;align-items:center;justify-content:space-between">
             <div style="display:flex;align-items:center;gap:8px">
-              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#c4beff" stroke-width="1.8">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#1B4965" stroke-width="1.8">
                 <path d="M7 1v12M1 4h12M3 7h8" stroke-linecap="round"/>
               </svg>
-              <span id="np-pos-label" style="font-size:13px;font-family:var(--mono);font-weight:600;color:#c4beff"></span>
+              <span id="np-pos-label" style="font-size:13px;font-family:var(--mono);font-weight:600;color:#1B4965"></span>
             </div>
             <span style="font-size:10px;color:#9b93cc">posição selecionada</span>
           </div>
