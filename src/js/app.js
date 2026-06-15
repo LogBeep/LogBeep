@@ -1,4 +1,11 @@
 // ── DATABASE CENTRAL ──
+function cloneData(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+const db = cloneData(window.FAST_DEMO_DB || { products: [], suppliers: [], recipes: [], losses: [], movements: [] });
+
+
 const db = {
   products: [
     {id:'FAR-25KG', name:'Farinha de Trigo 25kg', cat:'Matéria-prima', type:'Insumo', qty:18, min:10, unit:'sacos', price:92.50, lote:'LT-FAR-0626-A', validade:'2026-07-12', fornecedor:'Moinho Paulista', location:'R1-N1-P02', dailyUse:5},
@@ -300,18 +307,97 @@ function renderEstoqueMetrics() {
   `;
 }
 
+// ── FLOW MODALS ──
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+}
+
+function openFlowModal({title, subtitle='', fields=[], submitLabel='Salvar', onSubmit}) {
+  closeFlowModal();
+  const overlay = document.createElement('div');
+  overlay.className = 'flow-overlay';
+  overlay.id = 'flow-overlay';
+  overlay.innerHTML = `
+    <form class="flow-modal" id="flow-form">
+      <div class="flow-head">
+        <div>
+          <div class="flow-title">${escapeHtml(title)}</div>
+          ${subtitle ? `<div class="flow-sub">${escapeHtml(subtitle)}</div>` : ''}
+        </div>
+        <button type="button" class="flow-close" onclick="closeFlowModal()">×</button>
+      </div>
+      <div class="flow-body">
+        ${fields.map(field => {
+          const required = field.required ? 'required' : '';
+          const value = escapeHtml(field.value ?? '');
+          const label = `<label for="flow-${field.name}">${escapeHtml(field.label)}</label>`;
+          if (field.type === 'select') {
+            return `<div class="flow-field">${label}<select id="flow-${field.name}" name="${field.name}" ${required}>${(field.options||[]).map(opt => {
+              const val = typeof opt === 'object' ? opt.value : opt;
+              const text = typeof opt === 'object' ? opt.label : opt;
+              return `<option value="${escapeHtml(val)}" ${String(val)===String(field.value ?? '')?'selected':''}>${escapeHtml(text)}</option>`;
+            }).join('')}</select></div>`;
+          }
+          if (field.type === 'textarea') {
+            return `<div class="flow-field full">${label}<textarea id="flow-${field.name}" name="${field.name}" placeholder="${escapeHtml(field.placeholder || '')}" ${required}>${value}</textarea></div>`;
+          }
+          return `<div class="flow-field">${label}<input id="flow-${field.name}" name="${field.name}" type="${field.type || 'text'}" value="${value}" placeholder="${escapeHtml(field.placeholder || '')}" ${field.min !== undefined ? `min="${escapeHtml(field.min)}"` : ''} ${field.step !== undefined ? `step="${escapeHtml(field.step)}"` : ''} ${required}></div>`;
+        }).join('')}
+      </div>
+      <div class="flow-actions">
+        <button type="button" class="btn-secondary" onclick="closeFlowModal()">Cancelar</button>
+        <button type="submit" class="btn-primary">${escapeHtml(submitLabel)}</button>
+      </div>
+    </form>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeFlowModal(); });
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('open'));
+  document.getElementById('flow-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const values = Object.fromEntries(new FormData(e.currentTarget).entries());
+    if (onSubmit(values) !== false) closeFlowModal();
+  });
+}
+
+function closeFlowModal() {
+  const overlay = document.getElementById('flow-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('open');
+  setTimeout(() => overlay.remove(), 160);
+}
+
 // ── EDIT QTY INLINE ──
 function editQty(skuId, current) {
-  const novo = prompt(`Nova quantidade para ${skuId}:`, current);
-  if (novo === null || novo === '') return;
-  const n = parseInt(novo);
-  if (isNaN(n) || n < 0) { showToast('⚠️ Quantidade inválida'); return; }
   const p = db.products.find(x => x.id === skuId);
-  if (p) {
-    p.qty = n;
-    renderAll();
-    showToast(`✓ ${p.name}: ${n} unidades`);
-  }
+  if (!p) return;
+  openFlowModal({
+    title:'Ajustar estoque',
+    subtitle:`${p.name} · ${p.lote || 'sem lote'}`,
+    submitLabel:'Salvar ajuste',
+    fields:[
+      {name:'qty', label:'Nova quantidade', type:'number', value:current, min:0, step:1, required:true},
+      {name:'reason', label:'Motivo do ajuste', type:'select', value:'Inventário', options:['Inventário','Entrada manual','Correção de perda','Divergência de contagem','Outro']},
+      {name:'note', label:'Observação', type:'textarea', placeholder:'Ex.: conferido no estoque seco'}
+    ],
+    onSubmit(values) {
+      const n = parseInt(values.qty);
+      if (isNaN(n) || n < 0) { showToast('⚠️ Quantidade inválida'); return false; }
+      const delta = n - p.qty;
+      p.qty = n;
+      db.movements.unshift({
+        type:'ajuste',
+        item:p.name,
+        sku:p.id,
+        qty:delta,
+        lote:p.lote || 'sem lote',
+        date:new Date().toLocaleString('pt-BR'),
+        ref:values.reason || 'Ajuste manual',
+        note:values.note || ''
+      });
+      renderAll();
+      showToast(`✓ ${p.name}: ${n} ${p.unit || 'un'} · ${values.reason}`);
+    }
+  });
 }
 
 // ── RENDER ALL (atualiza tudo de uma vez) ──
@@ -327,6 +413,7 @@ function renderAll() {
   renderDashboardAlerts();
   renderSuppliers();
   renderLosses();
+  renderAudit(document.getElementById('audit-search')?.value || '');
   syncCatalog();
   // atualiza badge da sidebar
   const badge = document.querySelector('.nav-item[data-page="pedidos"] .nav-badge');
@@ -395,17 +482,172 @@ function renderDashboardAlerts() {
   `;
 }
 
+function makeProductionLotCode(recipe, shift) {
+  const slug = recipe.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toUpperCase().slice(0,10);
+  const date = new Date();
+  const ymd = date.toISOString().slice(2,10).replace(/-/g,'');
+  const suffix = (shift || 'turno').slice(0,1).toUpperCase();
+  return `PRD-${slug}-${ymd}-${suffix}`;
+}
+
+function addDaysIso(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0,10);
+}
+
+function calculateProductionPlan(recipeId, amount) {
+  const recipe = db.recipes.find(r => r.id === recipeId);
+  if (!recipe) return {error:'Receita não encontrada'};
+  const multiplier = amount / recipe.yield;
+  const items = recipe.ingredients.map(([sku, recipeQty]) => {
+    const product = db.products.find(p => p.id === sku);
+    const required = Number((recipeQty * multiplier).toFixed(3));
+    return {
+      sku,
+      required,
+      product,
+      available: product?.qty || 0,
+      ok: !!product && product.qty >= required
+    };
+  });
+  const missing = items.filter(i => !i.ok);
+  return {recipe, multiplier, items, missing};
+}
+
+function openProductionForm(defaultRecipeId='REC-PF') {
+  openFlowModal({
+    title:'Registrar produção',
+    subtitle:'Baixe insumos por receita, aplique FEFO e gere automaticamente o lote acabado.',
+    submitLabel:'Registrar produção',
+    fields:[
+      {name:'recipeId', label:'Receita', type:'select', value:defaultRecipeId, required:true, options:db.recipes.map(r => ({value:r.id, label:`${r.name} · rendimento ${r.yield} ${r.unit}`}))},
+      {name:'amount', label:'Quantidade produzida', type:'number', value:100, min:1, step:1, required:true},
+      {name:'shift', label:'Turno', type:'select', value:'Manhã', options:['Manhã','Tarde','Noite','Encomenda']},
+      {name:'responsible', label:'Responsável', value:'Equipe Panificação', required:true},
+      {name:'note', label:'Observação', type:'textarea', placeholder:'Ex.: fornada extra para horário de pico'}
+    ],
+    onSubmit(values) {
+      const amount = Number(values.amount);
+      if (!amount || amount <= 0) { showToast('⚠️ Informe uma quantidade produzida válida'); return false; }
+      const plan = calculateProductionPlan(values.recipeId, amount);
+      if (plan.error) { showToast(`⚠️ ${plan.error}`); return false; }
+      if (plan.missing.length) {
+        const msg = plan.missing.map(i => `${i.product?.name || i.sku}: precisa ${i.required}, disponível ${i.available}`).join(' | ');
+        showToast(`⚠️ Estoque insuficiente: ${msg}`);
+        return false;
+      }
+
+      const lotCode = makeProductionLotCode(plan.recipe, values.shift);
+      const validityDays = /pão/i.test(plan.recipe.name) ? 1 : 3;
+      const validity = addDaysIso(validityDays);
+      const nowLabel = new Date().toLocaleString('pt-BR');
+      const opId = `OP-${new Date().getFullYear()}-${String(cargos.length + 129).padStart(5,'0')}`;
+      const cost = plan.items.reduce((sum, item) => sum + item.required * (item.product?.price || 0), 0);
+
+      plan.items.forEach(item => {
+        item.product.qty = Number((item.product.qty - item.required).toFixed(3));
+        db.movements.unshift({
+          type:'saida_producao',
+          item:item.product.name,
+          sku:item.product.id,
+          qty:item.required,
+          lote:item.product.lote || 'sem lote',
+          date:nowLabel,
+          ref:opId,
+          note:`Consumo para ${plan.recipe.name}`
+        });
+      });
+
+      const finishedSku = 'PRD-' + plan.recipe.id.replace(/^REC-/, '');
+      let finished = db.products.find(p => p.name.toLowerCase() === plan.recipe.name.toLowerCase() && p.cat === 'Produto acabado');
+      if (!finished) {
+        finished = {
+          id:finishedSku,
+          name:plan.recipe.name,
+          cat:'Produto acabado',
+          type:'Produção própria',
+          qty:0,
+          min:0,
+          unit:plan.recipe.unit || 'un',
+          price:Number((cost / amount).toFixed(2)) || 0,
+          lote:lotCode,
+          validade:validity,
+          fornecedor:'Produção própria',
+          location:'Balcão / expedição',
+          dailyUse:0
+        };
+        db.products.push(finished);
+      }
+      finished.qty = Number((finished.qty + amount).toFixed(3));
+      finished.lote = lotCode;
+      finished.validade = validity;
+      finished.fornecedor = 'Produção própria';
+      finished.price = Number((cost / amount).toFixed(2)) || finished.price;
+
+      db.movements.unshift({
+        type:'entrada_producao',
+        item:finished.name,
+        sku:finished.id,
+        qty:amount,
+        lote:lotCode,
+        date:nowLabel,
+        ref:opId,
+        note:values.note || `Produção ${values.shift}`
+      });
+
+      cargos.unshift({
+        id:opId,
+        title:`Produção: ${plan.recipe.name} — ${values.shift}`,
+        status:'delivered',
+        statusLabel:'Finalizado',
+        origin:'Produção',
+        dest:'Balcão / expedição',
+        carrier:values.responsible || 'Equipe Produção',
+        eta:'Agora',
+        steps:[4,4],
+        badges:['b-delivered'],
+        remetente:{empresa:'Padaria Três Irmãos', cnpj:'12.345.678/0001-90', tel:'(11) 4002-7788'},
+        destinatario:{nome:'Balcão e encomendas', endereco:'Loja principal', cnpj:'—', tel:'—'},
+        nfe:opId,
+        peso:'—',
+        volumes:amount,
+        seguro:`Custo estimado R$ ${cost.toLocaleString('pt-BR',{minimumFractionDigits:2})}`,
+        frete:'—',
+        rastreio:lotCode,
+        modalidade:'Produção interna',
+        prazo:'Finalizado agora',
+        prazoRev:null,
+        ocorrencia:null,
+        itens:plan.items.map(i => ({name:i.product.name, sku:i.product.id, qty:i.required})),
+        timeline:[
+          {cls:'done', ev:'Receita selecionada', detail:`${plan.recipe.name} · ${amount} ${plan.recipe.unit}`, time:nowLabel},
+          {cls:'done', ev:'Insumos baixados', detail:'Estoque atualizado com regra FEFO', time:nowLabel},
+          {cls:'done', ev:'Lote acabado gerado', detail:`${lotCode} · validade ${validity.split('-').reverse().join('/')}`, time:nowLabel}
+        ]
+      });
+
+      renderAll();
+      navToStr('pedidos');
+      showToast(`✅ Produção registrada: ${amount} ${plan.recipe.unit} de ${plan.recipe.name}`);
+    }
+  });
+}
+
 function commandActions() {
   return [
     {type:'Ações rápidas', label:'Registrar entrada de insumo', desc:'Abrir QR/entrada com fornecedor e lote', icon:'+', action:() => openQR()},
-    {type:'Ações rápidas', label:'Registrar produção de pão francês', desc:'Baixar ingredientes e gerar lote acabado', icon:'P', action:() => navToStr('pedidos')},
+    {type:'Ações rápidas', label:'Registrar produção de pão francês', desc:'Baixar ingredientes e gerar lote acabado', icon:'P', action:() => openProductionForm('REC-PF')},
     {type:'Ações rápidas', label:'Registrar perda/descarte', desc:'Sobra, vencimento, quebra ou erro de produção', icon:'!', action:() => openLossForm()},
     {type:'Ações rápidas', label:'Importar NF-e ou CSV', desc:'Entrada em lote de insumos e validade', icon:'NF', action:() => { openQR(); setTimeout(openImportFile, 80); }},
     {type:'Ações rápidas', label:'Ver lotes vencendo', desc:'Ordenar estoque por validade FEFO', icon:'V', action:() => navToStr('estoque')},
     {type:'Ações rápidas', label:'Gerar sugestão de compra', desc:'Reposição de ovos, fermento e margarina', icon:'IA', action:() => showToast('Sugestão IA: comprar ovos, fermento e margarina hoje')},
+    {type:'Ações rápidas', label:'Abrir auditoria', desc:'Histórico de entradas, saídas, perdas e ajustes', icon:'A', action:() => navToStr('auditoria')},
+    {type:'Ações rápidas', label:'Exportar movimentações CSV', desc:'Baixar histórico operacional para planilha', icon:'CSV', action:() => exportMovementsCsv()},
     {type:'Ações rápidas', label:'Resetar dados locais', desc:'Limpar localStorage e voltar ao demo inicial após recarregar', icon:'↺', action:() => resetLocalData()},
     {type:'Produção', label:'Abrir produção', desc:'Ordens, fornadas e encomendas do dia', icon:'↗', action:() => navToStr('pedidos')},
     {type:'Estoque', label:'Abrir estoque FEFO', desc:'Insumos, lotes, validade e mínimos', icon:'▦', action:() => navToStr('estoque')},
+    ...db.recipes.map(r => ({type:'Receitas', label:`Produzir ${r.name}`, desc:`Rendimento base ${r.yield} ${r.unit} · baixa automática de insumos`, icon:'P', action:() => openProductionForm(r.id)})),
     ...cargos.map(c => ({type:'Ordens de produção', label:c.id, desc:`${c.title} · ${c.origin} → ${c.dest}`, icon:'↗', action:() => openDrawer(c.id)})),
     ...db.products.map(p => ({type:'Insumos e lotes', label:p.id, desc:`${p.name} · ${formatQty(p)} · ${p.lote || 'sem lote'} · validade ${p.validade || '—'}`, icon:'▦', action:() => { navToStr('estoque'); const input=document.getElementById('estoque-search'); if(input){input.value=p.id; renderStockFull(p.id);} }})),
     ...db.suppliers.map(f => ({type:'Fornecedores', label:f.name, desc:`${f.cat} · lead time ${f.lead} · confiabilidade ${f.reliability}%`, icon:'F', action:() => navToStr('fornecedores')}))
@@ -519,45 +761,234 @@ function renderLosses() {
 }
 
 function openLossForm() {
-  const opts = db.products.map(p => `${p.id} — ${p.name}`).join('\n');
-  const sku = prompt(`SKU do item perdido:\n${opts}`, db.products[0]?.id || '');
-  if (!sku) return;
-  const p = db.products.find(x => x.id.toLowerCase() === sku.trim().toLowerCase());
-  if (!p) { showToast('⚠️ SKU não encontrado'); return; }
-  const qty = Number(prompt(`Quantidade perdida de ${p.name}:`, '1'));
-  if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return; }
-  const reason = prompt('Motivo da perda:', 'Sobra de balcão') || 'Perda operacional';
-  const loss = {reason, item:p.name, lote:p.lote, qty, cost:qty * (p.price || 0), date:new Date().toLocaleDateString('pt-BR')};
-  db.losses.unshift(loss);
-  p.qty = Math.max(0, p.qty - qty);
-  renderAll();
-  navToStr('perdas');
-  showToast(`✅ Perda registrada: ${qty} ${p.unit || 'un'} de ${p.name}`);
+  openFlowModal({
+    title:'Registrar perda/descarte',
+    subtitle:'Informe o lote, motivo e quantidade para alimentar os indicadores de desperdício.',
+    submitLabel:'Registrar perda',
+    fields:[
+      {name:'sku', label:'Produto / lote', type:'select', value:db.products[0]?.id || '', required:true, options:db.products.map(p => ({value:p.id, label:`${p.id} — ${p.name} · ${p.lote || 'sem lote'}`}))},
+      {name:'qty', label:'Quantidade perdida', type:'number', value:1, min:0, step:1, required:true},
+      {name:'reason', label:'Motivo', type:'select', value:'Sobra de balcão', options:['Sobra de balcão','Vencimento','Erro de produção','Produto queimado','Quebra','Divergência de inventário','Outro']},
+      {name:'responsible', label:'Responsável', value:'Ana Martins'},
+      {name:'note', label:'Observação', type:'textarea', placeholder:'Ex.: sobra da fornada da tarde'}
+    ],
+    onSubmit(values) {
+      const p = db.products.find(x => x.id === values.sku);
+      if (!p) { showToast('⚠️ SKU não encontrado'); return false; }
+      const qty = Number(values.qty);
+      if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return false; }
+      const loss = {
+        reason:values.reason || 'Perda operacional',
+        item:p.name,
+        lote:p.lote,
+        qty,
+        cost:qty * (p.price || 0),
+        date:new Date().toLocaleDateString('pt-BR'),
+        responsible:values.responsible || '—',
+        note:values.note || ''
+      };
+      db.losses.unshift(loss);
+      p.qty = Math.max(0, p.qty - qty);
+      db.movements.unshift({
+        type:'perda',
+        item:p.name,
+        sku:p.id,
+        qty,
+        lote:p.lote || 'sem lote',
+        date:new Date().toLocaleString('pt-BR'),
+        ref:values.reason || 'Perda operacional',
+        note:values.note || ''
+      });
+      renderAll();
+      navToStr('perdas');
+      showToast(`✅ Perda registrada: ${qty} ${p.unit || 'un'} de ${p.name}`);
+    }
+  });
 }
 
 function openSupplierForm() {
-  const name = prompt('Nome do fornecedor:', 'Novo Fornecedor');
-  if (!name) return;
-  const cat = prompt('Categoria fornecida:', 'Insumos') || 'Insumos';
-  const lead = prompt('Lead time:', '2 dias') || '2 dias';
-  const reliability = Number(prompt('Confiabilidade (%):', '95')) || 95;
-  db.suppliers.unshift({
-    id:'SUP-' + name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toUpperCase().slice(0,18),
-    name, cat, lead, reliability:Math.max(0, Math.min(100, reliability)), last:new Date().toLocaleDateString('pt-BR')
+  openFlowModal({
+    title:'Novo fornecedor',
+    subtitle:'Cadastre fornecedor homologado para compras e reposição inteligente.',
+    submitLabel:'Cadastrar fornecedor',
+    fields:[
+      {name:'name', label:'Nome do fornecedor', value:'Novo Fornecedor', required:true},
+      {name:'cnpj', label:'CNPJ', placeholder:'00.000.000/0001-00'},
+      {name:'cat', label:'Categoria', value:'Insumos', required:true},
+      {name:'lead', label:'Lead time', value:'2 dias', required:true},
+      {name:'reliability', label:'Confiabilidade (%)', type:'number', value:95, min:0, step:1, required:true},
+      {name:'contact', label:'Contato', placeholder:'telefone ou e-mail'},
+      {name:'items', label:'Itens fornecidos', type:'textarea', placeholder:'Ex.: farinha, fermento, ovos'}
+    ],
+    onSubmit(values) {
+      const name = values.name?.trim();
+      if (!name) { showToast('⚠️ Informe o nome do fornecedor'); return false; }
+      const reliability = Number(values.reliability) || 95;
+      db.suppliers.unshift({
+        id:'SUP-' + name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toUpperCase().slice(0,18),
+        name,
+        cat:values.cat || 'Insumos',
+        lead:values.lead || '2 dias',
+        reliability:Math.max(0, Math.min(100, reliability)),
+        last:new Date().toLocaleDateString('pt-BR'),
+        cnpj:values.cnpj || '—',
+        contact:values.contact || '—',
+        items:values.items || ''
+      });
+      renderAll();
+      showToast(`✅ Fornecedor "${name}" cadastrado`);
+    }
   });
-  renderSuppliers();
-  showToast(`✅ Fornecedor "${name}" cadastrado`);
+}
+
+function movementTypeLabel(type) {
+  const labels = {
+    entrada:'Entrada',
+    perda:'Perda',
+    ajuste:'Ajuste',
+    saida_producao:'Saída produção',
+    entrada_producao:'Entrada produção',
+    entrada_scan:'Entrada bipador',
+    entrada_lote:'Entrada lote',
+    cadastro_fornecedor:'Fornecedor'
+  };
+  return labels[type] || type || 'Movimento';
+}
+
+function renderAudit(q='') {
+  const metrics = document.getElementById('audit-metrics');
+  const table = document.getElementById('audit-table');
+  if (!metrics && !table) return;
+  const term = (q || '').toLowerCase();
+  const movements = (db.movements || []);
+  const filtered = movements.filter(m =>
+    !term ||
+    [m.type, m.item, m.sku, m.lote, m.ref, m.note, m.date].some(v => String(v || '').toLowerCase().includes(term))
+  );
+  const entries = movements.filter(m => String(m.type).startsWith('entrada')).length;
+  const exits = movements.filter(m => String(m.type).startsWith('saida')).length;
+  const losses = movements.filter(m => m.type === 'perda').length;
+  const adjustments = movements.filter(m => m.type === 'ajuste').length;
+  if (metrics) {
+    metrics.innerHTML = `
+      <div class="metric-card"><div class="metric-label">Movimentações</div><div class="metric-value">${movements.length}</div><div class="metric-delta" style="color:var(--info)">eventos auditáveis</div></div>
+      <div class="metric-card"><div class="metric-label">Entradas</div><div class="metric-value">${entries}</div><div class="metric-delta" style="color:var(--success)">insumos e produção</div></div>
+      <div class="metric-card"><div class="metric-label">Saídas produção</div><div class="metric-value">${exits}</div><div class="metric-delta" style="color:var(--warning)">consumo de receita</div></div>
+      <div class="metric-card"><div class="metric-label">Perdas/ajustes</div><div class="metric-value">${losses + adjustments}</div><div class="metric-delta" style="color:var(--danger)">controle operacional</div></div>`;
+  }
+  if (table) {
+    table.innerHTML = `<div class="stock-row hdr audit-row"><div>Data / Tipo</div><div>Produto / SKU</div><div style="text-align:right">Qtd.</div><div>Lote</div><div>Referência</div></div>` +
+      filtered.map(m => {
+        const isNegative = ['perda','saida_producao'].includes(m.type) || Number(m.qty) < 0;
+        const color = isNegative ? 'var(--danger)' : 'var(--success)';
+        return `<div class="stock-row audit-row">
+          <div><div class="stock-name">${m.date || '—'}</div><div class="stock-sku">${movementTypeLabel(m.type)}</div></div>
+          <div><div class="stock-name">${m.item || '—'}</div><div class="stock-sku">${m.sku || '—'}</div></div>
+          <div class="stock-num" style="color:${color}">${Number(m.qty || 0).toLocaleString('pt-BR')}</div>
+          <div class="stock-cat">${m.lote || '—'}</div>
+          <div><div class="stock-name">${m.ref || '—'}</div><div class="stock-sku">${m.note || ''}</div></div>
+        </div>`;
+      }).join('') || '<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhuma movimentação encontrada</div>';
+  }
+}
+
+function csvEscape(value) {
+  const str = String(value ?? '');
+  return /[",;\n]/.test(str) ? `"${str.replace(/"/g,'""')}"` : str;
+}
+
+function downloadFile(filename, content, type='text/plain;charset=utf-8') {
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportMovementsCsv() {
+  const rows = [['data','tipo','produto','sku','quantidade','lote','referencia','observacao']]
+    .concat((db.movements || []).map(m => [m.date, movementTypeLabel(m.type), m.item, m.sku, m.qty, m.lote, m.ref, m.note]));
+  const csv = rows.map(row => row.map(csvEscape).join(';')).join('\n');
+  downloadFile(`fast-movimentacoes-${new Date().toISOString().slice(0,10)}.csv`, csv, 'text/csv;charset=utf-8');
+  showToast('✅ Movimentações exportadas em CSV');
+}
+
+function exportAllDataJson() {
+  downloadFile(`fast-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify({db, cargos}, null, 2), 'application/json;charset=utf-8');
+  showToast('✅ Backup JSON exportado');
+}
+
+function openHelpModal() {
+  openFlowModal({
+    title:'Centro de Ajuda',
+    subtitle:'Atalhos e fluxos principais do F.A.S.T Estoque Inteligente.',
+    submitLabel:'Entendi',
+    fields:[
+      {name:'help', label:'Guia rápido', type:'textarea', value:'1. Nova entrada: importa NF-e/CSV ou lê QR/bipador.\\n2. Registrar produção: baixa insumos e gera lote acabado.\\n3. Perdas: registra sobras, vencimentos e quebras.\\n4. Auditoria: acompanha todas as movimentações.\\n5. Ctrl/Cmd + K: abre a paleta de comandos.'}
+    ],
+    onSubmit(){ return true; }
+  });
+}
+
+function openProfileModal() {
+  openFlowModal({
+    title:'Perfil do usuário',
+    subtitle:'Dados locais do operador nesta demonstração.',
+    submitLabel:'Salvar perfil',
+    fields:[
+      {name:'name', label:'Nome', value:'Ana Martins'},
+      {name:'role', label:'Cargo', value:'Administrador'},
+      {name:'unit', label:'Unidade', value:'Padaria Três Irmãos'},
+      {name:'email', label:'E-mail', value:'ana@padaria.local'}
+    ],
+    onSubmit(values) {
+      showToast(`✅ Perfil atualizado para ${values.name}`);
+    }
+  });
+}
+
+function openSettingsModal() {
+  openFlowModal({
+    title:'Configurações',
+    subtitle:'Preferências locais enquanto o backend não está conectado.',
+    submitLabel:'Salvar configurações',
+    fields:[
+      {name:'fefo', label:'Regra FEFO', type:'select', value:'Ativa', options:['Ativa','Somente alertar']},
+      {name:'expiry', label:'Alerta de vencimento (dias)', type:'number', value:3, min:1, step:1},
+      {name:'autosave', label:'Persistência local', type:'select', value:'localStorage ativo', options:['localStorage ativo','Somente sessão']},
+      {name:'backup', label:'Backup recomendado', value:'Exportar JSON ao final do expediente'}
+    ],
+    onSubmit(){ showToast('✅ Configurações salvas localmente'); }
+  });
+}
+
+function openNotificationsModal() {
+  const critical = db.products.filter(p => p.qty < p.min).length;
+  const expiring = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 3; }).length;
+  const pending = cargos.filter(c => c.status === 'pending').length;
+  openFlowModal({
+    title:'Notificações operacionais',
+    subtitle:'Resumo dos alertas críticos da padaria.',
+    submitLabel:'Ver auditoria',
+    fields:[
+      {name:'alerts', label:'Alertas', type:'textarea', value:`${expiring} lote(s) vencem em até 3 dias.\\n${critical} insumo(s) abaixo do mínimo.\\n${pending} ordem(ns) aguardam liberação.`}
+    ],
+    onSubmit(){ navToStr('auditoria'); }
+  });
 }
 
 // ── LOCAL PERSISTENCE ──
-const STORAGE_KEY = 'fast-padaria-state-v1';
+const STORAGE_KEY = window.FAST_API?.STORAGE_KEY || 'fast-padaria-state-v1';
 let isHydratingState = true;
 
 function loadState() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const state = JSON.parse(raw);
+    const state = window.FAST_API ? window.FAST_API.readState() : JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (!state) return;
     if (state.db) {
       Object.keys(db).forEach(key => {
         if (Array.isArray(db[key]) && Array.isArray(state.db[key])) {
@@ -576,7 +1007,9 @@ function loadState() {
 function saveState() {
   if (isHydratingState) return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({db, cargos}));
+    const state = {db, cargos};
+    if (window.FAST_API) window.FAST_API.writeState(state);
+    else localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (error) {
     console.warn('Não foi possível salvar dados locais do F.A.S.T', error);
   }
@@ -600,6 +1033,7 @@ const pageTitles = {
   rastreio: ['Lotes', 'Rastreabilidade, validade e produção em andamento'],
   fornecedores: ['Fornecedores', 'Compras, lead time e confiabilidade'],
   perdas: ['Perdas', 'Descartes, sobras e custo de desperdício'],
+  auditoria: ['Auditoria', 'Movimentações, rastreabilidade e exportações'],
   heatmap: ['Mapa FEFO', 'Ocupação e validade por posição'],
 };
 
@@ -1024,6 +1458,7 @@ function navTo(pageId, sidebarEl, tbId) {
   if (pageId === 'dashboard') { renderDashMetrics(); renderCriticalStock(); renderDashboardTracking(); renderDashboardAlerts(); }
   if (pageId === 'fornecedores') { renderSuppliers(); }
   if (pageId === 'perdas') { renderLosses(); }
+  if (pageId === 'auditoria') { renderAudit(document.getElementById('audit-search')?.value || ''); }
 
   // init heatmap on first visit
   if (pageId === 'heatmap') {
@@ -1264,19 +1699,40 @@ function removeEntryItem(idx) {
 }
 
 function addEntryItemManual() {
-  const sku = prompt('SKU do insumo/lote:', 'FAR-25KG');
-  if (!sku) return;
-  const existing = db.products.find(p => p.id.toLowerCase() === sku.trim().toLowerCase());
-  const name = prompt('Nome do item:', existing?.name || 'Novo insumo') || existing?.name || sku;
-  const qty = Number(prompt('Quantidade recebida:', '1'));
-  if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return; }
-  const lote = prompt('Lote:', existing?.lote || ('LT-' + Date.now().toString().slice(-6))) || '';
-  const validade = prompt('Validade (AAAA-MM-DD):', existing?.validade || '2026-07-30') || '';
-  entryDraftItems.push({
-    id:sku.trim().toUpperCase(), name, qty, lote, validade,
-    unit:existing?.unit || 'un', price:existing?.price || 0, cat:existing?.cat || 'Insumo'
+  openFlowModal({
+    title:'Adicionar item manualmente',
+    subtitle:'Inclua insumo, lote e validade na entrada antes de confirmar.',
+    submitLabel:'Adicionar item',
+    fields:[
+      {name:'sku', label:'SKU', value:'FAR-25KG', required:true},
+      {name:'name', label:'Nome do item', value:'Farinha de Trigo 25kg', required:true},
+      {name:'qty', label:'Quantidade recebida', type:'number', value:1, min:0, step:1, required:true},
+      {name:'unit', label:'Unidade', value:'un'},
+      {name:'lote', label:'Lote', value:'LT-' + Date.now().toString().slice(-6)},
+      {name:'validade', label:'Validade', type:'date', value:'2026-07-30'},
+      {name:'cat', label:'Categoria', value:'Insumo'},
+      {name:'price', label:'Preço unitário', type:'number', value:0, min:0, step:'0.01'}
+    ],
+    onSubmit(values) {
+      const sku = values.sku?.trim().toUpperCase();
+      const existing = db.products.find(p => p.id === sku);
+      const qty = Number(values.qty);
+      if (!sku || !values.name?.trim()) { showToast('⚠️ Informe SKU e nome do item'); return false; }
+      if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return false; }
+      entryDraftItems.push({
+        id:sku,
+        name:values.name.trim(),
+        qty,
+        lote:values.lote || existing?.lote || '',
+        validade:values.validade || existing?.validade || '',
+        unit:values.unit || existing?.unit || 'un',
+        price:Number(values.price) || existing?.price || 0,
+        cat:values.cat || existing?.cat || 'Insumo'
+      });
+      renderEntryItems();
+      showToast(`✓ Item ${sku} adicionado à entrada`);
+    }
   });
-  renderEntryItems();
 }
 
 function openImportFile() {
@@ -1459,6 +1915,7 @@ function msGo(id, scan) {
     const pedNum = document.getElementById('fi-id')?.value || ('LT-' + (4900 + cargos.length));
     const empresa = document.getElementById('fi-emp')?.value || 'Fornecedor';
     const tipo = document.querySelector('#ms4 select')?.value || 'Compra de fornecedor';
+    const nowLabel = new Date().toLocaleString('pt-BR');
     entryDraftItems.forEach(item => {
       const existing = db.products.find(p => p.id === item.id);
       if (existing) {
@@ -1475,6 +1932,16 @@ function msGo(id, scan) {
           location:'A definir', dailyUse:0
         });
       }
+      db.movements.unshift({
+        type:'entrada_lote',
+        item:item.name,
+        sku:item.id,
+        qty:Number(item.qty || 0),
+        lote:item.lote || 'sem lote',
+        date:nowLabel,
+        ref:pedNum,
+        note:`${tipo} · ${empresa}`
+      });
     });
     const newCargo = {
       id: pedNum,
@@ -1681,14 +2148,28 @@ function resetScanSession() {
 
 function exportScanSession() {
   const total = Object.values(scanCounts).reduce((a,b)=>a+b,0);
+  const nowLabel = new Date().toLocaleString('pt-BR');
   // Atualiza estoque real e mapa do armazém
   Object.entries(scanCounts).forEach(([skuId, qty]) => {
     const p = db.products.find(x => x.id === skuId);
     if (p) {
       p.qty += qty;
+      db.movements.unshift({
+        type:'entrada_scan',
+        item:p.name,
+        sku:p.id,
+        qty,
+        lote:p.lote || 'sem lote',
+        date:nowLabel,
+        ref:'Bipador',
+        note:'Contagem confirmada pelo painel de leitura'
+      });
     } else {
       const cat = IV_CATALOG.find(x => x.id === skuId);
-      if (cat) db.products.push({id:skuId, name:cat.name, cat:cat.cat, qty, min:5, price:0});
+      if (cat) {
+        db.products.push({id:skuId, name:cat.name, cat:cat.cat, qty, min:5, price:0});
+        db.movements.unshift({type:'entrada_scan', item:cat.name, sku:skuId, qty, lote:'sem lote', date:nowLabel, ref:'Bipador', note:'SKU criado via leitura'});
+      }
     }
     // Sincroniza quantidade na(s) posição(ões) mapeada(s) para este SKU
     Object.entries(positionProducts).forEach(([cellId, prod]) => {
