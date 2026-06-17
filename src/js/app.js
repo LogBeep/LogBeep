@@ -3,12 +3,12 @@ function cloneData(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-const db = cloneData(window.FAST_DEMO_DB || { products: [], suppliers: [], recipes: [], losses: [], movements: [] });
+var db = cloneData(window.FAST_DEMO_DB || { products: [], suppliers: [], recipes: [], losses: [], movements: [] });
 
 
 
 // ── CATALOG ──
-const IV_CATALOG = [];
+var IV_CATALOG = [];
 
 // sincroniza IV_CATALOG com db.products (usados em outros módulos)
 function syncCatalog() {
@@ -16,9 +16,9 @@ function syncCatalog() {
   db.products.forEach(p => IV_CATALOG.push({id:p.id, name:p.name, cat:p.cat}));
 }
 
-const cargos = cloneData(window.FAST_DEMO_CARGOS || []);
+var cargos = cloneData(window.FAST_DEMO_CARGOS || []);
 
-const stepLabels = ['Coleta','Triagem','Rota','Entrega'];
+var stepLabels = ['Coleta','Triagem','Rota','Entrega'];
 
 function buildTimeline(done, active) {
   return stepLabels.map((label, i) => {
@@ -582,14 +582,14 @@ function openStockModal() {
     subtitle:'Visão rápida dos insumos, lotes e produtos acabados.',
     submitLabel:'Abrir estoque',
     fields:[
-      {name:'overview', label:'Indicadores', type:'textarea', value:[
+      {name:'overview', label:'📦 Visão geral', type:'textarea', value:[
         `SKUs/lotes ativos: ${db.products.length}`,
         `Abaixo do mínimo: ${critical.length}`,
         `Vencem em até 7 dias: ${expiring.length}`,
         `Valor estimado em estoque: R$ ${totalValue.toLocaleString('pt-BR',{minimumFractionDigits:2})}`
       ].join('\n')},
-      {name:'critical', label:'Reposição recomendada', type:'textarea', value:critical.map(p => `${p.id} · ${p.name}: ${formatQty(p)} / mínimo ${p.min} ${p.unit || 'un'}`).join('\n') || 'Nenhum item abaixo do mínimo.'},
-      {name:'expiry', label:'Validade / FEFO', type:'textarea', value:expiring.map(p => `${p.lote || 'sem lote'} · ${p.name}: ${p.days} dia(s)`).join('\n') || 'Nenhum lote vencendo em até 7 dias.'}
+      {name:'critical', label:'⚠️ Insumos críticos', type:'textarea', value:critical.map(p => `${p.id} · ${p.name}: ${formatQty(p)} / mínimo ${p.min} ${p.unit || 'un'}`).join('\n') || 'Nenhum item abaixo do mínimo.'},
+      {name:'expiry', label:'⏳ Vencem em 7 dias', type:'textarea', value:expiring.map(p => `${p.lote || 'sem lote'} · ${p.name}: ${p.days} dia(s)`).join('\n') || 'Nenhum lote vencendo em até 7 dias.'}
     ],
     onSubmit(){ navToStr('estoque'); }
   });
@@ -991,8 +991,8 @@ function openNotificationsModal() {
 }
 
 // ── LOCAL PERSISTENCE ──
-const STORAGE_KEY = window.FAST_API?.STORAGE_KEY || 'fast-padaria-state-v1';
-let isHydratingState = true;
+var STORAGE_KEY = window.FAST_API?.STORAGE_KEY || 'fast-padaria-state-v1';
+var isHydratingState = true;
 
 function loadState() {
   try {
@@ -1035,7 +1035,7 @@ isHydratingState = false;
 renderAll();
 
 // ── NAV ──
-const pageTitles = {
+var pageTitles = {
   dashboard: ['Dashboard', 'Estoque, validade e produção da padaria'],
   pedidos: ['Produção', 'Ordens, fornadas e encomendas'],
   estoque: ['Estoque', 'Insumos, lotes e validade'],
@@ -1047,25 +1047,25 @@ const pageTitles = {
 };
 
 // ── HEATMAP MODULE ──
-const IV_LEVELS  = 5;
-const IV_RACKS   = 20;
-const IV_MAX_CAP = 800;
-let ivCurrentRua   = '1';
-let ivCurrentNivel = 'all';
+var IV_LEVELS  = 5;
+var IV_RACKS   = 20;
+var IV_MAX_CAP = 800;
+var ivCurrentRua   = '1';
+var ivCurrentNivel = 'all';
 // allRuasData guarda os dados de todas as ruas (não regenera ao trocar)
-const allRuasData = {};
+var allRuasData = {};
 function ivGetRuaData(rua) {
   if (!allRuasData[rua]) allRuasData[rua] = ivSeed(rua);
   return allRuasData[rua];
 }
-let ivMatrixData = ivGetRuaData('1');
+var ivMatrixData = ivGetRuaData('1');
 // positionProducts[cellId] = { id, name }
-let positionProducts = {};
+var positionProducts = {};
 // activeTab
-let ivActiveTab = 'mapa';
+var ivActiveTab = 'mapa';
 // cell modal state
-let cmCurrentCell = null;
-let cmSelectedProduct = null;
+var cmCurrentCell = null;
+var cmSelectedProduct = null;
 
 // Atualiza qty de uma célula pelo cellId (ex: "R1-N2-P5")
 function ivSetCellQty(cellId, qty) {
@@ -1435,8 +1435,8 @@ function ivInit() {
 }
 
 
-let currentPage = 'dashboard';
-let currentDrawerCargoId = null;
+var currentPage = 'dashboard';
+var currentDrawerCargoId = null;
 
 function navTo(pageId, sidebarEl, tbId) {
   // pages
@@ -1683,8 +1683,8 @@ function switchDTab(id, el) {
 }
 
 // ── QR MODAL ──
-let fromScan = true;
-let entryDraftItems = [
+var fromScan = true;
+var entryDraftItems = [
   {id:'FAR-25KG', name:'Farinha de Trigo 25kg', qty:2, lote:'LT-FAR-0626-A', validade:'2026-07-12', unit:'sacos', price:92.50, cat:'Matéria-prima'},
   {id:'FER-BIO-500', name:'Fermento biológico fresco 500g', qty:2, lote:'LT-FER-0626-C', validade:'2026-06-14', unit:'un', price:11.90, cat:'Matéria-prima'},
   {id:'EMB-PF-1000', name:'Embalagem pão francês 1000un', qty:1, lote:'LT-EMB-0605-A', validade:'2027-01-30', unit:'fardos', price:42.00, cat:'Embalagem'}
@@ -1823,10 +1823,10 @@ function handleModalClick(e) {
   if (e.target === document.getElementById('modal-overlay')) closeQR();
 }
 
-let qrStream = null;
-let qrScanTimer = null;
-let qrDetector = null;
-let qrDetectorReady = false;
+var qrStream = null;
+var qrScanTimer = null;
+var qrDetector = null;
+var qrDetectorReady = false;
 
 async function startCameraScanner() {
   const video = document.getElementById('qr-video');
@@ -1993,7 +1993,7 @@ function msGoLoading() {
 }
 
 // ── TOAST ──
-let toastTimer;
+var toastTimer;
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -2012,7 +2012,7 @@ document.addEventListener('click', function(e) {
 });
 
 // ── SCAN SESSION STATE ──
-const scanCounts = {}; // { skuId: count }
+var scanCounts = {}; // { skuId: count }
 
 function processScannedCode(code) {
   const exactMatch = IV_CATALOG.find(p => p.id.toLowerCase() === String(code).toLowerCase());
@@ -2393,7 +2393,7 @@ function saveNewProductFromScan() {
 }
 
 // Animações auxiliares
-const scanStyle = document.createElement('style');
+var scanStyle = document.createElement('style');
 scanStyle.textContent = `
   @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
   @keyframes slideDown { from{transform:translateY(0);opacity:1} to{transform:translateY(20px);opacity:0} }
