@@ -653,6 +653,7 @@ function commandActions() {
     {type:'Ações rápidas', label:'Gerar sugestão de compra', desc:'Reposição de ovos, fermento e margarina', icon:'IA', action:() => showToast('Sugestão IA: comprar ovos, fermento e margarina hoje')},
     {type:'Ações rápidas', label:'Abrir auditoria', desc:'Histórico de entradas, saídas, perdas e ajustes', icon:'A', action:() => navToStr('auditoria')},
     {type:'Ações rápidas', label:'Exportar movimentações CSV', desc:'Baixar histórico operacional para planilha', icon:'CSV', action:() => exportMovementsCsv()},
+    {type:'Ações rápidas', label:'Sincronizar Supabase agora', desc:'Enviar dados locais para o backend configurado', icon:'DB', action:() => syncSupabaseNow()},
     {type:'Ações rápidas', label:'Resetar dados locais', desc:'Limpar localStorage e voltar ao demo inicial após recarregar', icon:'↺', action:() => resetLocalData()},
     {type:'Produção', label:'Abrir produção', desc:'Ordens, fornadas e encomendas do dia', icon:'↗', action:() => navToStr('pedidos')},
     {type:'Estoque', label:'Abrir estoque FEFO', desc:'Insumos, lotes, validade e mínimos', icon:'▦', action:() => navToStr('estoque')},
@@ -1029,10 +1030,41 @@ function resetLocalData() {
   showToast('Dados locais limpos. Recarregue a página para voltar ao demo inicial.');
 }
 
+async function bootstrapRemoteState() {
+  if (!window.FAST_API?.hasSupabaseConfig?.() || !window.FAST_API?.isSupabaseSource?.()) return;
+  try {
+    const state = await window.FAST_API.loadRemoteState();
+    if (!state) return;
+    isHydratingState = true;
+    loadState();
+    isHydratingState = false;
+    renderAll();
+    showToast('Supabase conectado: dados remotos carregados.');
+  } catch (error) {
+    isHydratingState = false;
+    console.warn('Não foi possível carregar dados remotos do Supabase', error);
+    showToast('⚠️ Supabase indisponível. Usando dados locais.');
+  }
+}
+
+function syncSupabaseNow() {
+  if (!window.FAST_API?.hasSupabaseConfig?.()) {
+    showToast('Configure o Supabase em src/js/config.js antes de sincronizar.');
+    return;
+  }
+  window.FAST_API.syncNow()
+    .then(() => showToast('Sincronização Supabase concluída.'))
+    .catch(error => {
+      console.warn('Falha ao sincronizar Supabase', error);
+      showToast('⚠️ Falha ao sincronizar com Supabase.');
+    });
+}
+
 // ── INIT ──
 loadState();
 isHydratingState = false;
 renderAll();
+bootstrapRemoteState();
 
 // ── NAV ──
 var pageTitles = {
