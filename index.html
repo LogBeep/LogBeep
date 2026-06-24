@@ -115,6 +115,9 @@
         <button type="button" class="cmd-shortcut" onclick="openCommandPalette(document.getElementById('global-search').value)"><span>Ctrl</span><span>K</span></button>
       </div>
       <div class="header-right">
+        <button class="sync-status-pill" id="supabase-status" onclick="openConnectionModal()" type="button">Local</button>
+        <button class="btn-secondary header-sync" onclick="syncSupabaseNow()" type="button">Sincronizar agora</button>
+        <button class="btn-secondary header-login" id="session-button" onclick="openLoginModal()" type="button">Entrar</button>
         <button class="header-icon" onclick="openNotificationsModal()" aria-label="Notificações">
           <svg viewBox="0 0 16 16"><path d="M4 6a4 4 0 018 0c0 4 1.5 4.5 1.5 4.5h-11S4 10 4 6"/><path d="M6.5 13a1.8 1.8 0 003 0" stroke-linecap="round"/></svg>
           <span>3</span>

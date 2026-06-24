@@ -43,12 +43,21 @@ Depois de configurar o Supabase:
 2. Confira se a linha aparece em `products` e `stock_movements` no Supabase.
 3. Registre uma produção e confira se aparecem registros em `production_orders` e `stock_movements`.
 4. Registre uma perda/descarte e confira `losses`.
-5. Use a command palette (`Ctrl/Cmd+K`) e execute **Sincronizar Supabase agora** para reenviar o estado local.
+5. Use o botão visível **Sincronizar agora** ou a command palette (`Ctrl/Cmd+K`) e execute **Sincronizar Supabase agora** para reenviar o estado local.
+6. Confirme se o status no header muda para Supabase conectado ou erro de conexão.
 
 ## Login, usuários e RLS
 
-O schema já inclui a base para `companies`, `profiles` e `company_members`, além de políticas iniciais de leitura para usuário autenticado. As tabelas operacionais possuem `company_id`, mas a RLS operacional deve ser endurecida antes de produção para filtrar cada leitura/escrita pela empresa do usuário.
+O schema inclui `companies`, `profiles` e `company_members`, policies iniciais de usuário autenticado e RLS operacional por `company_id`. No front, quando `DATA_SOURCE: 'supabase'`, ações críticas pedem login e a primeira sessão pode criar o vínculo local da padaria para gravar `company_id` nos dados sincronizados.
 
 ## Observação de segurança
 
-O schema é uma base inicial para desenvolvimento. Antes de produção real, revise as policies, habilite RLS nas tabelas operacionais, adicione onboarding de empresa/usuário e valide permissões por perfil.
+O schema é uma base inicial para desenvolvimento. Antes de produção real, revise as policies, teste dois usuários/duas empresas, valide convites/onboarding e ajuste permissões por perfil.
+
+## Segurança de estoque e auditoria
+
+O fluxo seguro de estoque deve usar movimentações auditáveis em vez de alteração direta de `products.qty`. No banco, `stock_movements` é append-only por trigger e `products.qty` deve ser alterado via função `apply_stock_movement`, que registra saldo antes, alteração, saldo depois, usuário, empresa, motivo e data. Consulte `SECURITY_TESTS.md` para o checklist manual de validação.
+
+### Reforços adicionais de segurança
+
+A exportação CSV agora exige sessão em modo Supabase e tenta registrar evento `export_csv`. Importações CSV/XML possuem limite de tamanho, extensão e quantidade de linhas, além de evento `import_file`. A tabela `stock_movements` não deve aceitar insert direto do cliente; use a RPC `apply_stock_movement`, que valida empresa, papel e saldo.

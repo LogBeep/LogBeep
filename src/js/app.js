@@ -133,6 +133,52 @@ function stockStatus(p) {
   return {label:'Normal', bg:'var(--success-bg)', color:'var(--success)', cls:'stock-ok'};
 }
 
+
+function currentCompanyId() {
+  return window.FAST_API?.getCompany?.()?.id || window.FAST_CONFIG?.COMPANY_ID || null;
+}
+
+function currentUserId() {
+  const session = window.FAST_API?.getSession?.();
+  return session?.user?.id || session?.user?.email || 'local-demo-user';
+}
+
+function appendAuditMovement(product, actionType, quantityChanged, reason, extra={}) {
+  const before = Number(product?.qty || 0);
+  const delta = Number(quantityChanged || 0);
+  const after = Number((before + delta).toFixed(3));
+  if (!extra.allowNegative && after < 0) {
+    throw new Error(`Saldo insuficiente para ${product?.name || product?.id || 'produto'}: ${before} disponível, alteração ${delta}`);
+  }
+  const movement = {
+    id: extra.id || `MOV-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    product_id: product.id,
+    company_id: currentCompanyId(),
+    user_id: currentUserId(),
+    action_type: actionType,
+    type: actionType,
+    item: product.name,
+    sku: product.id,
+    qty: delta,
+    quantity_before: before,
+    quantity_changed: delta,
+    quantity_after: after,
+    lote: extra.lote || product.lote || 'sem lote',
+    lot_code: extra.lote || product.lote || 'sem lote',
+    date: extra.date || new Date().toLocaleString('pt-BR'),
+    created_at: new Date().toISOString(),
+    ref: extra.ref || '',
+    reason: reason || extra.reason || actionType,
+    note: extra.note || reason || ''
+  };
+  product.qty = after;
+  db.movements.unshift(movement);
+  if (isSupabaseMode() && hasRemoteSession() && window.FAST_API?.applyRemoteStockMovement) {
+    window.FAST_API.applyRemoteStockMovement(movement).catch(error => console.warn('Movimentação remota não aplicada via RPC', error));
+  }
+  return movement;
+}
+
 function formatQty(p) {
   return `${p.qty.toLocaleString('pt-BR')} ${p.unit || 'un'}`;
 }
@@ -145,11 +191,11 @@ function stockRowHtml(p, editable) {
          title="Clique para editar" onclick="editQty('${p.id}',${p.qty})">${formatQty(p)}</div>`
     : `<div class="stock-num ${s.cls}">${formatQty(p)}</div>`;
   return `<div class="stock-row stock-row-rich">
-    <div><div class="stock-name">${p.name}</div><div class="stock-sku">${p.id} · ${p.lote || 'sem lote'}</div></div>
-    <div class="stock-cat">${p.cat}</div>
+    <div><div class="stock-name">${escapeHtml(p.name)}</div><div class="stock-sku">${escapeHtml(p.id)} · ${escapeHtml(p.lote || 'sem lote')}</div></div>
+    <div class="stock-cat">${escapeHtml(p.cat)}</div>
     ${qtyEl}
-    <div class="stock-num">${p.min.toLocaleString('pt-BR')} ${p.unit || 'un'}</div>
-    <div style="text-align:right;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap"><span class="pill" style="background:${s.bg};color:${s.color}">${s.label}</span><span class="pill" style="background:${ex.bg};color:${ex.color}">${ex.label}</span></div>
+    <div class="stock-num">${p.min.toLocaleString('pt-BR')} ${escapeHtml(p.unit || 'un')}</div>
+    <div style="text-align:right;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap"><span class="pill" style="background:${s.bg};color:${s.color}">${escapeHtml(s.label)}</span><span class="pill" style="background:${ex.bg};color:${ex.color}">${escapeHtml(ex.label)}</span></div>
   </div>`;
 }
 
@@ -304,6 +350,7 @@ function closeFlowModal() {
 
 // ── EDIT QTY INLINE ──
 function editQty(skuId, current) {
+  if (!requireRemoteSession('ajustar estoque')) return;
   const p = db.products.find(x => x.id === skuId);
   if (!p) return;
   openFlowModal({
@@ -316,24 +363,52 @@ function editQty(skuId, current) {
       {name:'note', label:'Observação', type:'textarea', placeholder:'Ex.: conferido no estoque seco'}
     ],
     onSubmit(values) {
-      const n = parseInt(values.qty);
-      if (isNaN(n) || n < 0) { showToast('⚠️ Quantidade inválida'); return false; }
-      const delta = n - p.qty;
-      p.qty = n;
-      db.movements.unshift({
-        type:'ajuste',
-        item:p.name,
-        sku:p.id,
-        qty:delta,
-        lote:p.lote || 'sem lote',
-        date:new Date().toLocaleString('pt-BR'),
-        ref:values.reason || 'Ajuste manual',
-        note:values.note || ''
-      });
+      const n = Number(values.qty);
+      if (!Number.isFinite(n) || n < 0) { showToast('⚠️ Quantidade inválida'); return false; }
+      const delta = Number((n - p.qty).toFixed(3));
+      try {
+        appendAuditMovement(p, 'ajuste_manual', delta, values.reason || 'Ajuste manual', {note:values.note || ''});
+      } catch (error) { showToast(`⚠️ ${error.message}`); return false; }
       renderAll();
       showToast(`✓ ${p.name}: ${n} ${p.unit || 'un'} · ${values.reason}`);
     }
   });
+}
+
+
+function isSupabaseMode() {
+  return !!window.FAST_API?.hasSupabaseConfig?.() && !!window.FAST_API?.isSupabaseSource?.();
+}
+
+function hasRemoteSession() {
+  return !!window.FAST_API?.getSession?.();
+}
+
+function renderConnectionStatus(state='idle') {
+  const status = document.getElementById('supabase-status');
+  const sessionBtn = document.getElementById('session-button');
+  const configured = !!window.FAST_API?.hasSupabaseConfig?.();
+  const remote = !!window.FAST_API?.isSupabaseSource?.();
+  const session = window.FAST_API?.getSession?.();
+  const company = window.FAST_API?.getCompany?.();
+  if (status) {
+    status.classList.remove('online','syncing','error');
+    if (!configured) status.textContent = 'Local';
+    else if (state === 'syncing') { status.textContent = 'Sincronizando'; status.classList.add('syncing'); }
+    else if (state === 'error') { status.textContent = 'Erro Supabase'; status.classList.add('error'); }
+    else { status.textContent = remote ? `Supabase${company?.name ? ' · ' + company.name : ''}` : 'Supabase pronto'; status.classList.add('online'); }
+  }
+  if (sessionBtn) {
+    sessionBtn.textContent = session?.user?.email ? session.user.email.split('@')[0] : (session?.email || (configured ? 'Entrar' : 'Entrar'));
+    sessionBtn.classList.toggle('session-locked', configured && !session);
+  }
+}
+
+function requireRemoteSession(actionLabel='esta ação') {
+  if (!isSupabaseMode()) return true;
+  if (hasRemoteSession()) return true;
+  openLoginModal(`Entre para executar ${actionLabel} com Supabase ativo.`);
+  return false;
 }
 
 // ── RENDER ALL (atualiza tudo de uma vez) ──
@@ -351,6 +426,7 @@ function renderAll() {
   renderLosses();
   renderAudit(document.getElementById('audit-search')?.value || '');
   syncCatalog();
+  renderConnectionStatus();
   // atualiza badge da sidebar
   const badge = document.querySelector('.nav-item[data-page="pedidos"] .nav-badge');
   if (badge) badge.textContent = cargos.filter(c=>c.status!=='delivered').length;
@@ -452,6 +528,7 @@ function calculateProductionPlan(recipeId, amount) {
 }
 
 function openProductionForm(defaultRecipeId='REC-PF') {
+  if (!requireRemoteSession('registrar produção')) return;
   openFlowModal({
     title:'Registrar produção',
     subtitle:'Baixe insumos por receita, aplique FEFO e gere automaticamente o lote acabado.',
@@ -481,19 +558,11 @@ function openProductionForm(defaultRecipeId='REC-PF') {
       const opId = `OP-${new Date().getFullYear()}-${String(cargos.length + 129).padStart(5,'0')}`;
       const cost = plan.items.reduce((sum, item) => sum + item.required * (item.product?.price || 0), 0);
 
-      plan.items.forEach(item => {
-        item.product.qty = Number((item.product.qty - item.required).toFixed(3));
-        db.movements.unshift({
-          type:'saida_producao',
-          item:item.product.name,
-          sku:item.product.id,
-          qty:item.required,
-          lote:item.product.lote || 'sem lote',
-          date:nowLabel,
-          ref:opId,
-          note:`Consumo para ${plan.recipe.name}`
+      try {
+        plan.items.forEach(item => {
+          appendAuditMovement(item.product, 'saida_producao', -Math.abs(item.required), `Consumo para ${plan.recipe.name}`, {ref:opId, date:nowLabel});
         });
-      });
+      } catch (error) { showToast(`⚠️ ${error.message}`); return false; }
 
       const finishedSku = 'PRD-' + plan.recipe.id.replace(/^REC-/, '');
       let finished = db.products.find(p => p.name.toLowerCase() === plan.recipe.name.toLowerCase() && p.cat === 'Produto acabado');
@@ -515,22 +584,11 @@ function openProductionForm(defaultRecipeId='REC-PF') {
         };
         db.products.push(finished);
       }
-      finished.qty = Number((finished.qty + amount).toFixed(3));
+      appendAuditMovement(finished, 'entrada_producao', amount, values.note || `Produção ${values.shift}`, {ref:opId, lote:lotCode, date:nowLabel});
       finished.lote = lotCode;
       finished.validade = validity;
       finished.fornecedor = 'Produção própria';
       finished.price = Number((cost / amount).toFixed(2)) || finished.price;
-
-      db.movements.unshift({
-        type:'entrada_producao',
-        item:finished.name,
-        sku:finished.id,
-        qty:amount,
-        lote:lotCode,
-        date:nowLabel,
-        ref:opId,
-        note:values.note || `Produção ${values.shift}`
-      });
 
       cargos.unshift({
         id:opId,
@@ -672,8 +730,9 @@ function renderCommandResults(q) {
   if (!list.length) { el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:12px">Nenhum resultado encontrado</div>'; return; }
   let currentGroup = '';
   el.innerHTML = list.map((item, idx) => {
-    const group = item.type !== currentGroup ? (currentGroup = item.type, `<div class="cmd-group-label">${item.type}</div>`) : '';
-    return `${group}<div class="cmd-item" onclick="runCommandAction(${idx})"><div class="cmd-item-ico">${item.icon.length > 1 ? item.icon : `<span>${item.icon}</span>`}</div><div class="cmd-item-copy"><strong>${item.label}</strong><span>${item.desc}</span></div><div class="cmd-kbd">Enter</div></div>`;
+    const group = item.type !== currentGroup ? (currentGroup = item.type, `<div class="cmd-group-label">${escapeHtml(item.type)}</div>`) : '';
+    const icon = escapeHtml(item.icon);
+    return `${group}<div class="cmd-item" onclick="runCommandAction(${idx})"><div class="cmd-item-ico">${icon.length > 1 ? icon : `<span>${icon}</span>`}</div><div class="cmd-item-copy"><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.desc)}</span></div><div class="cmd-kbd">Enter</div></div>`;
   }).join('');
   window.__cmdList = list;
 }
@@ -771,6 +830,7 @@ function renderLosses() {
 }
 
 function openLossForm() {
+  if (!requireRemoteSession('registrar perda/descarte')) return;
   openFlowModal({
     title:'Registrar perda/descarte',
     subtitle:'Informe o lote, motivo e quantidade para alimentar os indicadores de desperdício.',
@@ -798,17 +858,9 @@ function openLossForm() {
         note:values.note || ''
       };
       db.losses.unshift(loss);
-      p.qty = Math.max(0, p.qty - qty);
-      db.movements.unshift({
-        type:'perda',
-        item:p.name,
-        sku:p.id,
-        qty,
-        lote:p.lote || 'sem lote',
-        date:new Date().toLocaleString('pt-BR'),
-        ref:values.reason || 'Perda operacional',
-        note:values.note || ''
-      });
+      try {
+        appendAuditMovement(p, 'perda', -Math.abs(qty), values.reason || 'Perda operacional', {note:values.note || ''});
+      } catch (error) { showToast(`⚠️ ${error.message}`); return false; }
       renderAll();
       navToStr('perdas');
       showToast(`✅ Perda registrada: ${qty} ${p.unit || 'un'} de ${p.name}`);
@@ -892,11 +944,11 @@ function renderAudit(q='') {
         const isNegative = ['perda','saida_producao'].includes(m.type) || Number(m.qty) < 0;
         const color = isNegative ? 'var(--danger)' : 'var(--success)';
         return `<div class="stock-row audit-row">
-          <div><div class="stock-name">${m.date || '—'}</div><div class="stock-sku">${movementTypeLabel(m.type)}</div></div>
-          <div><div class="stock-name">${m.item || '—'}</div><div class="stock-sku">${m.sku || '—'}</div></div>
+          <div><div class="stock-name">${escapeHtml(m.date || '—')}</div><div class="stock-sku">${escapeHtml(movementTypeLabel(m.type))}</div></div>
+          <div><div class="stock-name">${escapeHtml(m.item || '—')}</div><div class="stock-sku">${escapeHtml(m.sku || '—')}</div></div>
           <div class="stock-num" style="color:${color}">${Number(m.qty || 0).toLocaleString('pt-BR')}</div>
-          <div class="stock-cat">${m.lote || '—'}</div>
-          <div><div class="stock-name">${m.ref || '—'}</div><div class="stock-sku">${m.note || ''}</div></div>
+          <div class="stock-cat">${escapeHtml(m.lote || '—')}</div>
+          <div><div class="stock-name">${escapeHtml(m.ref || '—')}</div><div class="stock-sku">${escapeHtml(m.note || '')}</div></div>
         </div>`;
       }).join('') || '<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhuma movimentação encontrada</div>';
   }
@@ -904,7 +956,8 @@ function renderAudit(q='') {
 
 function csvEscape(value) {
   const str = String(value ?? '');
-  return /[",;\n]/.test(str) ? `"${str.replace(/"/g,'""')}"` : str;
+  const safe = /^[=+\-@]/.test(str) ? `'${str}` : str;
+  return /[",;\n]/.test(safe) ? `"${safe.replace(/"/g,'""')}"` : safe;
 }
 
 function downloadFile(filename, content, type='text/plain;charset=utf-8') {
@@ -920,10 +973,13 @@ function downloadFile(filename, content, type='text/plain;charset=utf-8') {
 }
 
 function exportMovementsCsv() {
-  const rows = [['data','tipo','produto','sku','quantidade','lote','referencia','observacao']]
-    .concat((db.movements || []).map(m => [m.date, movementTypeLabel(m.type), m.item, m.sku, m.qty, m.lote, m.ref, m.note]));
+  if (!requireRemoteSession('exportar relatório de auditoria')) return;
+  const rows = [['data','tipo','produto','sku','quantidade','saldo_antes','alteracao','saldo_depois','lote','referencia','motivo','observacao']]
+    .concat((db.movements || []).map(m => [m.date, movementTypeLabel(m.type), m.item, m.sku, m.qty, m.quantity_before, m.quantity_changed, m.quantity_after, m.lote, m.ref, m.reason, m.note]));
   const csv = rows.map(row => row.map(csvEscape).join(';')).join('\n');
   downloadFile(`fast-movimentacoes-${new Date().toISOString().slice(0,10)}.csv`, csv, 'text/csv;charset=utf-8');
+  window.FAST_API?.logSecurityEvent?.({event_type:'export_csv', resource_type:'stock_movements', result:'success', reason:'Exportação CSV de auditoria', payload:{rows:Math.max(0, rows.length - 1)}})
+    .catch(error => console.warn('Evento de exportação não auditado remotamente', error));
   showToast('✅ Movimentações exportadas em CSV');
 }
 
@@ -961,6 +1017,74 @@ function openProfileModal() {
   });
 }
 
+
+function openConnectionModal() {
+  const configured = window.FAST_API?.hasSupabaseConfig?.();
+  const source = window.FAST_API?.isSupabaseSource?.() ? 'Supabase como fonte principal' : 'Local/offline';
+  const company = window.FAST_API?.getCompany?.();
+  const session = window.FAST_API?.getSession?.();
+  openFlowModal({
+    title:'Conexão e persistência',
+    subtitle:'Status atual do backend e da sincronização.',
+    submitLabel:'Sincronizar agora',
+    fields:[
+      {name:'status', label:'Modo atual', value:configured ? source : 'Local · Supabase não configurado'},
+      {name:'company', label:'Padaria / empresa', value:company?.name || 'Não configurada'},
+      {name:'session', label:'Sessão', value:session?.user?.email || session?.email || 'Sem login'},
+      {name:'guide', label:'Validação real', type:'textarea', value:'1. Configure Supabase em src/js/config.js.\n2. Rode supabase/schema.sql.\n3. Entre com usuário Supabase.\n4. Registre entrada, produção e perda.\n5. Confira products, production_orders, losses e stock_movements.'}
+    ],
+    onSubmit(){ syncSupabaseNow(); }
+  });
+}
+
+function openLoginModal(message='Entre para sincronizar e gravar dados remotos com segurança.') {
+  const session = window.FAST_API?.getSession?.();
+  if (session) {
+    openFlowModal({
+      title:'Sessão Supabase',
+      subtitle:'Usuário conectado ao backend.',
+      submitLabel:'Sair',
+      fields:[{name:'email', label:'Usuário', value:session.user?.email || session.email || 'sessão ativa'}],
+      onSubmit(){
+        window.FAST_API.signOut().then(() => { renderConnectionStatus(); showToast('Sessão encerrada.'); });
+      }
+    });
+    return;
+  }
+  openFlowModal({
+    title:'Entrar no Supabase',
+    subtitle:message,
+    submitLabel:'Entrar',
+    fields:[
+      {name:'email', label:'E-mail', type:'email', required:true, placeholder:'operador@padaria.com'},
+      {name:'password', label:'Senha', type:'password', required:true, placeholder:'••••••••'}
+    ],
+    onSubmit(values) {
+      if (!window.FAST_API?.hasSupabaseConfig?.()) { showToast('Configure o Supabase antes de entrar.'); return false; }
+      window.FAST_API.signIn(values.email, values.password)
+        .then(() => { renderConnectionStatus(); bootstrapRemoteState(); setTimeout(openCompanyOnboardingModal, 180); showToast('✅ Login Supabase realizado.'); })
+        .catch(error => { console.warn('Falha no login Supabase', error); showToast('⚠️ Não foi possível entrar no Supabase.'); });
+    }
+  });
+}
+
+function openCompanyOnboardingModal() {
+  if (!isSupabaseMode() || !hasRemoteSession() || window.FAST_API?.getCompany?.()) return;
+  openFlowModal({
+    title:'Configurar padaria',
+    subtitle:'Crie o vínculo de empresa para isolar dados por company_id.',
+    submitLabel:'Criar empresa local',
+    fields:[{name:'name', label:'Nome da padaria', value:'Padaria Três Irmãos', required:true}],
+    onSubmit(values) {
+      const company = window.FAST_API.createLocalCompany(values.name);
+      remoteStateReady = true;
+      window.FAST_API.ensureCompany?.().then(() => syncSupabaseNow()).catch(error => console.warn('Empresa ainda não sincronizada', error));
+      renderConnectionStatus();
+      showToast(`Empresa configurada: ${company.name}`);
+    }
+  });
+}
+
 function openSettingsModal() {
   openFlowModal({
     title:'Configurações',
@@ -994,6 +1118,7 @@ function openNotificationsModal() {
 // ── LOCAL PERSISTENCE ──
 var STORAGE_KEY = window.FAST_API?.STORAGE_KEY || 'fast-padaria-state-v1';
 var isHydratingState = true;
+var remoteStateReady = false;
 
 function loadState() {
   try {
@@ -1016,6 +1141,7 @@ function loadState() {
 
 function saveState() {
   if (isHydratingState) return;
+  if (isSupabaseMode() && !remoteStateReady) return;
   try {
     const state = {db, cargos};
     if (window.FAST_API) window.FAST_API.writeState(state);
@@ -1032,30 +1158,52 @@ function resetLocalData() {
 
 async function bootstrapRemoteState() {
   if (!window.FAST_API?.hasSupabaseConfig?.() || !window.FAST_API?.isSupabaseSource?.()) return;
+  if (!hasRemoteSession()) {
+    renderConnectionStatus();
+    openLoginModal('Entre para carregar o Supabase como fonte principal.');
+    return;
+  }
+  if (!window.FAST_API?.getCompany?.()) {
+    renderConnectionStatus();
+    openCompanyOnboardingModal();
+    return;
+  }
   try {
     const state = await window.FAST_API.loadRemoteState();
     if (!state) return;
     isHydratingState = true;
     loadState();
     isHydratingState = false;
+    remoteStateReady = true;
     renderAll();
     showToast('Supabase conectado: dados remotos carregados.');
+    setTimeout(openCompanyOnboardingModal, 120);
   } catch (error) {
     isHydratingState = false;
+    remoteStateReady = true;
+    renderAll();
     console.warn('Não foi possível carregar dados remotos do Supabase', error);
     showToast('⚠️ Supabase indisponível. Usando dados locais.');
   }
 }
 
 function syncSupabaseNow() {
+  renderConnectionStatus('syncing');
   if (!window.FAST_API?.hasSupabaseConfig?.()) {
+    renderConnectionStatus();
     showToast('Configure o Supabase em src/js/config.js antes de sincronizar.');
     return;
   }
+  if (isSupabaseMode() && !hasRemoteSession()) {
+    renderConnectionStatus();
+    openLoginModal('Entre antes de sincronizar dados com o Supabase.');
+    return;
+  }
   window.FAST_API.syncNow()
-    .then(() => showToast('Sincronização Supabase concluída.'))
+    .then(() => { renderConnectionStatus(); showToast('Sincronização Supabase concluída.'); })
     .catch(error => {
       console.warn('Falha ao sincronizar Supabase', error);
+      renderConnectionStatus('error');
       showToast('⚠️ Falha ao sincronizar com Supabase.');
     });
 }
@@ -1063,8 +1211,10 @@ function syncSupabaseNow() {
 // ── INIT ──
 loadState();
 isHydratingState = false;
+remoteStateReady = !isSupabaseMode();
 renderAll();
 bootstrapRemoteState();
+setTimeout(openCompanyOnboardingModal, 250);
 
 // ── NAV ──
 var pageTitles = {
@@ -1728,8 +1878,8 @@ function renderEntryItems() {
   el.innerHTML = entryDraftItems.map((it, idx) => `
     <div class="added-item">
       <div class="ai-dot"></div>
-      <div class="ai-label">${it.name} · ${it.id} · ${it.lote || 'sem lote'}${it.validade ? ' · validade ' + it.validade.split('-').reverse().join('/') : ''}</div>
-      <div class="ai-qty">× ${it.qty}</div>
+      <div class="ai-label">${escapeHtml(it.name)} · ${escapeHtml(it.id)} · ${escapeHtml(it.lote || 'sem lote')}${it.validade ? ' · validade ' + escapeHtml(it.validade.split('-').reverse().join('/')) : ''}</div>
+      <div class="ai-qty">× ${escapeHtml(it.qty)}</div>
       <button type="button" onclick="removeEntryItem(${idx})" style="border:none;background:transparent;color:var(--danger);cursor:pointer;font-size:16px;line-height:1">×</button>
     </div>`).join('') || '<div style="padding:10px 0;font-size:12px;color:var(--text-muted)">Nenhum item adicionado ainda.</div>';
 }
@@ -1776,13 +1926,21 @@ function addEntryItemManual() {
   });
 }
 
+const MAX_IMPORT_BYTES = 512 * 1024;
+const MAX_IMPORT_ROWS = 250;
+
+function sanitizeImportValue(value, max=160) {
+  return String(value ?? '').replace(/[<>]/g, '').trim().slice(0, max);
+}
+
 function openImportFile() {
+  if (!requireRemoteSession('importar arquivo de entrada')) return;
   const input = document.getElementById('entry-import-file');
   if (input) input.click();
 }
 
 function parseCsvRows(text) {
-  const lines = text.split(/\r?\n/).filter(Boolean);
+  const lines = text.split(/\r?\n/).filter(Boolean).slice(0, MAX_IMPORT_ROWS + 1);
   if (!lines.length) return [];
   const sep = lines[0].includes(';') ? ';' : ',';
   const headers = lines.shift().split(sep).map(h => h.trim().toLowerCase());
@@ -1791,31 +1949,31 @@ function parseCsvRows(text) {
     const row = {};
     headers.forEach((h,i) => row[h] = cols[i] || '');
     return {
-      id:(row.sku || row.id || row.codigo || row.código || '').toUpperCase(),
-      name:row.nome || row.produto || row.descricao || row['descrição'] || 'Item importado',
-      qty:Number((row.qtd || row.quantidade || row.qty || '1').replace(',','.')) || 1,
-      lote:row.lote || row.batch || '',
-      validade:row.validade || row.vencimento || row.expires || '',
-      unit:row.unidade || row.unit || 'un',
-      price:Number((row.preco || row.preço || row.valor || '0').replace(',','.')) || 0,
-      cat:row.categoria || row.cat || 'Insumo'
+      id:sanitizeImportValue(row.sku || row.id || row.codigo || row.código || '', 64).toUpperCase(),
+      name:sanitizeImportValue(row.nome || row.produto || row.descricao || row['descrição'] || 'Item importado'),
+      qty:Math.max(0, Number((row.qtd || row.quantidade || row.qty || '1').replace(',','.')) || 1),
+      lote:sanitizeImportValue(row.lote || row.batch || '', 80),
+      validade:sanitizeImportValue(row.validade || row.vencimento || row.expires || '', 20),
+      unit:sanitizeImportValue(row.unidade || row.unit || 'un', 24),
+      price:Math.max(0, Number((row.preco || row.preço || row.valor || '0').replace(',','.')) || 0),
+      cat:sanitizeImportValue(row.categoria || row.cat || 'Insumo', 80)
     };
   }).filter(r => r.id);
 }
 
 function parseNfeXml(text) {
   const doc = new DOMParser().parseFromString(text, 'text/xml');
-  return [...doc.querySelectorAll('det')].map((det, idx) => {
+  return [...doc.querySelectorAll('det')].slice(0, MAX_IMPORT_ROWS).map((det, idx) => {
     const get = tag => det.querySelector(tag)?.textContent?.trim() || '';
     const name = get('xProd') || `Item NF-e ${idx + 1}`;
     return {
-      id:(get('cProd') || `NFE-${idx + 1}`).toUpperCase(),
-      name,
-      qty:Number((get('qCom') || '1').replace(',','.')) || 1,
-      lote:get('nLote') || ('NFE-' + Date.now().toString().slice(-6)),
-      validade:get('dVal') || '',
-      unit:get('uCom') || 'un',
-      price:Number((get('vUnCom') || get('vProd') || '0').replace(',','.')) || 0,
+      id:sanitizeImportValue(get('cProd') || `NFE-${idx + 1}`, 64).toUpperCase(),
+      name:sanitizeImportValue(name),
+      qty:Math.max(0, Number((get('qCom') || '1').replace(',','.')) || 1),
+      lote:sanitizeImportValue(get('nLote') || ('NFE-' + Date.now().toString().slice(-6)), 80),
+      validade:sanitizeImportValue(get('dVal') || '', 20),
+      unit:sanitizeImportValue(get('uCom') || 'un', 24),
+      price:Math.max(0, Number((get('vUnCom') || get('vProd') || '0').replace(',','.')) || 0),
       cat:'Importado NF-e'
     };
   });
@@ -1824,6 +1982,8 @@ function parseNfeXml(text) {
 async function handleEntryImport(event) {
   const file = event.target.files?.[0];
   if (!file) return;
+  if (file.size > MAX_IMPORT_BYTES) { showToast('⚠️ Arquivo muito grande para importação segura'); event.target.value = ''; return; }
+  if (!/\.(csv|xml)$/i.test(file.name)) { showToast('⚠️ Formato permitido: CSV ou XML'); event.target.value = ''; return; }
   const text = await file.text();
   const imported = file.name.toLowerCase().endsWith('.xml') ? parseNfeXml(text) : parseCsvRows(text);
   if (!imported.length) { showToast('⚠️ Nenhum item válido encontrado no arquivo'); return; }
@@ -1832,10 +1992,13 @@ async function handleEntryImport(event) {
   msGo('ms4', false);
   renderEntryItems();
   event.target.value = '';
+  window.FAST_API?.logSecurityEvent?.({event_type:'import_file', resource_type:'entry_import', result:'success', reason:'Importação CSV/XML de entrada', payload:{file:file.name, rows:imported.length}})
+    .catch(error => console.warn('Evento de importação não auditado remotamente', error));
   showToast(`✅ ${imported.length} item(ns) importado(s)`);
 }
 
 function openQR() {
+  if (!requireRemoteSession('registrar entrada')) return;
   fromScan = true;
   renderEntryItems();
   msGoTo('ms1');
@@ -1959,30 +2122,22 @@ function msGo(id, scan) {
     const nowLabel = new Date().toLocaleString('pt-BR');
     entryDraftItems.forEach(item => {
       const existing = db.products.find(p => p.id === item.id);
-      if (existing) {
-        existing.qty += Number(item.qty || 0);
-        existing.lote = item.lote || existing.lote;
-        existing.validade = item.validade || existing.validade;
-        existing.fornecedor = empresa;
-        if (item.price) existing.price = item.price;
+      let target = existing;
+      if (target) {
+        target.lote = item.lote || target.lote;
+        target.validade = item.validade || target.validade;
+        target.fornecedor = empresa;
+        if (item.price) target.price = item.price;
       } else {
-        db.products.push({
+        target = {
           id:item.id, name:item.name, cat:item.cat || 'Insumo', type:'Insumo',
-          qty:Number(item.qty || 0), min:5, unit:item.unit || 'un', price:item.price || 0,
+          qty:0, min:5, unit:item.unit || 'un', price:item.price || 0,
           lote:item.lote || 'sem lote', validade:item.validade || '', fornecedor:empresa,
           location:'A definir', dailyUse:0
-        });
+        };
+        db.products.push(target);
       }
-      db.movements.unshift({
-        type:'entrada_lote',
-        item:item.name,
-        sku:item.id,
-        qty:Number(item.qty || 0),
-        lote:item.lote || 'sem lote',
-        date:nowLabel,
-        ref:pedNum,
-        note:`${tipo} · ${empresa}`
-      });
+      appendAuditMovement(target, 'entrada_lote', Number(item.qty || 0), `${tipo} · ${empresa}`, {ref:pedNum, lote:item.lote || 'sem lote', date:nowLabel});
     });
     const newCargo = {
       id: pedNum,
@@ -2194,22 +2349,13 @@ function exportScanSession() {
   Object.entries(scanCounts).forEach(([skuId, qty]) => {
     const p = db.products.find(x => x.id === skuId);
     if (p) {
-      p.qty += qty;
-      db.movements.unshift({
-        type:'entrada_scan',
-        item:p.name,
-        sku:p.id,
-        qty,
-        lote:p.lote || 'sem lote',
-        date:nowLabel,
-        ref:'Bipador',
-        note:'Contagem confirmada pelo painel de leitura'
-      });
+      appendAuditMovement(p, 'entrada_scan', qty, 'Contagem confirmada pelo painel de leitura', {ref:'Bipador', date:nowLabel});
     } else {
       const cat = IV_CATALOG.find(x => x.id === skuId);
       if (cat) {
-        db.products.push({id:skuId, name:cat.name, cat:cat.cat, qty, min:5, price:0});
-        db.movements.unshift({type:'entrada_scan', item:cat.name, sku:skuId, qty, lote:'sem lote', date:nowLabel, ref:'Bipador', note:'SKU criado via leitura'});
+        const created = {id:skuId, name:cat.name, cat:cat.cat, qty:0, min:5, price:0};
+        db.products.push(created);
+        appendAuditMovement(created, 'entrada_scan', qty, 'SKU criado via leitura', {ref:'Bipador', date:nowLabel, lote:'sem lote'});
       }
     }
     // Sincroniza quantidade na(s) posição(ões) mapeada(s) para este SKU

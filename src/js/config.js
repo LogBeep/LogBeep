@@ -9,5 +9,7 @@ window.FAST_CONFIG = window.FAST_CONFIG || {
   SUPABASE_ANON_KEY: '',
   SUPABASE_SCHEMA: 'public',
   SUPABASE_ENABLED: false,
-  DATA_SOURCE: 'local'
+  DATA_SOURCE: 'local',
+  COMPANY_ID: '',
+  COMPANY_NAME: 'Padaria Três Irmãos'
 };
