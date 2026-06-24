@@ -174,7 +174,12 @@ function appendAuditMovement(product, actionType, quantityChanged, reason, extra
   product.qty = after;
   db.movements.unshift(movement);
   if (isSupabaseMode() && hasRemoteSession() && window.FAST_API?.applyRemoteStockMovement) {
-    window.FAST_API.applyRemoteStockMovement(movement).catch(error => console.warn('Movimentação remota não aplicada via RPC', error));
+    const seed = window.FAST_API.ensureRemoteProductSeed
+      ? window.FAST_API.ensureRemoteProductSeed({...product, qty: before}, before)
+      : Promise.resolve();
+    seed
+      .then(() => window.FAST_API.applyRemoteStockMovement(movement))
+      .catch(error => console.warn('Movimentação remota não aplicada via RPC', error));
   }
   return movement;
 }
@@ -1200,7 +1205,12 @@ function syncSupabaseNow() {
     return;
   }
   window.FAST_API.syncNow()
-    .then(() => { renderConnectionStatus(); showToast('Sincronização Supabase concluída.'); })
+    .then(result => {
+      renderConnectionStatus();
+      if (result?.skipped === 'missing-session') { openLoginModal('Entre antes de sincronizar dados com o Supabase.'); return; }
+      if (result?.skipped === 'missing-company') { openCompanyOnboardingModal(); return; }
+      showToast('Sincronização Supabase concluída.');
+    })
     .catch(error => {
       console.warn('Falha ao sincronizar Supabase', error);
       renderConnectionStatus('error');

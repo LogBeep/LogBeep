@@ -46,6 +46,10 @@ Depois de configurar o Supabase:
 5. Use o botão visível **Sincronizar agora** ou a command palette (`Ctrl/Cmd+K`) e execute **Sincronizar Supabase agora** para reenviar o estado local.
 6. Confirme se o status no header muda para Supabase conectado ou erro de conexão.
 
+### Se aparecer 403 ao sincronizar
+
+Erros `403 (Forbidden)` em `products`, `suppliers`, `recipes`, `losses` ou `production_orders` normalmente indicam tentativa de gravar antes de login/vínculo de empresa ou antes de aplicar `supabase/schema.sql`. O app não deve enviar dados demo para Supabase sem sessão e empresa configuradas. Após login, confirme a empresa no modal inicial e rode **Sincronizar agora**.
+
 ## Login, usuários e RLS
 
 O schema inclui `companies`, `profiles` e `company_members`, policies iniciais de usuário autenticado e RLS operacional por `company_id`. No front, quando `DATA_SOURCE: 'supabase'`, ações críticas pedem login e a primeira sessão pode criar o vínculo local da padaria para gravar `company_id` nos dados sincronizados.

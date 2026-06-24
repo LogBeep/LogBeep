@@ -32,6 +32,7 @@
     return session;
   }
   function authToken() { return readSession()?.access_token || config().SUPABASE_ANON_KEY; }
+  function hasSession() { return Boolean(readSession()?.access_token); }
   function getCompany() {
     try {
       const saved = JSON.parse(localStorage.getItem(COMPANY_KEY) || 'null');
@@ -130,6 +131,10 @@
     return normalized;
   }
 
+  function canWriteRemote() {
+    return hasSupabaseConfig() && hasSession() && Boolean(companyId());
+  }
+
   function safeDate(value) {
     if (!value) return null;
     if (/^\d{4}-\d{2}-\d{2}/.test(String(value))) return String(value).slice(0, 10);
@@ -172,7 +177,7 @@
 
   async function ensureCompany() {
     const company = getCompany();
-    if (!company || !hasSupabaseConfig()) return null;
+    if (!company || !hasSupabaseConfig() || !hasSession()) return null;
     await supabaseFetch('companies?on_conflict=id', {
       method: 'POST',
       headers: {Prefer: 'resolution=ignore-duplicates,return=minimal'},
@@ -199,6 +204,10 @@
     if (!hasSupabaseConfig() || !rows.length) return null;
     return supabaseFetch(`${table}?on_conflict=id`, {method: 'POST', headers: {Prefer: 'resolution=merge-duplicates,return=minimal'}, body: JSON.stringify(rows)});
   }
+  async function insertIgnoreRows(table, rows) {
+    if (!hasSupabaseConfig() || !rows.length) return null;
+    return supabaseFetch(`${table}?on_conflict=id`, {method: 'POST', headers: {Prefer: 'resolution=ignore-duplicates,return=minimal'}, body: JSON.stringify(rows)});
+  }
   async function listRows(table, order = 'created_at.desc') {
     const data = await supabaseFetch(`${table}?select=*&order=${encodeURIComponent(order)}${companyFilter()}`);
     return Array.isArray(data) ? data : [];
@@ -214,16 +223,18 @@
   }
   async function syncStateToSupabase(state) {
     if (!hasSupabaseConfig()) return;
-    await ensureCompany();
+    if (!hasSession()) return {ok: false, skipped: 'missing-session'};
+    const company = await ensureCompany();
+    if (!company) return {ok: false, skipped: 'missing-company'};
     const normalized = normalizeState(state);
-    const tasks = [upsertRows('products', normalized.db.products.map(productRow)), upsertRows('suppliers', normalized.db.suppliers.map(supplierRow)), upsertRows('recipes', normalized.db.recipes.map(recipeRow)), upsertRows('recipe_ingredients', normalized.db.recipes.flatMap(ingredientRows)), upsertRows('losses', normalized.db.losses.map(lossRow)), upsertRows('production_orders', normalized.cargos.map(productionOrderRow))];
+    const tasks = [insertIgnoreRows('products', normalized.db.products.map(productRow)), upsertRows('suppliers', normalized.db.suppliers.map(supplierRow)), upsertRows('recipes', normalized.db.recipes.map(recipeRow)), upsertRows('recipe_ingredients', normalized.db.recipes.flatMap(ingredientRows)), upsertRows('losses', normalized.db.losses.map(lossRow)), upsertRows('production_orders', normalized.cargos.map(productionOrderRow))];
     const results = await Promise.allSettled(tasks);
     const failed = results.filter(result => result.status === 'rejected');
     if (failed.length) console.warn('F.A.S.T Supabase: algumas sincronizações falharam.', failed);
     return {ok: failed.length === 0, failed: failed.length};
   }
   function queueSupabaseSync(state) {
-    if (!hasSupabaseConfig()) return;
+    if (!canWriteRemote()) return;
     window.clearTimeout(syncTimer);
     syncTimer = window.setTimeout(() => syncStateToSupabase(state).catch(error => console.warn('F.A.S.T Supabase: falha ao sincronizar.', error)), 350);
   }
@@ -246,6 +257,12 @@
         p_event_id: event.id || null
       })
     });
+  }
+
+  async function ensureRemoteProductSeed(product, quantityBefore = 0) {
+    if (!canWriteRemote()) return null;
+    await ensureCompany();
+    return insertIgnoreRows('products', [productRow({...product, qty: quantityBefore})]);
   }
 
   async function applyRemoteStockMovement(movement) {
@@ -302,6 +319,6 @@
     return cloneData(created);
   }
 
-  window.FAST_API = {STORAGE_KEY, SESSION_KEY, COMPANY_KEY, readState, writeState, readLocalState, writeLocalState, hasSupabaseConfig, isSupabaseSource, supabaseFetch, loadRemoteState, syncStateToSupabase, syncNow, applyRemoteStockMovement, logSecurityEvent, signIn, signOut, getSession, getCompany, setCompany, createLocalCompany, ensureCompany, listProducts, saveProduct, listMovements, createMovement, createProductionOrder};
+  window.FAST_API = {STORAGE_KEY, SESSION_KEY, COMPANY_KEY, readState, writeState, readLocalState, writeLocalState, hasSupabaseConfig, isSupabaseSource, supabaseFetch, loadRemoteState, syncStateToSupabase, syncNow, applyRemoteStockMovement, ensureRemoteProductSeed, logSecurityEvent, signIn, signOut, getSession, getCompany, setCompany, createLocalCompany, ensureCompany, listProducts, saveProduct, listMovements, createMovement, createProductionOrder};
   Object.assign(window, {listProducts, saveProduct, listMovements, createMovement, createProductionOrder});
 })();
