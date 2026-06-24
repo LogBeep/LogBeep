@@ -69,3 +69,7 @@
 3. Resultado esperado: erro de permissão.
 4. Repetir como gerente/admin/dono.
 5. Resultado esperado: permitido se usuário pertence à empresa.
+
+## 11. Rodada ofensiva completa
+
+Para validação ofensiva com usuários/empresas reais de staging, use `SECURITY_OFFENSIVE_TESTS.md` e o script `scripts/security/offensive-supabase-rls.mjs`.
