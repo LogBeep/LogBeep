@@ -1,0 +1,21 @@
+{
+  "name": "F.A.S.T - Estoque Inteligente",
+  "short_name": "F.A.S.T",
+  "description": "Controle acessível de estoque, lotes, validade e produção para padarias.",
+  "lang": "pt-BR",
+  "start_url": "./#dashboard",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F5FBFF",
+  "theme_color": "#F5FBFF",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "assets/logbeep-logo.jpg",
+      "sizes": "1600x1600",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,9 +1,20 @@
 // ── DATABASE CENTRAL ──
+const FAST_CORE = window.FAST_CORE;
+const FAST_ICON_SPRITE = 'assets/icons.svg';
+
+function fastIcon(name) {
+  const safeName = /^[a-z0-9-]+$/.test(name) ? name : 'circle';
+  return `<svg class="app-icon" aria-hidden="true" focusable="false"><use href="${FAST_ICON_SPRITE}#i-${safeName}"></use></svg>`;
+}
+
 function cloneData(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
 var db = cloneData(window.FAST_DEMO_DB || { products: [], suppliers: [], recipes: [], losses: [], movements: [] });
+db.lots = FAST_CORE.migrateLots(db.products, db.lots);
+var positionProducts = {};
+var allRuasData = {};
 
 
 
@@ -18,7 +29,7 @@ function syncCatalog() {
 
 var cargos = cloneData(window.FAST_DEMO_CARGOS || []);
 
-var stepLabels = ['Coleta','Triagem','Rota','Entrega'];
+var stepLabels = ['Planejamento','Preparo','Forno','Liberação'];
 
 function buildTimeline(done, active) {
   return stepLabels.map((label, i) => {
@@ -31,50 +42,51 @@ function buildTimeline(done, active) {
 }
 
 function getCargoStatusMeta(c) {
-  const badgeCls = c.badges?.[0] || 'b-transit';
+  const allowedBadges = new Set(['b-transit','b-delivered','b-pending','b-priority','b-fragile']);
+  const badgeCls = allowedBadges.has(c.badges?.[0]) ? c.badges[0] : 'b-transit';
   const iconState = c.status === 'pending' ? 'pending' : (c.status === 'delivered' ? 'delivered' : 'transit');
   const icon = c.status === 'pending'
-    ? `<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2" stroke-linecap="round"/></svg>`
-    : (c.status === 'delivered'
-      ? `<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M5 8l2 2 4-5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-      : `<svg viewBox="0 0 16 16"><path d="M2 4h8v7H2z"/><path d="M10 7h2.5l1.5 2v2h-4z"/><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/></svg>`);
+    ? fastIcon('clock')
+    : (c.status === 'delivered' ? fastIcon('check-circle') : fastIcon('production'));
   return {badgeCls, iconState, icon};
 }
 
 function buildCargoCard(c) {
+  const drawerId = FAST_CORE.validateSku(c.id).value;
   const etaColor = c.status === 'delivered' ? 'color:var(--success)' : '';
-  const badgeHtml = c.badges.map(b => `<span class="badge ${b}">${c.statusLabel}</span>`).join('');
+  const statusHtml = `<span class="status-text ${getCargoStatusMeta(c).badgeCls}">${escapeHtml(c.statusLabel)}</span>`;
   return `
-    <div class="cargo-card" onclick="openDrawer('${c.id}')">
+    <button type="button" class="cargo-card" onclick="openDrawer('${drawerId}')">
       <div class="cargo-top">
-        <div><div class="cargo-id">#${c.id}</div><div class="cargo-title">${c.title}</div></div>
-        ${badgeHtml}
+        <div><div class="cargo-id">#${escapeHtml(c.id)}</div><div class="cargo-title">${escapeHtml(c.title)}</div></div>
+        ${statusHtml}
       </div>
-      <div class="route"><span class="route-origin">${c.origin}</span><span class="route-arrow">→</span><span class="route-dest">${c.dest}</span></div>
+      <div class="route"><span class="route-origin">${escapeHtml(c.origin)}</span><span class="route-arrow">→</span><span class="route-dest">${escapeHtml(c.dest)}</span></div>
       <div class="timeline-mini">${buildTimeline(c.steps[0], c.steps[1])}</div>
       <div class="cargo-footer">
-        <span class="cargo-meta">Responsável: ${c.carrier}</span>
-        <span class="cargo-eta" style="${etaColor}">Prev. ${c.eta}</span>
+        <span class="cargo-meta">Responsável: ${escapeHtml(c.carrier)}</span>
+        <span class="cargo-eta" style="${etaColor}">Prev. ${escapeHtml(c.eta)}</span>
       </div>
-    </div>`;
+    </button>`;
 }
 
 function buildRecentOrderRow(c) {
   const meta = getCargoStatusMeta(c);
+  const drawerId = FAST_CORE.validateSku(c.id).value;
   const recipe = (c.title || '').replace(/^(Produção|Compra):\s*/,'');
   return `
-    <div class="recent-order" onclick="openDrawer('${c.id}')">
+    <button type="button" class="recent-order" onclick="openDrawer('${drawerId}')">
       <div class="recent-ico ${meta.iconState}">${meta.icon}</div>
       <div>
-        <div class="recent-id">${c.id}</div>
-        <div class="recent-client">${recipe}</div>
+        <div class="recent-id">${escapeHtml(c.id)}</div>
+        <div class="recent-client">${escapeHtml(recipe)}</div>
       </div>
-      <div class="recent-loc"><div class="recent-label">Etapa</div><div class="recent-value">${c.origin}</div></div>
+      <div class="recent-loc"><div class="recent-label">Etapa</div><div class="recent-value">${escapeHtml(c.origin)}</div></div>
       <div class="recent-arrow">→</div>
-      <div class="recent-loc"><div class="recent-label">Destino</div><div class="recent-value">${c.dest}</div></div>
-      <div class="recent-forecast"><div class="recent-label">Previsão</div><div class="recent-value">${c.eta}</div></div>
-      <div class="recent-status"><span class="badge ${meta.badgeCls}">${c.statusLabel}</span></div>
-    </div>`;
+      <div class="recent-loc"><div class="recent-label">Destino</div><div class="recent-value">${escapeHtml(c.dest)}</div></div>
+      <div class="recent-forecast"><div class="recent-label">Previsão</div><div class="recent-value">${escapeHtml(c.eta)}</div></div>
+      <div class="recent-status"><span class="status-text ${meta.badgeCls}">${escapeHtml(c.statusLabel)}</span></div>
+    </button>`;
 }
 
 function renderCards(list, containerId) {
@@ -109,10 +121,37 @@ function filterCards(q) {
 
 // ── STOCK STATUS / FEFO ──
 function daysToExpire(p) {
-  if (!p.validade) return null;
-  const today = new Date('2026-06-10T00:00:00');
-  const exp = new Date(p.validade + 'T00:00:00');
-  return Math.ceil((exp - today) / 86400000);
+  const lot = FAST_CORE.earliestLot(db.lots, p.id);
+  return FAST_CORE.daysToExpire(lot?.expires_at || p.validade);
+}
+
+function productFefoLot(product) {
+  return FAST_CORE.earliestLot(db.lots, product.id) || {
+    lot_code: product.lote || 'sem lote',
+    expires_at: product.validade || '',
+    supplier_name: product.fornecedor || '',
+    location: product.location || ''
+  };
+}
+
+function updateProductLotMetadata(product) {
+  const lot = productFefoLot(product);
+  product.lote = lot.lot_code || 'sem lote';
+  product.validade = lot.expires_at || '';
+  product.fornecedor = lot.supplier_name || product.fornecedor || '';
+  product.location = lot.location || product.location || '';
+}
+
+function addInventoryLot(product, item, supplierName, location='') {
+  db.lots = FAST_CORE.upsertLot(db.lots, {
+    product_id: product.id,
+    lot_code: item.lote || 'SEM-LOTE',
+    qty: Number(item.qty || 0),
+    unit: item.unit || product.unit || 'un',
+    expires_at: item.validade || '',
+    supplier_name: supplierName || item.fornecedor || '',
+    location: location || product.location || ''
+  });
 }
 
 function expiryStatus(p) {
@@ -147,7 +186,7 @@ function appendAuditMovement(product, actionType, quantityChanged, reason, extra
   const before = Number(product?.qty || 0);
   const delta = Number(quantityChanged || 0);
   const after = Number((before + delta).toFixed(3));
-  if (!extra.allowNegative && after < 0) {
+  if (after < 0) {
     throw new Error(`Saldo insuficiente para ${product?.name || product?.id || 'produto'}: ${before} disponível, alteração ${delta}`);
   }
   const movement = {
@@ -191,16 +230,16 @@ function formatQty(p) {
 function stockRowHtml(p, editable) {
   const s = stockStatus(p);
   const ex = expiryStatus(p);
+  const lot = productFefoLot(p);
   const qtyEl = editable
-    ? `<div class="stock-num ${s.cls}" style="text-align:right;cursor:pointer;border-bottom:1px dashed var(--border2)"
-         title="Clique para editar" onclick="editQty('${p.id}',${p.qty})">${formatQty(p)}</div>`
+    ? `<button type="button" class="stock-num stock-qty-action ${s.cls}" title="Ajustar quantidade de ${escapeHtml(p.name)}" onclick="editQty('${p.id}',${p.qty})">${escapeHtml(formatQty(p))}</button>`
     : `<div class="stock-num ${s.cls}">${formatQty(p)}</div>`;
   return `<div class="stock-row stock-row-rich">
-    <div><div class="stock-name">${escapeHtml(p.name)}</div><div class="stock-sku">${escapeHtml(p.id)} · ${escapeHtml(p.lote || 'sem lote')}</div></div>
+    <div><div class="stock-name">${escapeHtml(p.name)}</div><div class="stock-sku">${escapeHtml(p.id)} · ${escapeHtml(lot.lot_code || 'sem lote')}</div></div>
     <div class="stock-cat">${escapeHtml(p.cat)}</div>
     ${qtyEl}
     <div class="stock-num">${p.min.toLocaleString('pt-BR')} ${escapeHtml(p.unit || 'un')}</div>
-    <div style="text-align:right;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap"><span class="pill" style="background:${s.bg};color:${s.color}">${escapeHtml(s.label)}</span><span class="pill" style="background:${ex.bg};color:${ex.color}">${escapeHtml(ex.label)}</span></div>
+    <div class="stock-status-list"><span class="status-text" style="color:${s.color}">${escapeHtml(s.label)}</span><span class="status-note" style="color:${ex.color}">${escapeHtml(ex.label)}</span></div>
   </div>`;
 }
 
@@ -221,23 +260,41 @@ function renderStockFull(q) {
 // ── RENDER CRITICAL STOCK (Dashboard) ──
 function renderCriticalStock() {
   const el = document.getElementById('stock-table-critical');
+  const summaryEl = document.getElementById('dashboard-fefo-summary');
   if (!el) return;
   const list = [...db.products]
     .sort((a,b) => (daysToExpire(a) ?? 999) - (daysToExpire(b) ?? 999) || (a.qty/a.min) - (b.qty/b.min))
     .slice(0, 5);
-  if (!list.length) { el.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--success)">✓ Lotes e validade sob controle</div>'; return; }
-  el.innerHTML =
-    `<div class="stock-row hdr stock-row-rich"><div>Produto / Lote FEFO</div><div>Fornecedor</div><div style="text-align:right">Disponível</div><div style="text-align:right">Validade</div><div style="text-align:right">Status</div></div>` +
-    list.map(p => {
+  if (!list.length) {
+    if (summaryEl) summaryEl.textContent = 'Estoque em conformidade';
+    el.innerHTML = '<div class="empty-state">Lotes e validade sob controle.</div>';
+    return;
+  }
+  const urgentCount = list.filter(p => {
+    const days = daysToExpire(p);
+    return days !== null && days <= 3;
+  }).length;
+  if (summaryEl) summaryEl.textContent = urgentCount
+    ? `${urgentCount} ${urgentCount === 1 ? 'lote exige' : 'lotes exigem'} ação imediata`
+    : 'Próximas saídas organizadas';
+  el.innerHTML = list.map((p, index) => {
       const st = stockStatus(p);
       const ex = expiryStatus(p);
-      return `<div class="stock-row stock-row-rich">
-        <div><div class="stock-name">${p.name}</div><div class="stock-sku">${p.id} · ${p.lote || 'sem lote'}</div></div>
-        <div class="stock-cat">${p.fornecedor || '—'}</div>
-        <div class="stock-num ${st.cls}">${formatQty(p)}</div>
-        <div class="stock-num ${ex.cls}">${p.validade ? p.validade.split('-').reverse().join('/') : '—'}</div>
-        <div style="text-align:right"><span class="pill" style="background:${ex.bg};color:${ex.color}">${ex.label}</span></div>
-      </div>`;
+      const lot = productFefoLot(p);
+      const expiryDays = daysToExpire(p);
+      const tone = expiryDays === null ? 'neutral' : (expiryDays <= 0 ? 'danger' : (expiryDays <= 7 ? 'warning' : 'success'));
+      const windowPercent = expiryDays === null ? 100 : Math.max(6, Math.min(100, ((Math.max(expiryDays, 0) + 1) / 8) * 100));
+      const actionLabel = expiryDays === null ? 'Informar validade' : (expiryDays <= 0 ? 'Retirar agora' : (expiryDays <= 3 ? 'Usar neste turno' : (expiryDays <= 7 ? 'Programar saída' : 'Monitorar')));
+      const supplier = lot.supplier_name || p.fornecedor || 'Produção própria';
+      return `<button type="button" class="fefo-priority-card ${tone}" onclick="navToStr('rastreio')" aria-label="Abrir lote ${escapeHtml(lot.lot_code || p.id)} de ${escapeHtml(p.name)}">
+        <span class="fefo-card-rank">${String(index + 1).padStart(2, '0')}</span>
+        <span class="status-text fefo-card-status" style="color:${ex.color}">${escapeHtml(ex.label)}</span>
+        <span class="fefo-card-icon" aria-hidden="true">${fastIcon('lots')}</span>
+        <span class="fefo-card-copy"><strong>${escapeHtml(p.name)}</strong><small>${escapeHtml(lot.lot_code || 'sem lote')}</small></span>
+        <span class="fefo-card-meta"><span>Disponível<strong class="${st.cls}">${escapeHtml(formatQty(p))}</strong></span><span>Fornecedor<strong>${escapeHtml(supplier)}</strong></span></span>
+        <span class="fefo-card-window"><span><small>Janela de saída</small><strong>${escapeHtml(actionLabel)}</strong></span><time>${escapeHtml(FAST_CORE.formatDatePtBr(lot.expires_at || p.validade))}</time></span>
+        <span class="fefo-priority-meter" aria-hidden="true"><i style="width:${windowPercent}%"></i></span>
+      </button>`;
     }).join('');
 }
 
@@ -246,36 +303,95 @@ function metricSpark(points) {
   return `<svg class="metric-spark" viewBox="0 0 110 42" aria-hidden="true"><path d="${points}"/></svg>`;
 }
 
+function dashboardSnapshot() {
+  const products = db.products.map(product => {
+    const lot = productFefoLot(product);
+    return {...product, validade:lot.expires_at || product.validade};
+  });
+  return FAST_CORE.buildDashboardSnapshot(products, cargos);
+}
+
 function renderDashMetrics() {
   const el = document.getElementById('dash-metrics');
   if (!el) return;
-  const critical = db.products.filter(p => p.qty < p.min).length;
-  const expiring = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 7; }).length;
-  const inProduction = cargos.filter(c => c.status === 'transit').length;
-  const pending = cargos.filter(c => c.status === 'pending').length;
-  const lossRisk = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 3; }).reduce((sum,p) => sum + (p.qty * (p.price || 0)), 0);
+  const snapshot = dashboardSnapshot();
   el.innerHTML = `
-    <div class="metric-card">
-      <div class="metric-icon"><svg viewBox="0 0 16 16"><path d="M2 4h12M3 4v8h10V4"/><path d="M5 7h6M5 10h4" stroke-linecap="round"/></svg></div>
-      <div class="metric-label">Insumos críticos</div><div class="metric-value">${critical}</div>
-      <div class="metric-delta" style="color:${critical?'var(--warning)':'var(--success)'}">${critical?'reposição recomendada':'estoque saudável'}</div>${metricSpark('M4 34 C16 30 18 14 30 23 S47 37 55 21 S71 11 80 18 S94 31 106 12')}
+    <div class="metric-card dashboard-metric">
+      <div class="metric-heading"><span class="metric-icon">${fastIcon('oven')}</span><span class="metric-label">Produções ativas</span></div>
+      <div class="metric-value">${snapshot.inProduction}</div>
+      <div class="metric-delta ${snapshot.pendingOrders ? 'warning' : 'success'}">${snapshot.pendingOrders} aguardando liberação</div>${metricSpark('M4 35 C18 32 25 26 34 10 S51 11 58 24 S73 31 82 19 S95 30 106 34')}
     </div>
-    <div class="metric-card">
-      <div class="metric-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2" stroke-linecap="round"/></svg></div>
-      <div class="metric-label">Vencem em 7 dias</div><div class="metric-value">${expiring}</div>
-      <div class="metric-delta" style="color:${expiring?'var(--danger)':'var(--success)'}">FEFO obrigatório</div>${metricSpark('M4 35 C14 31 15 10 28 19 S42 34 54 24 S74 16 86 22 S96 30 106 8')}
+    <div class="metric-card dashboard-metric">
+      <div class="metric-heading"><span class="metric-icon">${fastIcon('lots')}</span><span class="metric-label">Lotes em 7 dias</span></div>
+      <div class="metric-value">${snapshot.expiringSoon}</div>
+      <div class="metric-delta ${snapshot.expiringSoon ? 'danger' : 'success'}">${snapshot.expiringSoon ? 'priorizar saída FEFO' : 'validade sob controle'}</div>${metricSpark('M4 35 C14 31 15 10 28 19 S42 34 54 24 S74 16 86 22 S96 30 106 8')}
     </div>
-    <div class="metric-card">
-      <div class="metric-icon"><svg viewBox="0 0 16 16"><path d="M3 11c2-4 3-7 5-7s3 3 5 7"/><path d="M2 12h12" stroke-linecap="round"/></svg></div>
-      <div class="metric-label">Produção em andamento</div><div class="metric-value">${inProduction}</div>
-      <div class="metric-delta" style="color:var(--info)">${pending} aguardando liberação</div>${metricSpark('M4 35 C18 32 25 26 34 10 S51 11 58 24 S73 31 82 19 S95 30 106 34')}
+    <div class="metric-card dashboard-metric">
+      <div class="metric-heading"><span class="metric-icon">${fastIcon('box-alert')}</span><span class="metric-label">Abaixo do mínimo</span></div>
+      <div class="metric-value">${snapshot.criticalStock}</div>
+      <div class="metric-delta ${snapshot.criticalStock ? 'warning' : 'success'}">${snapshot.criticalStock ? 'reposição recomendada' : 'saldo adequado'}</div>${metricSpark('M4 34 C16 30 18 14 30 23 S47 37 55 21 S71 11 80 18 S94 31 106 12')}
     </div>
-    <div class="metric-card">
-      <div class="metric-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div>
-      <div class="metric-label">Risco de perda</div><div class="metric-value">R$ ${Math.round(lossRisk)}</div>
-      <div class="metric-delta" style="color:${lossRisk?'var(--danger)':'var(--success)'}">validade ≤ 3 dias</div>${metricSpark('M4 32 C16 31 21 20 30 28 S45 37 53 27 S68 23 76 32 S91 37 106 9')}
+    <div class="metric-card dashboard-metric">
+      <div class="metric-heading"><span class="metric-icon">${fastIcon('losses')}</span><span class="metric-label">Risco de perda</span></div>
+      <div class="metric-value">R$ ${Math.round(snapshot.lossRiskValue).toLocaleString('pt-BR')}</div>
+      <div class="metric-delta ${snapshot.lossRiskValue ? 'danger' : 'success'}">validade em até 3 dias</div>${metricSpark('M4 32 C16 31 21 20 30 28 S45 37 53 27 S68 23 76 32 S91 37 106 9')}
     </div>
   `;
+}
+
+function renderDashboardOverview() {
+  const chartEl = document.getElementById('dashboard-coverage-chart');
+  const summaryEl = document.getElementById('dashboard-coverage-summary');
+  const healthEl = document.getElementById('dashboard-health');
+  const headlineEl = document.getElementById('dashboard-headline');
+  const summaryTextEl = document.getElementById('dashboard-summary-text');
+  if (!chartEl && !summaryEl && !healthEl) return;
+
+  const snapshot = dashboardSnapshot();
+  const decisionCount = snapshot.priorityCount;
+  if (headlineEl) headlineEl.textContent = decisionCount
+    ? `${decisionCount} ${decisionCount === 1 ? 'decisão pede' : 'decisões pedem'} atenção neste turno`
+    : 'O turno está sob controle';
+  if (summaryTextEl) summaryTextEl.textContent = snapshot.minimumCoverageDays < snapshot.coverageTargetDays
+    ? `A menor cobertura é de ${snapshot.minimumCoverageDays.toLocaleString('pt-BR')} dias. Priorize reposição e consumo FEFO.`
+    : 'Cobertura, validade e produção seguem dentro do planejado.';
+
+  if (summaryEl) {
+    const belowTarget = snapshot.coverage.filter(item => item.days < snapshot.coverageTargetDays).length;
+    summaryEl.innerHTML = `
+      <div class="coverage-primary"><span>Menor cobertura atual</span><strong>${snapshot.minimumCoverageDays.toLocaleString('pt-BR',{maximumFractionDigits:1})} <small>dias</small></strong><em class="${snapshot.minimumCoverageDays < 3 ? 'danger' : 'warning'}">${snapshot.minimumCoverageDays < snapshot.coverageTargetDays ? 'abaixo do alvo' : 'dentro do alvo'}</em></div>
+      <div class="coverage-secondary"><span>Cobertura média<strong>${snapshot.averageCoverageDays.toLocaleString('pt-BR',{maximumFractionDigits:1})} dias</strong></span><span>Itens abaixo do alvo<strong>${belowTarget}</strong></span></div>`;
+  }
+
+  if (chartEl) {
+    const maxDays = Math.max(snapshot.coverageTargetDays, ...snapshot.coverage.map(item => item.days), 1);
+    chartEl.innerHTML = snapshot.coverage.length ? snapshot.coverage.slice(0, 7).map(item => {
+      const width = Math.max(4, Math.min(100, (item.days / maxDays) * 100));
+      const target = Math.min(100, (snapshot.coverageTargetDays / maxDays) * 100);
+      return `<div class="coverage-row" title="${escapeHtml(item.name)}: ${item.days.toLocaleString('pt-BR')} dias de cobertura">
+        <span class="coverage-name">${escapeHtml(item.name)}</span>
+        <span class="coverage-track"><i class="coverage-target" style="left:${target}%"></i><i class="coverage-bar ${item.state}" style="width:${width}%"></i></span>
+        <strong>${item.days.toLocaleString('pt-BR',{maximumFractionDigits:1})}d</strong>
+      </div>`;
+    }).join('') : '<div class="empty-state">Cadastre o consumo diário para calcular a cobertura.</div>';
+  }
+
+  if (healthEl) {
+    const circumference = 289;
+    const ringOffset = circumference * (1 - snapshot.healthPercent / 100);
+    const healthyCount = Math.round(snapshot.activeProducts * snapshot.healthPercent / 100);
+    healthEl.innerHTML = `
+      <div class="health-gauge">
+        <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="health-ring-track" cx="60" cy="60" r="46"></circle><circle class="health-ring-value" cx="60" cy="60" r="46" style="stroke-dashoffset:${ringOffset}"></circle></svg>
+        <div><strong>${snapshot.healthPercent}%</strong><span>saudável</span></div>
+      </div>
+      <div class="health-breakdown">
+        <div><span><i class="healthy"></i>Em conformidade</span><strong>${healthyCount}</strong></div>
+        <div><span><i class="attention"></i>Validade próxima</span><strong>${snapshot.expiringSoon}</strong></div>
+        <div><span><i class="critical"></i>Abaixo do mínimo</span><strong>${snapshot.criticalStock}</strong></div>
+      </div>
+      <div class="health-risk"><span>Valor sob risco</span><strong>R$ ${Math.round(snapshot.lossRiskValue).toLocaleString('pt-BR')}</strong><small>lotes com validade em até 3 dias</small></div>`;
+  }
 }
 
 // ── RENDER ESTOQUE METRICS ──
@@ -287,37 +403,59 @@ function renderEstoqueMetrics() {
   const vencendo = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 7; }).length;
   const valor  = db.products.reduce((s,p) => s + p.qty * (p.price||0), 0);
   el.innerHTML = `
-    <div class="metric-card"><div class="metric-label">SKUs e lotes</div><div class="metric-value">${db.products.length}</div><div class="metric-delta" style="color:var(--info)">ativos no estoque</div></div>
-    <div class="metric-card"><div class="metric-label">Volume total</div><div class="metric-value">${total.toLocaleString('pt-BR')}</div><div class="metric-delta" style="color:var(--success)">unidades/sacos/litros</div></div>
-    <div class="metric-card"><div class="metric-label">Abaixo do mínimo</div><div class="metric-value" style="color:${baixo?'var(--warning)':'var(--success)'}">${baixo}</div><div class="metric-delta" style="color:${baixo?'var(--warning)':'var(--text-muted)'}">${baixo?'comprar hoje':'OK'}</div></div>
-    <div class="metric-card"><div class="metric-label">Vencimento próximo</div><div class="metric-value" style="color:${vencendo?'var(--danger)':'var(--success)'}">${vencendo}</div><div class="metric-delta" style="color:var(--text-muted)">R$ ${valor.toLocaleString('pt-BR',{minimumFractionDigits:0})} em estoque</div></div>
+    <div class="metric-card"><div class="metric-icon">${fastIcon('inventory')}</div><div class="metric-label">SKUs e lotes</div><div class="metric-value">${db.products.length}</div><div class="metric-delta" style="color:var(--info)">ativos no estoque</div></div>
+    <div class="metric-card"><div class="metric-icon">${fastIcon('box-alert')}</div><div class="metric-label">Volume total</div><div class="metric-value">${total.toLocaleString('pt-BR')}</div><div class="metric-delta" style="color:var(--success)">unidades/sacos/litros</div></div>
+    <div class="metric-card"><div class="metric-icon">${fastIcon('alert')}</div><div class="metric-label">Abaixo do mínimo</div><div class="metric-value" style="color:${baixo?'var(--warning)':'var(--success)'}">${baixo}</div><div class="metric-delta" style="color:${baixo?'var(--warning)':'var(--text-muted)'}">${baixo?'comprar hoje':'OK'}</div></div>
+    <div class="metric-card"><div class="metric-icon">${fastIcon('lots')}</div><div class="metric-label">Vencimento próximo</div><div class="metric-value" style="color:${vencendo?'var(--danger)':'var(--success)'}">${vencendo}</div><div class="metric-delta" style="color:var(--text-muted)">R$ ${valor.toLocaleString('pt-BR',{minimumFractionDigits:0})} em estoque</div></div>
   `;
 }
 
 // ── FLOW MODALS ──
 function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+  return FAST_CORE.escapeHtml(value);
 }
+
+var flowRestoreFocus = null;
 
 function openFlowModal({title, subtitle='', fields=[], submitLabel='Salvar', onSubmit}) {
   closeFlowModal();
+  const infoOnly = fields.length > 0 && fields.every(field => field.type === 'info-list');
+  flowRestoreFocus = document.activeElement;
   const overlay = document.createElement('div');
   overlay.className = 'flow-overlay';
   overlay.id = 'flow-overlay';
+  overlay.setAttribute('aria-hidden', 'false');
   overlay.innerHTML = `
-    <form class="flow-modal" id="flow-form">
+    <form class="flow-modal${infoOnly ? ' flow-modal-info' : ''}" id="flow-form" role="dialog" aria-modal="true" aria-labelledby="flow-modal-title" ${subtitle ? 'aria-describedby="flow-modal-subtitle"' : ''}>
       <div class="flow-head">
         <div>
-          <div class="flow-title">${escapeHtml(title)}</div>
-          ${subtitle ? `<div class="flow-sub">${escapeHtml(subtitle)}</div>` : ''}
+          <h2 class="flow-title" id="flow-modal-title">${escapeHtml(title)}</h2>
+          ${subtitle ? `<div class="flow-sub" id="flow-modal-subtitle">${escapeHtml(subtitle)}</div>` : ''}
         </div>
-        <button type="button" class="flow-close" onclick="closeFlowModal()">×</button>
+        <button type="button" class="flow-close" aria-label="Fechar janela" onclick="closeFlowModal()">×</button>
       </div>
       <div class="flow-body">
         ${fields.map(field => {
           const required = field.required ? 'required' : '';
-          const value = escapeHtml(field.value ?? '');
+          const normalizedValue = FAST_CORE.normalizeMultilineText(field.value ?? '');
+          const value = escapeHtml(normalizedValue);
           const label = `<label for="flow-${field.name}">${escapeHtml(field.label)}</label>`;
+          if (field.type === 'info-list') {
+            const sourceItems = Array.isArray(field.items)
+              ? field.items
+              : normalizedValue.split('\n').filter(Boolean).map(title => ({title}));
+            const items = sourceItems.map(item => typeof item === 'string' ? {title:item} : item);
+            return `<section class="flow-field full flow-info-section" aria-labelledby="flow-${field.name}-label">
+              <div class="flow-field-heading" id="flow-${field.name}-label">${escapeHtml(field.label)}</div>
+              <div class="flow-info-list">${items.map(item => {
+                const tone = ['danger','warning','success','info'].includes(item.tone) ? item.tone : 'info';
+                return `<div class="flow-info-item ${tone}">
+                  <span class="flow-info-icon" aria-hidden="true">${fastIcon(item.icon || 'check-circle')}</span>
+                  <span class="flow-info-copy"><strong>${escapeHtml(item.title || '')}</strong>${item.description ? `<span>${escapeHtml(item.description)}</span>` : ''}</span>
+                </div>`;
+              }).join('')}</div>
+            </section>`;
+          }
           if (field.type === 'select') {
             return `<div class="flow-field">${label}<select id="flow-${field.name}" name="${field.name}" ${required}>${(field.options||[]).map(opt => {
               const val = typeof opt === 'object' ? opt.value : opt;
@@ -330,27 +468,56 @@ function openFlowModal({title, subtitle='', fields=[], submitLabel='Salvar', onS
           }
           return `<div class="flow-field">${label}<input id="flow-${field.name}" name="${field.name}" type="${field.type || 'text'}" value="${value}" placeholder="${escapeHtml(field.placeholder || '')}" ${field.min !== undefined ? `min="${escapeHtml(field.min)}"` : ''} ${field.step !== undefined ? `step="${escapeHtml(field.step)}"` : ''} ${required}></div>`;
         }).join('')}
+        <p class="flow-error" id="flow-error" role="alert" hidden></p>
       </div>
-      <div class="flow-actions">
-        <button type="button" class="btn-secondary" onclick="closeFlowModal()">Cancelar</button>
+      <div class="flow-actions${infoOnly ? ' flow-actions-single' : ''}">
+        ${infoOnly ? '' : '<button type="button" class="btn-secondary" onclick="closeFlowModal()">Cancelar</button>'}
         <button type="submit" class="btn-primary">${escapeHtml(submitLabel)}</button>
       </div>
     </form>`;
   overlay.addEventListener('click', e => { if (e.target === overlay) closeFlowModal(); });
+  overlay.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); closeFlowModal(); return; }
+    if (e.key !== 'Tab') return;
+    const focusable = [...overlay.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')];
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
   document.body.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add('open'));
-  document.getElementById('flow-form').addEventListener('submit', e => {
+  overlay.querySelector('input, select, textarea, button')?.focus();
+  document.getElementById('flow-form').addEventListener('submit', async e => {
     e.preventDefault();
+    const submitButton = e.currentTarget.querySelector('[type="submit"]');
+    const errorBox = document.getElementById('flow-error');
     const values = Object.fromEntries(new FormData(e.currentTarget).entries());
-    if (onSubmit(values) !== false) closeFlowModal();
+    submitButton.disabled = true;
+    errorBox.hidden = true;
+    try {
+      const result = await onSubmit(values);
+      if (result !== false) closeFlowModal();
+    } catch (error) {
+      errorBox.textContent = error?.message || 'Não foi possível concluir a operação.';
+      errorBox.hidden = false;
+    } finally {
+      if (submitButton.isConnected) submitButton.disabled = false;
+    }
   });
 }
 
 function closeFlowModal() {
   const overlay = document.getElementById('flow-overlay');
   if (!overlay) return;
+  overlay.setAttribute('aria-hidden', 'true');
   overlay.classList.remove('open');
-  setTimeout(() => overlay.remove(), 160);
+  setTimeout(() => {
+    overlay.remove();
+    if (flowRestoreFocus?.isConnected) flowRestoreFocus.focus();
+    flowRestoreFocus = null;
+  }, 160);
 }
 
 // ── EDIT QTY INLINE ──
@@ -371,8 +538,19 @@ function editQty(skuId, current) {
       const n = Number(values.qty);
       if (!Number.isFinite(n) || n < 0) { showToast('⚠️ Quantidade inválida'); return false; }
       const delta = Number((n - p.qty).toFixed(3));
+      if (delta === 0) { showToast('Nenhuma alteração de quantidade.'); return true; }
       try {
-        appendAuditMovement(p, 'ajuste_manual', delta, values.reason || 'Ajuste manual', {note:values.note || ''});
+        let lotLabel = productFefoLot(p).lot_code || 'AJUSTE-INVENTARIO';
+        if (delta < 0) {
+          const allocated = FAST_CORE.allocateFefo(db.lots, p.id, Math.abs(delta));
+          db.lots = allocated.lots;
+          lotLabel = allocated.allocations.map(lot => `${lot.lotCode} (${lot.quantity})`).join(', ');
+        } else {
+          const lot = productFefoLot(p);
+          addInventoryLot(p, {lote:lot.lot_code || 'AJUSTE-INVENTARIO', validade:lot.expires_at || '', qty:delta, unit:p.unit}, lot.supplier_name || p.fornecedor, lot.location || p.location);
+        }
+        appendAuditMovement(p, 'ajuste', delta, values.reason || 'Ajuste manual', {note:values.note || '', lote:lotLabel});
+        updateProductLotMetadata(p);
       } catch (error) { showToast(`⚠️ ${error.message}`); return false; }
       renderAll();
       showToast(`✓ ${p.name}: ${n} ${p.unit || 'un'} · ${values.reason}`);
@@ -382,7 +560,7 @@ function editQty(skuId, current) {
 
 
 function isSupabaseMode() {
-  return !!window.FAST_API?.hasSupabaseConfig?.() && !!window.FAST_API?.isSupabaseSource?.();
+  return !!window.FAST_API?.hasSupabaseConfig?.() && !!window.FAST_API?.isSupabaseSource?.() && hasRemoteSession();
 }
 
 function hasRemoteSession() {
@@ -401,6 +579,7 @@ function renderConnectionStatus(state='idle') {
     if (!configured) status.textContent = 'Local';
     else if (state === 'syncing') { status.textContent = 'Sincronizando'; status.classList.add('syncing'); }
     else if (state === 'error') { status.textContent = 'Erro Supabase'; status.classList.add('error'); }
+    else if (remote && !session) { status.textContent = 'Supabase · entrar'; }
     else { status.textContent = remote ? `Supabase${company?.name ? ' · ' + company.name : ''}` : 'Supabase pronto'; status.classList.add('online'); }
   }
   if (sessionBtn) {
@@ -419,12 +598,13 @@ function requireRemoteSession(actionLabel='esta ação') {
 // ── RENDER ALL (atualiza tudo de uma vez) ──
 function renderAll() {
   renderDashMetrics();
+  renderDashboardOverview();
   renderCriticalStock();
   renderEstoqueMetrics();
   renderStockFull(document.getElementById('estoque-search')?.value || '');
   renderCards(cargos.slice(0,5), 'cargo-list');
   renderCards(cargos, 'cargo-list-all');
-  renderTrackList();
+  renderLotTraceability(document.getElementById('lot-search')?.value || '');
   renderDashboardTracking();
   renderDashboardAlerts();
   renderSuppliers();
@@ -433,31 +613,68 @@ function renderAll() {
   syncCatalog();
   renderConnectionStatus();
   // atualiza badge da sidebar
-  const badge = document.querySelector('.nav-item[data-page="pedidos"] .nav-badge');
+  const badge = document.querySelector('.nav-item[data-page="pedidos"] .nav-count');
   if (badge) badge.textContent = cargos.filter(c=>c.status!=='delivered').length;
+  const lotsBadge = document.querySelector('.nav-item[data-page="rastreio"] .nav-count');
+  if (lotsBadge) lotsBadge.textContent = FAST_CORE.buildLotTraceability(db.lots, db.products).filter(row => row.urgency === 'critical').length;
   saveState();
 }
 
-// ── RENDER RASTREIO ──
-function renderTrackList() {
-  const el = document.getElementById('track-list');
-  if (!el) return;
-  const active = cargos.filter(c => c.status !== 'delivered');
-  if (!active.length) {
-    el.innerHTML = '<div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhuma ordem em monitoramento</div>';
+// ── RENDER LOTES / RASTREABILIDADE ──
+function formatDayCount(value) {
+  return `${value} ${value === 1 ? 'dia' : 'dias'}`;
+}
+
+function lotUrgencyMeta(row) {
+  if (row.expiryDays === null) return {label:'Sem validade', badge:'b-transit'};
+  if (row.expiryDays < 0) return {label:`Vencido há ${formatDayCount(Math.abs(row.expiryDays))}`, badge:'b-alert'};
+  if (row.expiryDays === 0) return {label:'Vence hoje', badge:'b-alert'};
+  if (row.urgency === 'critical') return {label:`Vence em ${formatDayCount(row.expiryDays)}`, badge:'b-alert'};
+  if (row.urgency === 'attention') return {label:`Vence em ${formatDayCount(row.expiryDays)}`, badge:'b-pending'};
+  return {label:`Validade em ${formatDayCount(row.expiryDays)}`, badge:'b-delivered'};
+}
+
+function renderLotTraceability(q='') {
+  const listEl = document.getElementById('lot-list');
+  const summaryEl = document.getElementById('lot-summary');
+  if (!listEl && !summaryEl) return;
+
+  const rows = FAST_CORE.buildLotTraceability(db.lots, db.products);
+  const critical = rows.filter(row => row.urgency === 'critical').length;
+  const attention = rows.filter(row => row.urgency === 'attention').length;
+  const unmapped = rows.filter(row => row.location === 'Sem posição').length;
+
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="lot-summary-card"><span class="lot-summary-icon">${fastIcon('lots')}</span><div><span>Lotes ativos</span><strong>${rows.length}</strong></div></div>
+      <div class="lot-summary-card danger"><span class="lot-summary-icon">${fastIcon('alert')}</span><div><span>Vencendo ou vencidos</span><strong>${critical}</strong></div></div>
+      <div class="lot-summary-card warning"><span class="lot-summary-icon">${fastIcon('clock')}</span><div><span>Atenção em 7 dias</span><strong>${attention}</strong></div></div>
+      <div class="lot-summary-card info"><span class="lot-summary-icon">${fastIcon('map-pin')}</span><div><span>Sem posição</span><strong>${unmapped}</strong></div></div>`;
+  }
+
+  if (!listEl) return;
+  const term = String(q || '').trim().toLocaleLowerCase('pt-BR');
+  const filtered = rows.filter(row => !term || [row.lotCode, row.productId, row.productName, row.supplier, row.location, row.origin]
+    .some(value => String(value || '').toLocaleLowerCase('pt-BR').includes(term)));
+  if (!filtered.length) {
+    listEl.innerHTML = `<div class="empty-state">${term ? 'Nenhum lote corresponde à busca.' : 'Nenhum lote ativo cadastrado.'}</div>`;
     return;
   }
-  const pctMap = { 'pending': 25, 'transit': 65, 'delivered': 100 };
-  el.innerHTML = active.map(c => {
-    const pct = pctMap[c.status] || 30;
-    const amber = c.status === 'pending' ? ' amber' : '';
-    const badgeCls = c.badges[0] || 'b-transit';
-    return `<div class="track-card" onclick="openDrawer('${c.id}')">
-      <div class="track-head"><div><div class="cargo-id">#${c.id} · ${c.title}</div></div><span class="badge ${badgeCls}">${c.statusLabel}</span></div>
-      <div class="track-progress"><div class="track-fill${amber}" style="width:${pct}%"></div></div>
-      <div class="track-meta"><span>${c.origin} → ${c.dest} · ${pct}% concluído</span><span>ETA: ${c.eta}</span></div>
-    </div>`;
-  }).join('');
+
+  listEl.innerHTML = `
+    <div class="lot-table-head" aria-hidden="true"><span>Lote e produto</span><span>Origem</span><span>Saldo</span><span>Validade</span><span>Posição</span><span>Status</span></div>
+    ${filtered.map(row => {
+      const status = lotUrgencyMeta(row);
+      const originIcon = row.origin === 'Produção interna' ? 'production' : 'inventory';
+      return `<article class="lot-row">
+        <div class="lot-identity"><span class="lot-product-icon" aria-hidden="true">${fastIcon('lots')}</span><div><strong>${escapeHtml(row.productName)}</strong><span>${escapeHtml(row.lotCode)} · ${escapeHtml(row.productId || 'sem SKU')}</span></div></div>
+        <div class="lot-origin"><span aria-hidden="true">${fastIcon(originIcon)}</span><div><strong>${escapeHtml(row.origin)}</strong><small>${escapeHtml(row.supplier)}</small></div></div>
+        <div class="lot-quantity"><strong>${row.quantity.toLocaleString('pt-BR')}</strong><span>${escapeHtml(row.unit)}</span></div>
+        <div class="lot-expiry"><strong>${escapeHtml(FAST_CORE.formatDatePtBr(row.expiresAt))}</strong><span>${row.expiryDays === null ? 'Não informada' : escapeHtml(status.label)}</span></div>
+        <div class="lot-location">${fastIcon('map-pin')}<span>${escapeHtml(row.location)}</span></div>
+        <div class="lot-status"><span class="status-text ${status.badge}">${escapeHtml(status.label)}</span></div>
+      </article>`;
+    }).join('')}`;
 }
 
 
@@ -468,48 +685,55 @@ function renderDashboardTracking() {
   if (!c) { el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:12px">Nenhuma produção ativa</div>'; return; }
   const meta = getCargoStatusMeta(c);
   const current = (c.timeline || []).find(t => t.cls === 'active') || (c.timeline || [])[0] || {};
-  const steps = [
-    ['Separação','FEFO', 'done',`<svg viewBox="0 0 16 16"><path d="M4 8l2.5 2.5L12 5" stroke-linecap="round" stroke-linejoin="round"/></svg>`],
-    ['Preparo','Massa', 'done',`<svg viewBox="0 0 16 16"><path d="M4 8l2.5 2.5L12 5" stroke-linecap="round" stroke-linejoin="round"/></svg>`],
-    ['Produção','Agora', 'active',`<svg viewBox="0 0 16 16"><path d="M3 11c2-4 3-7 5-7s3 3 5 7"/><path d="M2 12h12" stroke-linecap="round"/></svg>`],
-    ['Balcão',c.eta,'pending',`<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/></svg>`]
-  ];
+  const progress = c.status === 'delivered' ? 100 : (c.status === 'pending' ? 25 : 68);
+  const drawerId = FAST_CORE.validateSku(c.id).value;
   el.innerHTML = `
-    <div class="tracking-card" onclick="openDrawer('${c.id}')">
-      <div class="tracking-title"><div><strong>${c.id}</strong><div class="tracking-route">${c.origin} → ${c.dest}</div></div><span class="badge ${meta.badgeCls}">${c.statusLabel}</span></div>
-      <div class="tracking-eta">Saída prevista <strong>${c.eta}</strong></div>
-      <div class="tracking-steps">${steps.map(([label,time,cls,icon]) => `<div class="tracking-step ${cls}"><div class="tracking-dot">${icon}</div><span>${label}</span><small>${time}</small></div>`).join('')}</div>
-      <div class="location-card">
-        <svg viewBox="0 0 16 16"><path d="M8 14s5-4.2 5-8A5 5 0 003 6c0 3.8 5 8 5 8z"/><circle cx="8" cy="6" r="1.6"/></svg>
-        <div><strong>Etapa atual</strong><div>${current.detail || 'Produção sem atualização'}</div></div><small>${current.time || 'agora'}</small>
+    <button type="button" class="tracking-card live-production-card" onclick="openDrawer('${drawerId}')">
+      <div class="tracking-title"><div><strong>${escapeHtml(c.id)}</strong><div class="tracking-route">${escapeHtml(c.origin)} → ${escapeHtml(c.dest)}</div></div><span class="status-text ${meta.badgeCls}">${escapeHtml(c.statusLabel)}</span></div>
+      <div class="live-progress-meta"><span>Progresso da ordem</span><strong>${progress}%</strong></div>
+      <div class="live-progress"><span style="width:${progress}%"></span></div>
+      <div class="live-current">
+        <span class="live-current-icon">${fastIcon('oven')}</span>
+        <div><small>Etapa atual</small><strong>${escapeHtml(current.ev || c.origin)}</strong><span>${escapeHtml(current.detail || 'Produção sem atualização')}</span></div>
       </div>
-    </div>`;
+      <div class="live-production-footer"><span>Saída prevista</span><strong>${escapeHtml(c.eta)}</strong><small>${escapeHtml(current.time || 'agora')}</small></div>
+    </button>`;
 }
 
 function renderDashboardAlerts() {
   const el = document.getElementById('dashboard-alerts');
   if (!el) return;
-  const critical = db.products.filter(p => p.qty < p.min).length;
-  const expiring = db.products.filter(p => { const d = daysToExpire(p); return d !== null && d <= 3; }).length;
-  const pending = cargos.filter(c => c.status === 'pending').length;
-  el.innerHTML = `
-    <div class="alert-item danger" onclick="navToStr('perdas')"><div class="alert-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${expiring} lotes vencem em até 3 dias</strong><span>Use FEFO ou registre descarte.</span></div><div class="alert-chevron">›</div></div>
-    <div class="alert-item warning" onclick="navToStr('estoque')"><div class="alert-icon"><svg viewBox="0 0 16 16"><path d="M8 2l6 11H2z"/><path d="M8 6v3M8 12h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${critical} insumos abaixo do mínimo</strong><span>Compra sugerida antes da próxima fornada.</span></div><div class="alert-chevron">›</div></div>
-    <div class="alert-item info" onclick="navToStr('pedidos')"><div class="alert-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 5h.01" stroke-linecap="round"/></svg></div><div class="alert-copy"><strong>${pending} ordens aguardam liberação</strong><span>Valide insumos e aprove compras recomendadas.</span></div><div class="alert-chevron">›</div></div>
-  `;
+  const products = db.products.map(product => {
+    const lot = productFefoLot(product);
+    return {...product, validade: lot.expires_at || product.validade, location: lot.location || product.location};
+  });
+  const recommendations = FAST_CORE.buildRecommendations(products).slice(0, 3);
+  if (!recommendations.length) {
+    el.innerHTML = '<div class="empty-state">Estoque em conformidade. Nenhuma ação imediata.</div>';
+    return;
+  }
+  el.innerHTML = recommendations.map(item => {
+    const page = item.id.startsWith('location-') ? 'heatmap' : (item.id.startsWith('stock-') ? 'estoque' : 'perdas');
+    const tone = item.severity === 'critical' ? 'danger' : (item.severity === 'high' ? 'warning' : 'info');
+    const icon = item.severity === 'medium' ? fastIcon('map-pin') : fastIcon('alert');
+    return `<button type="button" class="alert-item ${tone}" onclick="navToStr('${page}')">
+      <span class="alert-icon" aria-hidden="true">${icon}</span>
+      <span class="alert-copy"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.reason)} ${escapeHtml(item.action)}</span></span>
+      <span class="alert-chevron" aria-hidden="true">${fastIcon('chevron-right')}</span>
+    </button>`;
+  }).join('');
 }
 
 function makeProductionLotCode(recipe, shift) {
   const slug = recipe.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toUpperCase().slice(0,10);
-  const date = new Date();
-  const ymd = date.toISOString().slice(2,10).replace(/-/g,'');
+  const ymd = FAST_CORE.isoDateInTimeZone().slice(2).replace(/-/g,'');
   const suffix = (shift || 'turno').slice(0,1).toUpperCase();
   return `PRD-${slug}-${ymd}-${suffix}`;
 }
 
 function addDaysIso(days) {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
+  const d = new Date(`${FAST_CORE.isoDateInTimeZone()}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0,10);
 }
 
@@ -564,8 +788,22 @@ function openProductionForm(defaultRecipeId='REC-PF') {
       const cost = plan.items.reduce((sum, item) => sum + item.required * (item.product?.price || 0), 0);
 
       try {
+        let plannedLots = cloneData(db.lots);
+        const allocations = new Map();
         plan.items.forEach(item => {
-          appendAuditMovement(item.product, 'saida_producao', -Math.abs(item.required), `Consumo para ${plan.recipe.name}`, {ref:opId, date:nowLabel});
+          const result = FAST_CORE.allocateFefo(plannedLots, item.product.id, item.required);
+          plannedLots = result.lots;
+          allocations.set(item.product.id, result.allocations);
+        });
+        db.lots = plannedLots;
+        plan.items.forEach(item => {
+          const usedLots = allocations.get(item.product.id) || [];
+          appendAuditMovement(item.product, 'saida_producao', -Math.abs(item.required), `Consumo PVPS para ${plan.recipe.name}`, {
+            ref:opId,
+            date:nowLabel,
+            lote:usedLots.map(lot => `${lot.lotCode} (${lot.quantity})`).join(', ') || 'sem lote'
+          });
+          updateProductLotMetadata(item.product);
         });
       } catch (error) { showToast(`⚠️ ${error.message}`); return false; }
 
@@ -589,9 +827,9 @@ function openProductionForm(defaultRecipeId='REC-PF') {
         };
         db.products.push(finished);
       }
+      addInventoryLot(finished, {lote:lotCode, validade:validity, qty:amount, unit:finished.unit}, 'Produção própria', 'Balcão / expedição');
       appendAuditMovement(finished, 'entrada_producao', amount, values.note || `Produção ${values.shift}`, {ref:opId, lote:lotCode, date:nowLabel});
-      finished.lote = lotCode;
-      finished.validade = validity;
+      updateProductLotMetadata(finished);
       finished.fornecedor = 'Produção própria';
       finished.price = Number((cost / amount).toFixed(2)) || finished.price;
 
@@ -645,14 +883,14 @@ function openStockModal() {
     subtitle:'Visão rápida dos insumos, lotes e produtos acabados.',
     submitLabel:'Abrir estoque',
     fields:[
-      {name:'overview', label:'📦 Visão geral', type:'textarea', value:[
+      {name:'overview', label:'Visão geral', type:'textarea', value:[
         `SKUs/lotes ativos: ${db.products.length}`,
         `Abaixo do mínimo: ${critical.length}`,
         `Vencem em até 7 dias: ${expiring.length}`,
         `Valor estimado em estoque: R$ ${totalValue.toLocaleString('pt-BR',{minimumFractionDigits:2})}`
       ].join('\n')},
-      {name:'critical', label:'⚠️ Insumos críticos', type:'textarea', value:critical.map(p => `${p.id} · ${p.name}: ${formatQty(p)} / mínimo ${p.min} ${p.unit || 'un'}`).join('\n') || 'Nenhum item abaixo do mínimo.'},
-      {name:'expiry', label:'⏳ Vencem em 7 dias', type:'textarea', value:expiring.map(p => `${p.lote || 'sem lote'} · ${p.name}: ${p.days} dia(s)`).join('\n') || 'Nenhum lote vencendo em até 7 dias.'}
+      {name:'critical', label:'Insumos críticos', type:'textarea', value:critical.map(p => `${p.id} · ${p.name}: ${formatQty(p)} / mínimo ${p.min} ${p.unit || 'un'}`).join('\n') || 'Nenhum item abaixo do mínimo.'},
+      {name:'expiry', label:'Vencem em 7 dias', type:'textarea', value:expiring.map(p => `${p.lote || 'sem lote'} · ${p.name}: ${p.days} dia(s)`).join('\n') || 'Nenhum lote vencendo em até 7 dias.'}
     ],
     onSubmit(){ navToStr('estoque'); }
   });
@@ -705,25 +943,25 @@ function openFefoMapModal() {
 
 function commandActions() {
   return [
-    {type:'Ações rápidas', label:'Registrar entrada de insumo', desc:'Abrir QR/entrada com fornecedor e lote', icon:'+', action:() => openQR()},
-    {type:'Ações rápidas', label:'Resumo do estoque', desc:'Abrir modal com mínimos, validade e valor estimado', icon:'E', action:() => openStockModal()},
-    {type:'Ações rápidas', label:'Registrar produção de pão francês', desc:'Baixar ingredientes e gerar lote acabado', icon:'P', action:() => openProductionForm('REC-PF')},
-    {type:'Ações rápidas', label:'Resumo da produção', desc:'Abrir modal com ordens e receitas do dia', icon:'P', action:() => openProductionSummaryModal()},
-    {type:'Ações rápidas', label:'Resumo do Mapa FEFO', desc:'Abrir modal com prioridade por validade e posições', icon:'F', action:() => openFefoMapModal()},
-    {type:'Ações rápidas', label:'Registrar perda/descarte', desc:'Sobra, vencimento, quebra ou erro de produção', icon:'!', action:() => openLossForm()},
-    {type:'Ações rápidas', label:'Importar NF-e ou CSV', desc:'Entrada em lote de insumos e validade', icon:'NF', action:() => { openQR(); setTimeout(openImportFile, 80); }},
-    {type:'Ações rápidas', label:'Ver lotes vencendo', desc:'Ordenar estoque por validade FEFO', icon:'V', action:() => navToStr('estoque')},
-    {type:'Ações rápidas', label:'Gerar sugestão de compra', desc:'Reposição de ovos, fermento e margarina', icon:'IA', action:() => showToast('Sugestão IA: comprar ovos, fermento e margarina hoje')},
-    {type:'Ações rápidas', label:'Abrir auditoria', desc:'Histórico de entradas, saídas, perdas e ajustes', icon:'A', action:() => navToStr('auditoria')},
-    {type:'Ações rápidas', label:'Exportar movimentações CSV', desc:'Baixar histórico operacional para planilha', icon:'CSV', action:() => exportMovementsCsv()},
-    {type:'Ações rápidas', label:'Sincronizar Supabase agora', desc:'Enviar dados locais para o backend configurado', icon:'DB', action:() => syncSupabaseNow()},
-    {type:'Ações rápidas', label:'Resetar dados locais', desc:'Limpar localStorage e voltar ao demo inicial após recarregar', icon:'↺', action:() => resetLocalData()},
-    {type:'Produção', label:'Abrir produção', desc:'Ordens, fornadas e encomendas do dia', icon:'↗', action:() => navToStr('pedidos')},
-    {type:'Estoque', label:'Abrir estoque FEFO', desc:'Insumos, lotes, validade e mínimos', icon:'▦', action:() => navToStr('estoque')},
-    ...db.recipes.map(r => ({type:'Receitas', label:`Produzir ${r.name}`, desc:`Rendimento base ${r.yield} ${r.unit} · baixa automática de insumos`, icon:'P', action:() => openProductionForm(r.id)})),
-    ...cargos.map(c => ({type:'Ordens de produção', label:c.id, desc:`${c.title} · ${c.origin} → ${c.dest}`, icon:'↗', action:() => openDrawer(c.id)})),
-    ...db.products.map(p => ({type:'Insumos e lotes', label:p.id, desc:`${p.name} · ${formatQty(p)} · ${p.lote || 'sem lote'} · validade ${p.validade || '—'}`, icon:'▦', action:() => { navToStr('estoque'); const input=document.getElementById('estoque-search'); if(input){input.value=p.id; renderStockFull(p.id);} }})),
-    ...db.suppliers.map(f => ({type:'Fornecedores', label:f.name, desc:`${f.cat} · lead time ${f.lead} · confiabilidade ${f.reliability}%`, icon:'F', action:() => navToStr('fornecedores')}))
+    {type:'Ações rápidas', label:'Registrar entrada de insumo', desc:'Abrir QR/entrada com fornecedor e lote', icon:'plus', action:() => openQR()},
+    {type:'Ações rápidas', label:'Resumo do estoque', desc:'Abrir modal com mínimos, validade e valor estimado', icon:'inventory', action:() => openStockModal()},
+    {type:'Ações rápidas', label:'Registrar produção de pão francês', desc:'Baixar ingredientes e gerar lote acabado', icon:'production', action:() => openProductionForm('REC-PF')},
+    {type:'Ações rápidas', label:'Resumo da produção', desc:'Abrir modal com ordens e receitas do dia', icon:'oven', action:() => openProductionSummaryModal()},
+    {type:'Ações rápidas', label:'Resumo do Mapa FEFO', desc:'Abrir modal com prioridade por validade e posições', icon:'fefo', action:() => openFefoMapModal()},
+    {type:'Ações rápidas', label:'Registrar perda/descarte', desc:'Sobra, vencimento, quebra ou erro de produção', icon:'losses', action:() => openLossForm()},
+    {type:'Ações rápidas', label:'Importar NF-e ou CSV', desc:'Entrada em lote de insumos e validade', icon:'file-import', action:() => { openQR(); setTimeout(openImportFile, 80); }},
+    {type:'Ações rápidas', label:'Ver lotes vencendo', desc:'Rastrear origem, posição e validade FEFO', icon:'lots', action:() => navToStr('rastreio')},
+    {type:'Ações rápidas', label:'Ver recomendações de reposição', desc:'Regras explicáveis por mínimo, validade e endereço', icon:'alert', action:() => navToStr('dashboard')},
+    {type:'Ações rápidas', label:'Abrir auditoria', desc:'Histórico de entradas, saídas, perdas e ajustes', icon:'audit', action:() => navToStr('auditoria')},
+    {type:'Ações rápidas', label:'Exportar movimentações CSV', desc:'Baixar histórico operacional para planilha', icon:'file-down', action:() => exportMovementsCsv()},
+    {type:'Ações rápidas', label:'Sincronizar Supabase agora', desc:'Enviar dados locais para o backend configurado', icon:'database', action:() => syncSupabaseNow()},
+    {type:'Ações rápidas', label:'Resetar dados locais', desc:'Limpar localStorage e voltar ao demo inicial após recarregar', icon:'refresh', action:() => resetLocalData()},
+    {type:'Produção', label:'Abrir produção', desc:'Ordens, fornadas e encomendas do dia', icon:'production', action:() => navToStr('pedidos')},
+    {type:'Estoque', label:'Abrir estoque FEFO', desc:'Insumos, lotes, validade e mínimos', icon:'inventory', action:() => navToStr('estoque')},
+    ...db.recipes.map(r => ({type:'Receitas', label:`Produzir ${r.name}`, desc:`Rendimento base ${r.yield} ${r.unit} · baixa automática de insumos`, icon:'wheat', action:() => openProductionForm(r.id)})),
+    ...cargos.map(c => ({type:'Ordens de produção', label:c.id, desc:`${c.title} · ${c.origin} → ${c.dest}`, icon:'production', action:() => openDrawer(c.id)})),
+    ...db.products.map(p => ({type:'Insumos e lotes', label:p.id, desc:`${p.name} · ${formatQty(p)} · ${p.lote || 'sem lote'} · validade ${p.validade || '—'}`, icon:'inventory', action:() => { navToStr('estoque'); const input=document.getElementById('estoque-search'); if(input){input.value=p.id; renderStockFull(p.id);} }})),
+    ...db.suppliers.map(f => ({type:'Fornecedores', label:f.name, desc:`${f.cat} · lead time ${f.lead} · confiabilidade ${f.reliability}%`, icon:'suppliers', action:() => navToStr('fornecedores')}))
   ];
 }
 
@@ -736,8 +974,7 @@ function renderCommandResults(q) {
   let currentGroup = '';
   el.innerHTML = list.map((item, idx) => {
     const group = item.type !== currentGroup ? (currentGroup = item.type, `<div class="cmd-group-label">${escapeHtml(item.type)}</div>`) : '';
-    const icon = escapeHtml(item.icon);
-    return `${group}<div class="cmd-item" onclick="runCommandAction(${idx})"><div class="cmd-item-ico">${icon.length > 1 ? icon : `<span>${icon}</span>`}</div><div class="cmd-item-copy"><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.desc)}</span></div><div class="cmd-kbd">Enter</div></div>`;
+    return `${group}<button type="button" class="cmd-item" onclick="runCommandAction(${idx})"><span class="cmd-item-ico">${fastIcon(item.icon)}</span><span class="cmd-item-copy"><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.desc)}</span></span><span class="cmd-kbd">Enter</span></button>`;
   }).join('');
   window.__cmdList = list;
 }
@@ -747,6 +984,7 @@ function openCommandPalette(q='') {
   const input = document.getElementById('cmd-input');
   if (!overlay || !input) return;
   overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden', 'false');
   input.value = q || '';
   renderCommandResults(input.value);
   setTimeout(() => input.focus(), 30);
@@ -754,7 +992,10 @@ function openCommandPalette(q='') {
 
 function closeCommandPalette() {
   const overlay = document.getElementById('cmd-overlay');
-  if (overlay) overlay.classList.remove('open');
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
 }
 
 function handleCommandOverlayClick(e) {
@@ -793,13 +1034,27 @@ document.addEventListener('keydown', function(e) {
 function renderSuppliers() {
   const el = document.getElementById('supplier-grid');
   if (!el) return;
-  el.innerHTML = db.suppliers.map(f => `
-    <div class="supplier-card">
-      <div class="supplier-head"><div class="supplier-logo">${f.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div><div><div class="supplier-name">${f.name}</div><div class="supplier-cat">${f.cat}</div></div></div>
-      <div class="supplier-meta"><span>Lead time</span><strong>${f.lead}</strong></div>
-      <div class="supplier-meta"><span>Confiabilidade</span><strong>${f.reliability}%</strong></div>
-      <div class="supplier-meta"><span>Última compra</span><strong>${f.last}</strong></div>
-    </div>`).join('');
+  el.innerHTML = db.suppliers.map(f => {
+    const reliability = Math.max(0, Math.min(100, Number(f.reliability) || 0));
+    const grade = reliability >= 95 ? 'Excelente' : (reliability >= 85 ? 'Estável' : 'Revisar');
+    const tone = reliability >= 95 ? 'success' : (reliability >= 85 ? 'info' : 'warning');
+    return `
+      <article class="supplier-card">
+        <div class="supplier-head">
+          <div class="supplier-logo">${escapeHtml(f.name.split(' ').map(w=>w[0]).slice(0,2).join(''))}</div>
+          <div class="supplier-identity"><div class="supplier-name">${escapeHtml(f.name)}</div><div class="supplier-cat">${escapeHtml(f.cat)}</div></div>
+          <span class="supplier-grade ${tone}">${grade}</span>
+        </div>
+        <div class="supplier-reliability">
+          <div><span>Confiabilidade</span><strong>${reliability.toLocaleString('pt-BR')}%</strong></div>
+          <div class="supplier-reliability-bar"><span style="width:${reliability}%"></span></div>
+        </div>
+        <div class="supplier-meta-grid">
+          <div class="supplier-meta"><span>Lead time</span><strong>${escapeHtml(f.lead)}</strong></div>
+          <div class="supplier-meta"><span>Última compra</span><strong>${escapeHtml(f.last)}</strong></div>
+        </div>
+      </article>`;
+  }).join('');
 }
 
 function renderLosses() {
@@ -811,26 +1066,26 @@ function renderLosses() {
   const expiryLosses = db.losses.filter(l => /venc|valid/i.test(l.reason || '')).length;
   if (metrics) {
     metrics.innerHTML = `
-      <div class="metric-card"><div class="metric-label">Registros de perda</div><div class="metric-value">${db.losses.length}</div><div class="metric-delta" style="color:var(--info)">histórico operacional</div></div>
-      <div class="metric-card"><div class="metric-label">Quantidade perdida</div><div class="metric-value">${totalQty}</div><div class="metric-delta" style="color:var(--warning)">unidades/volumes</div></div>
-      <div class="metric-card"><div class="metric-label">Custo estimado</div><div class="metric-value">R$ ${totalCost.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div><div class="metric-delta" style="color:var(--danger)">impacto financeiro</div></div>
-      <div class="metric-card"><div class="metric-label">Por validade</div><div class="metric-value">${expiryLosses}</div><div class="metric-delta" style="color:var(--danger)">corrigir FEFO</div></div>`;
+      <div class="metric-card"><div class="metric-icon">${fastIcon('audit')}</div><div class="metric-label">Registros de perda</div><div class="metric-value">${db.losses.length}</div><div class="metric-delta" style="color:var(--info)">histórico operacional</div></div>
+      <div class="metric-card"><div class="metric-icon">${fastIcon('losses')}</div><div class="metric-label">Quantidade perdida</div><div class="metric-value">${totalQty}</div><div class="metric-delta" style="color:var(--warning)">unidades/volumes</div></div>
+      <div class="metric-card"><div class="metric-icon">${fastIcon('alert')}</div><div class="metric-label">Custo estimado</div><div class="metric-value">R$ ${totalCost.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div><div class="metric-delta" style="color:var(--danger)">impacto financeiro</div></div>
+      <div class="metric-card"><div class="metric-icon">${fastIcon('lots')}</div><div class="metric-label">Por validade</div><div class="metric-value">${expiryLosses}</div><div class="metric-delta" style="color:var(--danger)">corrigir FEFO</div></div>`;
   }
   if (table) {
     table.innerHTML = `<div class="stock-row hdr stock-row-rich"><div>Item</div><div>Motivo</div><div style="text-align:right">Qtd.</div><div style="text-align:right">Custo</div><div style="text-align:right">Data</div></div>` +
       db.losses.map(l => `<div class="stock-row stock-row-rich">
-        <div><div class="stock-name">${l.item}</div><div class="stock-sku">${l.lote || 'sem lote informado'}</div></div>
-        <div class="stock-cat">${l.reason}</div>
-        <div class="stock-num">${l.qty}</div>
+        <div><div class="stock-name">${escapeHtml(l.item)}</div><div class="stock-sku">${escapeHtml(l.lote || 'sem lote informado')}</div></div>
+        <div class="stock-cat">${escapeHtml(l.reason)}</div>
+        <div class="stock-num">${escapeHtml(l.qty)}</div>
         <div class="stock-num">R$ ${Number(l.cost || 0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
-        <div style="text-align:right"><span class="pill" style="background:var(--warning-bg);color:var(--warning)">${l.date || 'hoje'}</span></div>
+        <div style="text-align:right"><span class="status-note" style="color:var(--warning)">${escapeHtml(l.date || 'hoje')}</span></div>
       </div>`).join('');
   }
   if (suggestions) {
     suggestions.innerHTML = `
-      <div class="alert-item danger" onclick="navToStr('estoque')"><div class="alert-icon">FE</div><div class="alert-copy"><strong>Aplicar FEFO antes da produção</strong><span>Priorize lotes com validade menor que 3 dias.</span></div><div class="alert-chevron">›</div></div>
-      <div class="alert-item warning" onclick="openLossForm()"><div class="alert-icon">+</div><div class="alert-copy"><strong>Registrar toda sobra de balcão</strong><span>Dados de perda alimentam compras e produção sugerida.</span></div><div class="alert-chevron">›</div></div>
-      <div class="alert-item info" onclick="openImportFile()"><div class="alert-icon">NF</div><div class="alert-copy"><strong>Importar XML/CSV de entrada</strong><span>Evita digitação e reduz erro em lote/validade.</span></div><div class="alert-chevron">›</div></div>`;
+      <button type="button" class="alert-item danger" onclick="navToStr('estoque')"><span class="alert-icon">${fastIcon('fefo')}</span><span class="alert-copy"><strong>Aplicar FEFO antes da produção</strong><span>Priorize lotes com validade menor que 3 dias.</span></span><span class="alert-chevron">${fastIcon('chevron-right')}</span></button>
+      <button type="button" class="alert-item warning" onclick="openLossForm()"><span class="alert-icon">${fastIcon('losses')}</span><span class="alert-copy"><strong>Registrar toda sobra de balcão</strong><span>Dados de perda alimentam compras e produção sugerida.</span></span><span class="alert-chevron">${fastIcon('chevron-right')}</span></button>
+      <button type="button" class="alert-item info" onclick="openImportFile()"><span class="alert-icon">${fastIcon('file-import')}</span><span class="alert-copy"><strong>Importar XML/CSV de entrada</strong><span>Evita digitação e reduz erro em lote/validade.</span></span><span class="alert-chevron">${fastIcon('chevron-right')}</span></button>`;
   }
 }
 
@@ -851,20 +1106,18 @@ function openLossForm() {
       const p = db.products.find(x => x.id === values.sku);
       if (!p) { showToast('⚠️ SKU não encontrado'); return false; }
       const qty = Number(values.qty);
-      if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return false; }
-      const loss = {
-        reason:values.reason || 'Perda operacional',
-        item:p.name,
-        lote:p.lote,
-        qty,
-        cost:qty * (p.price || 0),
-        date:new Date().toLocaleDateString('pt-BR'),
-        responsible:values.responsible || '—',
-        note:values.note || ''
-      };
-      db.losses.unshift(loss);
       try {
-        appendAuditMovement(p, 'perda', -Math.abs(qty), values.reason || 'Perda operacional', {note:values.note || ''});
+        const prepared = FAST_CORE.prepareLoss(p, qty, values);
+        const allocated = FAST_CORE.allocateFefo(db.lots, p.id, qty);
+        const lotLabel = allocated.allocations.map(lot => `${lot.lotCode} (${lot.quantity})`).join(', ');
+        db.lots = allocated.lots;
+        appendAuditMovement(p, 'perda', prepared.movement.quantityChanged, prepared.movement.reason, {
+          note:prepared.loss.note,
+          lote:lotLabel || prepared.loss.lote
+        });
+        prepared.loss.lote = lotLabel || prepared.loss.lote;
+        db.losses.unshift(prepared.loss);
+        updateProductLotMetadata(p);
       } catch (error) { showToast(`⚠️ ${error.message}`); return false; }
       renderAll();
       navToStr('perdas');
@@ -938,10 +1191,10 @@ function renderAudit(q='') {
   const adjustments = movements.filter(m => m.type === 'ajuste').length;
   if (metrics) {
     metrics.innerHTML = `
-      <div class="metric-card"><div class="metric-label">Movimentações</div><div class="metric-value">${movements.length}</div><div class="metric-delta" style="color:var(--info)">eventos auditáveis</div></div>
-      <div class="metric-card"><div class="metric-label">Entradas</div><div class="metric-value">${entries}</div><div class="metric-delta" style="color:var(--success)">insumos e produção</div></div>
-      <div class="metric-card"><div class="metric-label">Saídas produção</div><div class="metric-value">${exits}</div><div class="metric-delta" style="color:var(--warning)">consumo de receita</div></div>
-      <div class="metric-card"><div class="metric-label">Perdas/ajustes</div><div class="metric-value">${losses + adjustments}</div><div class="metric-delta" style="color:var(--danger)">controle operacional</div></div>`;
+      <div class="metric-card"><div class="metric-icon">${fastIcon('audit')}</div><div class="metric-label">Movimentações</div><div class="metric-value">${movements.length}</div><div class="metric-delta" style="color:var(--info)">eventos auditáveis</div></div>
+      <div class="metric-card"><div class="metric-icon">${fastIcon('plus')}</div><div class="metric-label">Entradas</div><div class="metric-value">${entries}</div><div class="metric-delta" style="color:var(--success)">insumos e produção</div></div>
+      <div class="metric-card"><div class="metric-icon">${fastIcon('production')}</div><div class="metric-label">Saídas produção</div><div class="metric-value">${exits}</div><div class="metric-delta" style="color:var(--warning)">consumo de receita</div></div>
+      <div class="metric-card"><div class="metric-icon">${fastIcon('losses')}</div><div class="metric-label">Perdas/ajustes</div><div class="metric-value">${losses + adjustments}</div><div class="metric-delta" style="color:var(--danger)">controle operacional</div></div>`;
   }
   if (table) {
     table.innerHTML = `<div class="stock-row hdr audit-row"><div>Data / Tipo</div><div>Produto / SKU</div><div style="text-align:right">Qtd.</div><div>Lote</div><div>Referência</div></div>` +
@@ -999,7 +1252,13 @@ function openHelpModal() {
     subtitle:'Atalhos e fluxos principais do F.A.S.T Estoque Inteligente.',
     submitLabel:'Entendi',
     fields:[
-      {name:'help', label:'Guia rápido', type:'textarea', value:'1. Nova entrada: importa NF-e/CSV ou lê QR/bipador.\\n2. Registrar produção: baixa insumos e gera lote acabado.\\n3. Perdas: registra sobras, vencimentos e quebras.\\n4. Auditoria: acompanha todas as movimentações.\\n5. Ctrl/Cmd + K: abre a paleta de comandos.'}
+      {name:'help', label:'Guia rápido', type:'info-list', items:[
+        {icon:'plus', title:'Nova entrada', description:'Importe NF-e/CSV ou leia um lote por QR Code.'},
+        {icon:'production', title:'Registrar produção', description:'Baixe ingredientes por FEFO e gere o lote acabado.'},
+        {icon:'losses', title:'Perdas', description:'Registre sobras, vencimentos, quebras e descartes.'},
+        {icon:'audit', title:'Auditoria', description:'Consulte o histórico de todas as movimentações.'},
+        {icon:'search', title:'Busca rápida', description:'Use Ctrl/Cmd + K para abrir a paleta de comandos.'}
+      ]}
     ],
     onSubmit(){ return true; }
   });
@@ -1114,7 +1373,11 @@ function openNotificationsModal() {
     subtitle:'Resumo dos alertas críticos da padaria.',
     submitLabel:'Ver auditoria',
     fields:[
-      {name:'alerts', label:'Alertas', type:'textarea', value:`${expiring} lote(s) vencem em até 3 dias.\\n${critical} insumo(s) abaixo do mínimo.\\n${pending} ordem(ns) aguardam liberação.`}
+      {name:'alerts', label:'Alertas', type:'info-list', items:[
+        {icon:'lots', tone:expiring ? 'danger' : 'success', title:`${expiring} ${expiring === 1 ? 'lote vencendo' : 'lotes vencendo'}`, description:expiring ? 'Validade em até 3 dias; priorize o consumo por FEFO.' : 'Nenhum lote vence nos próximos 3 dias.'},
+        {icon:'alert', tone:critical ? 'warning' : 'success', title:`${critical} ${critical === 1 ? 'insumo abaixo' : 'insumos abaixo'} do mínimo`, description:critical ? 'Revise a necessidade de compra e reposição.' : 'Todos os insumos estão acima do mínimo.'},
+        {icon:'clock', tone:pending ? 'info' : 'success', title:`${pending} ${pending === 1 ? 'ordem aguardando' : 'ordens aguardando'}`, description:pending ? 'Há produções esperando liberação para avançar.' : 'Não há ordens pendentes de liberação.'}
+      ]}
     ],
     onSubmit(){ navToStr('auditoria'); }
   });
@@ -1139,6 +1402,14 @@ function loadState() {
     if (Array.isArray(state.cargos)) {
       cargos.splice(0, cargos.length, ...state.cargos);
     }
+    if (state.positionProducts && typeof state.positionProducts === 'object') {
+      Object.assign(positionProducts, state.positionProducts);
+    }
+    if (state.allRuasData && typeof state.allRuasData === 'object') {
+      Object.assign(allRuasData, state.allRuasData);
+    }
+    db.lots = FAST_CORE.migrateLots(db.products, db.lots);
+    db.products.forEach(updateProductLotMetadata);
   } catch (error) {
     console.warn('Não foi possível carregar dados locais do F.A.S.T', error);
   }
@@ -1148,7 +1419,7 @@ function saveState() {
   if (isHydratingState) return;
   if (isSupabaseMode() && !remoteStateReady) return;
   try {
-    const state = {db, cargos};
+    const state = {stateVersion:2, db, cargos, positionProducts, allRuasData};
     if (window.FAST_API) window.FAST_API.writeState(state);
     else localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (error) {
@@ -1157,15 +1428,15 @@ function saveState() {
 }
 
 function resetLocalData() {
+  if (!window.confirm('Apagar os dados locais deste dispositivo? Exporte um backup antes se precisar recuperar as informações.')) return;
   localStorage.removeItem(STORAGE_KEY);
-  showToast('Dados locais limpos. Recarregue a página para voltar ao demo inicial.');
+  showToast('Dados locais apagados. Recarregue a página para restaurar a demonstração.');
 }
 
 async function bootstrapRemoteState() {
   if (!window.FAST_API?.hasSupabaseConfig?.() || !window.FAST_API?.isSupabaseSource?.()) return;
   if (!hasRemoteSession()) {
     renderConnectionStatus();
-    openLoginModal('Entre para carregar o Supabase como fonte principal.');
     return;
   }
   if (!window.FAST_API?.getCompany?.()) {
@@ -1209,6 +1480,7 @@ function syncSupabaseNow() {
       renderConnectionStatus();
       if (result?.skipped === 'missing-session') { openLoginModal('Entre antes de sincronizar dados com o Supabase.'); return; }
       if (result?.skipped === 'missing-company') { openCompanyOnboardingModal(); return; }
+      if (!FAST_CORE.isSyncSuccessful(result)) throw new Error('A sincronização retornou falhas pendentes.');
       showToast('Sincronização Supabase concluída.');
     })
     .catch(error => {
@@ -1231,7 +1503,7 @@ var pageTitles = {
   dashboard: ['Dashboard', 'Estoque, validade e produção da padaria'],
   pedidos: ['Produção', 'Ordens, fornadas e encomendas'],
   estoque: ['Estoque', 'Insumos, lotes e validade'],
-  rastreio: ['Lotes', 'Rastreabilidade, validade e produção em andamento'],
+  rastreio: ['Lotes', 'Rastreabilidade de entradas e produção, validade e origem'],
   fornecedores: ['Fornecedores', 'Compras, lead time e confiabilidade'],
   perdas: ['Perdas', 'Descartes, sobras e custo de desperdício'],
   auditoria: ['Auditoria', 'Movimentações, rastreabilidade e exportações'],
@@ -1245,14 +1517,12 @@ var IV_MAX_CAP = 800;
 var ivCurrentRua   = '1';
 var ivCurrentNivel = 'all';
 // allRuasData guarda os dados de todas as ruas (não regenera ao trocar)
-var allRuasData = {};
 function ivGetRuaData(rua) {
   if (!allRuasData[rua]) allRuasData[rua] = ivSeed(rua);
   return allRuasData[rua];
 }
 var ivMatrixData = ivGetRuaData('1');
 // positionProducts[cellId] = { id, name }
-var positionProducts = {};
 // activeTab
 var ivActiveTab = 'mapa';
 // cell modal state
@@ -1276,13 +1546,13 @@ function ivSwitchTab(tab) {
   const viewMapa = document.getElementById('hmview-mapa');
   const viewProd = document.getElementById('hmview-produto');
   if (tab === 'mapa') {
-    tabMapa.style.cssText = 'padding:12px 16px;font-size:13px;font-weight:500;color:var(--text-primary);cursor:pointer;border-bottom:2px solid var(--text-primary);margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:all .15s';
-    tabProd.style.cssText = 'padding:12px 16px;font-size:13px;font-weight:400;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:all .15s';
+    tabMapa.style.cssText = 'padding:12px 16px;font-size:13px;font-weight:500;color:var(--text-primary);cursor:pointer;border-bottom:2px solid var(--text-primary);margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:color .15s,border-color .15s,background-color .15s';
+    tabProd.style.cssText = 'padding:12px 16px;font-size:13px;font-weight:400;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:color .15s,border-color .15s,background-color .15s';
     viewMapa.style.display = 'flex';
     viewProd.style.display = 'none';
   } else {
-    tabMapa.style.cssText = 'padding:12px 16px;font-size:13px;font-weight:400;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:all .15s';
-    tabProd.style.cssText = 'padding:12px 16px;font-size:13px;font-weight:500;color:var(--text-primary);cursor:pointer;border-bottom:2px solid var(--text-primary);margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:all .15s';
+    tabMapa.style.cssText = 'padding:12px 16px;font-size:13px;font-weight:400;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:color .15s,border-color .15s,background-color .15s';
+    tabProd.style.cssText = 'padding:12px 16px;font-size:13px;font-weight:500;color:var(--text-primary);cursor:pointer;border-bottom:2px solid var(--text-primary);margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:color .15s,border-color .15s,background-color .15s';
     viewMapa.style.display = 'none';
     viewProd.style.display = 'flex';
     ivRenderProductList('');
@@ -1337,12 +1607,12 @@ function ivBuildHeatmap(data) {
     ? Array.from({length:IV_LEVELS},(_,i)=>i+1)
     : [parseInt(ivCurrentNivel)];
 
-  let html = `<div style="display:grid;grid-template-columns:40px ${Array(IV_RACKS).fill('62px').join(' ')};gap:3px;min-width:max-content">`;
-  html += `<div style="width:40px;height:22px"></div>`;
-  for (let rk=1;rk<=IV_RACKS;rk++) html += `<div style="width:62px;height:22px;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:var(--mono);color:var(--text-muted)">P${rk}</div>`;
+  let html = `<div class="iv-heatmap-grid" style="grid-template-columns:44px ${Array(IV_RACKS).fill('84px').join(' ')}">`;
+  html += '<div class="iv-grid-corner"></div>';
+  for (let rk=1;rk<=IV_RACKS;rk++) html += `<div class="iv-col-label">P${rk}</div>`;
 
   for (const lv of levelsToShow) {
-    html += `<div style="width:40px;height:52px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:10px;font-family:var(--mono);color:var(--text-muted);flex-shrink:0">N${lv}</div>`;
+    html += `<div class="iv-row-label">N${lv}</div>`;
     for (let rk=1;rk<=IV_RACKS;rk++) {
       const val = data[lv][rk];
       let {bg,tc} = ivCellColor(val);
@@ -1351,21 +1621,19 @@ function ivBuildHeatmap(data) {
       const prod = positionProducts[cellId];
       if (prod) { bg = 'rgba(190,233,232,.85)'; tc = '#1B4965'; }
       const prodLabel = prod
-        ? `<div style="font-size:8px;color:${tc};opacity:.85;margin-top:1px;max-width:56px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center">${prod.name.split(' ').slice(0,2).join(' ')}</div>`
+        ? `<span class="iv-cell-product">${escapeHtml(prod.name)}</span>`
         : '';
       const titleStr = prod
         ? `${cellId}: ${prod.name} (${prod.id}) · ${val.toLocaleString('pt-BR')} un`
         : `${cellId}: ${val.toLocaleString('pt-BR')} un · ${pct}%`;
       html += `
-        <div onclick="ivOpenCellModal('${cellId}',${val},${lv},${rk})" title="${titleStr}"
-          style="width:62px;height:52px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .12s;border:1px solid ${prod?'rgba(98,182,203,.55)':'transparent'};background:${bg};position:relative"
-          onmouseover="this.style.borderColor='rgba(255,255,255,.25)';this.style.transform='scale(1.06)';this.style.zIndex='2'"
-          onmouseout="this.style.borderColor='${prod?'rgba(98,182,203,.55)':'transparent'}';this.style.transform='scale(1)';this.style.zIndex='0'">
-          <div style="font-size:10px;font-family:var(--mono);font-weight:500;color:${tc};line-height:1">${val===0?'—':val.toLocaleString('pt-BR')}</div>
-          ${val>0&&!prod?`<div style="font-size:8px;margin-top:1px;color:${tc};opacity:.7">${pct}%</div>`:''}
+        <button type="button" onclick="ivOpenCellModal('${cellId}',${val},${lv},${rk})" title="${escapeHtml(titleStr)}"
+          class="iv-cell${prod?' has-product':''}" style="--iv-cell-bg:${bg};--iv-cell-text:${tc};--iv-cell-border:${prod?'rgba(98,182,203,.7)':'transparent'}">
+          <span class="iv-cell-qty">${val===0?'—':val.toLocaleString('pt-BR')}</span>
+          ${val>0&&!prod?`<span class="iv-cell-percent">${pct}% ocupado</span>`:''}
           ${prodLabel}
-          ${prod?`<div style="position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:#5FA8D3"></div>`:''}
-        </div>`;
+          ${prod?'<span class="iv-cell-dot" aria-hidden="true"></span>':''}
+        </button>`;
     }
   }
   html += '</div>';
@@ -1416,14 +1684,17 @@ function ivOpenCellModal(cellId, val, lv, rk) {
   // open
   const ov = document.getElementById('cell-modal-overlay');
   ov.style.display = 'flex';
+  ov.setAttribute('aria-hidden', 'false');
   requestAnimationFrame(() => {
     ov.style.opacity = '1';
     document.getElementById('cell-modal').style.transform = 'translateY(0)';
+    document.getElementById('cm-search')?.focus();
   });
 }
 
 function ivCloseCellModal() {
   const ov = document.getElementById('cell-modal-overlay');
+  ov.setAttribute('aria-hidden', 'true');
   ov.style.opacity = '0';
   document.getElementById('cell-modal').style.transform = 'translateY(16px)';
   setTimeout(() => { ov.style.display = 'none'; }, 250);
@@ -1436,20 +1707,20 @@ function ivCmFilter(q) {
     p.name.toLowerCase().includes(q.toLowerCase()) || p.id.toLowerCase().includes(q.toLowerCase())
   );
   list.innerHTML = filtered.map(p => `
-    <div onclick="ivCmSelectProd('${p.id}')" id="cmprod-${p.id.replace(/[^a-z0-9]/gi,'')}"
-      style="padding:8px 10px;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background .12s"
+    <button type="button" onclick="ivCmSelectProd('${p.id}')" id="cmprod-${p.id.replace(/[^a-z0-9]/gi,'')}"
+      style="width:100%;border:0;background:transparent;font-family:var(--font);text-align:left;padding:8px 10px;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background .12s"
       onmouseover="this.style.background='var(--surface3)'" onmouseout="if(!this.classList.contains('selected'))this.style.background='transparent'">
       <div>
-        <div style="font-size:12px;color:var(--text-primary)">${p.name}</div>
-        <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:1px">${p.id} · ${p.cat}</div>
+        <div style="font-size:12px;color:var(--text-primary)">${escapeHtml(p.name)}</div>
+        <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:1px">${escapeHtml(p.id)} · ${escapeHtml(p.cat)}</div>
       </div>
-    </div>`).join('') || '<div style="padding:10px;font-size:12px;color:var(--text-muted);text-align:center">Nenhum produto encontrado</div>';
+    </button>`).join('') || '<div style="padding:10px;font-size:12px;color:var(--text-muted);text-align:center">Nenhum produto encontrado</div>';
 }
 
 function ivCmSelectProd(skuId) {
   cmSelectedProduct = IV_CATALOG.find(p => p.id === skuId);
   // visual selection
-  document.querySelectorAll('#cm-product-list > div').forEach(el => {
+  document.querySelectorAll('#cm-product-list > button').forEach(el => {
     el.style.background = 'transparent'; el.classList.remove('selected');
   });
   const key = skuId.replace(/[^a-z0-9]/gi,'');
@@ -1469,19 +1740,29 @@ function ivCmResetConfirm() {
 function ivConfirmAssign() {
   if (!cmSelectedProduct || !cmCurrentCell) return;
   positionProducts[cmCurrentCell.cellId] = { id: cmSelectedProduct.id, name: cmSelectedProduct.name };
+  const product = db.products.find(item => item.id === cmSelectedProduct.id);
+  if (product) product.location = cmCurrentCell.cellId;
   ivCloseCellModal();
   ivBuildHeatmap(ivMatrixData);
   ivBuildMetrics(ivMatrixData);
+  saveState();
   showToast(`${cmSelectedProduct.name} → ${cmCurrentCell.cellId}`);
 }
 
 function ivRemoveProduct() {
   if (!cmCurrentCell) return;
+  if (!window.confirm(`Remover o produto da posição ${cmCurrentCell.cellId}? O estoque do produto não será apagado.`)) return;
+  const removed = positionProducts[cmCurrentCell.cellId];
+  const removedPositionId = cmCurrentCell.cellId;
   delete positionProducts[cmCurrentCell.cellId];
+  const product = db.products.find(item => item.id === removed?.id);
+  if (product && product.location === cmCurrentCell.cellId) product.location = '';
   document.getElementById('cm-current-wrap').style.display = 'none';
   ivCloseCellModal();
   ivBuildHeatmap(ivMatrixData);
   ivBuildMetrics(ivMatrixData);
+  saveState();
+  window.FAST_API?.removeRemotePosition?.(removedPositionId).catch(error => console.warn('Posição remota não removida.', error));
   showToast('Produto removido da posição');
 }
 
@@ -1497,15 +1778,15 @@ function ivRenderProductList(q) {
   const withoutPos = filtered.filter(p => !Object.values(positionProducts).some(pp => pp.id === p.id));
   const renderItem = (p, hasPos) => {
     const count = Object.entries(positionProducts).filter(([,v]) => v.id === p.id).length;
-    return `<div onclick="ivLocateProduct('${p.id}')" id="proditem-${p.id.replace(/[^a-z0-9]/gi,'')}"
-      style="padding:9px 12px;border-radius:var(--r);cursor:pointer;transition:background .12s;border:1px solid transparent"
+    return `<button type="button" onclick="ivLocateProduct('${p.id}')" id="proditem-${p.id.replace(/[^a-z0-9]/gi,'')}"
+      style="width:100%;font-family:var(--font);text-align:left;background:transparent;padding:9px 12px;border-radius:var(--r);cursor:pointer;transition:background .12s;border:1px solid transparent"
       onmouseover="this.style.background='var(--surface2)'" onmouseout="if(!this.classList.contains('active-prod'))this.style.background='transparent'">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-        <div style="font-size:12px;color:var(--text-primary);font-weight:${hasPos?'500':'400'}">${p.name}</div>
+        <div style="font-size:12px;color:var(--text-primary);font-weight:${hasPos?'500':'400'}">${escapeHtml(p.name)}</div>
         ${hasPos?`<span style="font-size:9px;padding:2px 6px;border-radius:3px;background:var(--accent-dim);color:#1B4965;font-family:var(--mono)">${count} pos.</span>`:''}
       </div>
-      <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted)">${p.id} · ${p.cat}</div>
-    </div>`;
+      <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted)">${escapeHtml(p.id)} · ${escapeHtml(p.cat)}</div>
+    </button>`;
   };
   let html = '';
   if (withPos.length) {
@@ -1526,7 +1807,7 @@ function ivLocateProduct(skuId) {
   const prod = IV_CATALOG.find(p => p.id === skuId);
   if (!prod) return;
   // highlight in list
-  document.querySelectorAll('#prod-list > div[id^="proditem-"]').forEach(el => {
+  document.querySelectorAll('#prod-list > button[id^="proditem-"]').forEach(el => {
     el.classList.remove('active-prod'); el.style.background = 'transparent'; el.style.border = '1px solid transparent';
   });
   const key = skuId.replace(/[^a-z0-9]/gi,'');
@@ -1556,7 +1837,7 @@ function ivLocateProduct(skuId) {
         const [,ruaPart,nivelPart,predioPart] = pos.match(/R(\d+)-N(\d+)-P(\d+)/)||[];
         const val = ivMatrixData[nivelPart] ? (ivMatrixData[nivelPart][predioPart]||0) : 0;
         const pct = Math.round(val/IV_MAX_CAP*100);
-        return `<div onclick="ivGoToPos('${pos}')" style="background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);border-radius:var(--r);padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s"
+        return `<button type="button" onclick="ivGoToPos('${pos}')" style="width:100%;font-family:var(--font);text-align:left;background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);border-radius:var(--r);padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background-color .15s,border-color .15s,transform .15s"
           onmouseover="this.style.background='#CAE9FF'" onmouseout="this.style.background='var(--accent-dim)'">
           <div>
             <div style="font-size:13px;font-family:var(--mono);color:#1B4965;font-weight:500">${pos}</div>
@@ -1566,7 +1847,7 @@ function ivLocateProduct(skuId) {
             <div style="font-size:12px;font-family:var(--mono);color:var(--text-secondary)">${val.toLocaleString('pt-BR')} un</div>
             <div style="font-size:10px;color:var(--text-muted)">${pct}% cap.</div>
           </div>
-        </div>`;
+        </button>`;
       }).join('');
   }
 
@@ -1629,11 +1910,15 @@ function ivInit() {
 
 var currentPage = 'dashboard';
 var currentDrawerCargoId = null;
+var drawerRestoreFocus = null;
 
-function navTo(pageId, sidebarEl, tbId) {
+function navTo(pageId, sidebarEl, tbId, updateUrl=true) {
+  if (!Object.prototype.hasOwnProperty.call(pageTitles, pageId)) pageId = 'dashboard';
   // pages
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + pageId).classList.add('active');
+  const page = document.getElementById('page-' + pageId);
+  if (!page) return;
+  page.classList.add('active');
 
   // sidebar items
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -1650,13 +1935,19 @@ function navTo(pageId, sidebarEl, tbId) {
   // header
   const info = pageTitles[pageId] || ['F.A.S.T', ''];
   document.getElementById('header-title').textContent = info[0];
-  document.getElementById('header-sub').textContent = info[1];
+  const dateLabel = new Intl.DateTimeFormat('pt-BR', {dateStyle:'long', timeZone:FAST_CORE.OPERATION_TIME_ZONE}).format(new Date());
+  document.getElementById('header-sub').textContent = `${info[1]} · ${dateLabel}`;
 
+  const changedPage = currentPage !== pageId;
   currentPage = pageId;
+  if (updateUrl && changedPage && window.location.hash !== `#${pageId}`) {
+    window.history.pushState({page:pageId}, '', `#${pageId}`);
+  }
 
   // re-renderiza dados ao entrar na página
   if (pageId === 'estoque') { renderEstoqueMetrics(); renderStockFull(document.getElementById('estoque-search')?.value||''); }
-  if (pageId === 'dashboard') { renderDashMetrics(); renderCriticalStock(); renderDashboardTracking(); renderDashboardAlerts(); }
+  if (pageId === 'rastreio') { renderLotTraceability(document.getElementById('lot-search')?.value || ''); }
+  if (pageId === 'dashboard') { renderDashMetrics(); renderDashboardOverview(); renderCriticalStock(); renderDashboardTracking(); renderDashboardAlerts(); }
   if (pageId === 'fornecedores') { renderSuppliers(); }
   if (pageId === 'perdas') { renderLosses(); }
   if (pageId === 'auditoria') { renderAudit(document.getElementById('audit-search')?.value || ''); }
@@ -1686,22 +1977,26 @@ function openDrawer(id) {
   const c = cargos.find(x => x.id === id);
   if (!c) return;
   currentDrawerCargoId = id;
+  drawerRestoreFocus = document.activeElement;
   const overlay = document.getElementById('drawer-overlay');
   const drawer  = document.getElementById('drawer');
   overlay.classList.add('open');
   drawer.classList.add('open');
+  drawer.setAttribute('aria-hidden', 'false');
   requestAnimationFrame(() => overlay.classList.add('visible'));
 
   // reset tabs
   document.querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.dtab-content').forEach(ct => ct.classList.remove('active'));
   document.querySelectorAll('.dtab')[0].classList.add('active');
+  document.querySelectorAll('.dtab').forEach((tab, index) => tab.setAttribute('aria-selected', index === 0 ? 'true' : 'false'));
   document.getElementById('dtab-timeline').classList.add('active');
 
   // header
   document.getElementById('d-id').textContent    = 'ORDEM/LOTE · #' + c.id;
   document.getElementById('d-title').textContent  = c.title;
-  document.getElementById('d-badges').innerHTML   = c.badges.map(b => `<span class="badge ${b}">${c.statusLabel}</span>`).join('');
+  const drawerBadge = getCargoStatusMeta(c).badgeCls;
+  document.getElementById('d-badges').innerHTML = `<span class="status-text ${drawerBadge}">${escapeHtml(c.statusLabel)}</span>`;
 
   // ── TAB: TIMELINE ──
   const tlIcons = {
@@ -1714,44 +2009,46 @@ function openDrawer(id) {
     <div class="dsection">
       <div class="dsection-label">Fluxo operacional</div>
       <div class="route-visual">
-        <div class="rv-city"><div class="rv-name">${c.origin}</div><div class="rv-sub">Etapa inicial</div></div>
+        <div class="rv-city"><div class="rv-name">${escapeHtml(c.origin)}</div><div class="rv-sub">Etapa inicial</div></div>
         <div class="rv-mid"><div class="rv-line"></div></div>
-        <div class="rv-city" style="text-align:right"><div class="rv-name">${c.dest}</div><div class="rv-sub">Próxima etapa</div></div>
+        <div class="rv-city" style="text-align:right"><div class="rv-name">${escapeHtml(c.dest)}</div><div class="rv-sub">Próxima etapa</div></div>
       </div>
     </div>
     <div class="dsection">
       <div class="dsection-label">Histórico de eventos</div>
       <div class="tl-full">
-        ${(c.timeline||[]).map(t => `
-          <div class="tl-item ${t.cls}">
-            <div class="tl-ico">${tlIcons[t.cls]||tlIcons.pending}</div>
-            <div class="tl-event">${t.ev}</div>
-            <div class="tl-detail">${t.detail}</div>
-            <div class="tl-time">${t.time}</div>
-          </div>`).join('')}
+        ${(c.timeline||[]).map(t => {
+          const state = Object.prototype.hasOwnProperty.call(tlIcons, t.cls) ? t.cls : 'pending';
+          return `<div class="tl-item ${state}">
+            <div class="tl-ico">${tlIcons[state]}</div>
+            <div class="tl-event">${escapeHtml(t.ev)}</div>
+            <div class="tl-detail">${escapeHtml(t.detail)}</div>
+            <div class="tl-time">${escapeHtml(t.time)}</div>
+          </div>`;
+        }).join('')}
       </div>
     </div>`;
 
   // ── TAB: ITENS ──
   document.getElementById('d-items-content').innerHTML = `
     <div class="dsection">
-      <div class="dsection-label">${c.volumes} volume(s) · ${c.peso} kg total</div>
+      <div class="dsection-label">${escapeHtml(c.volumes)} volume(s) · ${escapeHtml(c.peso)} kg total</div>
       <div class="items-list">
         ${(c.itens||[]).map(it => `
           <div class="item-row">
             <div class="item-ico"><svg viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="1"/><path d="M2 5h10"/></svg></div>
-            <div><div class="item-name">${it.name}</div><div class="item-sku">${it.sku}</div></div>
-            <div class="item-qty">× ${it.qty}</div>
+            <div><div class="item-name">${escapeHtml(it.name)}</div><div class="item-sku">${escapeHtml(it.sku)}</div></div>
+            <div class="item-qty">× ${escapeHtml(it.qty)}</div>
           </div>`).join('')}
       </div>
     </div>
     <div class="dsection">
       <div class="dsection-label">Rendimento / Custos</div>
       <div class="meta-grid">
-        <div class="meta-item"><div class="meta-key">Qtd. recebida</div><div class="meta-val mono">${c.volumes} un/lote</div></div>
-        <div class="meta-item"><div class="meta-key">Peso/volume</div><div class="meta-val mono">${c.peso} kg</div></div>
-        <div class="meta-item"><div class="meta-key">NF-e</div><div class="meta-val mono">${c.nfe}</div></div>
-        <div class="meta-item"><div class="meta-key">Seguro</div><div class="meta-val mono">${c.seguro}</div></div>
+        <div class="meta-item"><div class="meta-key">Qtd. recebida</div><div class="meta-val mono">${escapeHtml(c.volumes)} un/lote</div></div>
+        <div class="meta-item"><div class="meta-key">Peso/volume</div><div class="meta-val mono">${escapeHtml(c.peso)} kg</div></div>
+        <div class="meta-item"><div class="meta-key">NF-e</div><div class="meta-val mono">${escapeHtml(c.nfe)}</div></div>
+        <div class="meta-item"><div class="meta-key">Seguro</div><div class="meta-val mono">${escapeHtml(c.seguro)}</div></div>
       </div>
     </div>`;
 
@@ -1762,25 +2059,25 @@ function openDrawer(id) {
     <div class="dsection">
       <div class="dsection-label">Unidade produtiva</div>
       <div class="meta-grid">
-        <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Empresa</div><div class="meta-val">${rem.empresa||'—'}</div></div>
-        <div class="meta-item"><div class="meta-key">CNPJ</div><div class="meta-val mono" style="font-size:11px">${rem.cnpj||'—'}</div></div>
-        <div class="meta-item"><div class="meta-key">Contato</div><div class="meta-val mono">${rem.tel||'—'}</div></div>
+        <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Empresa</div><div class="meta-val">${escapeHtml(rem.empresa||'—')}</div></div>
+        <div class="meta-item"><div class="meta-key">CNPJ</div><div class="meta-val mono" style="font-size:11px">${escapeHtml(rem.cnpj||'—')}</div></div>
+        <div class="meta-item"><div class="meta-key">Contato</div><div class="meta-val mono">${escapeHtml(rem.tel||'—')}</div></div>
       </div>
     </div>
     <div class="dsection">
       <div class="dsection-label">Destino / consumo</div>
       <div class="meta-grid">
-        <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Nome</div><div class="meta-val">${dest.nome||'—'}</div></div>
-        <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Endereço</div><div class="meta-val">${dest.endereco||'—'}</div></div>
-        <div class="meta-item"><div class="meta-key">CNPJ</div><div class="meta-val mono" style="font-size:11px">${dest.cnpj||'—'}</div></div>
-        <div class="meta-item"><div class="meta-key">Contato</div><div class="meta-val mono">${dest.tel||'—'}</div></div>
+        <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Nome</div><div class="meta-val">${escapeHtml(dest.nome||'—')}</div></div>
+        <div class="meta-item" style="grid-column:1/-1"><div class="meta-key">Endereço</div><div class="meta-val">${escapeHtml(dest.endereco||'—')}</div></div>
+        <div class="meta-item"><div class="meta-key">CNPJ</div><div class="meta-val mono" style="font-size:11px">${escapeHtml(dest.cnpj||'—')}</div></div>
+        <div class="meta-item"><div class="meta-key">Contato</div><div class="meta-val mono">${escapeHtml(dest.tel||'—')}</div></div>
       </div>
     </div>
     <div class="dsection">
       <div class="dsection-label">Fiscal</div>
       <div class="meta-grid">
-        <div class="meta-item"><div class="meta-key">NF-e</div><div class="meta-val mono">${c.nfe}</div></div>
-        <div class="meta-item"><div class="meta-key">Responsável</div><div class="meta-val mono">${c.carrier}</div></div>
+        <div class="meta-item"><div class="meta-key">NF-e</div><div class="meta-val mono">${escapeHtml(c.nfe)}</div></div>
+        <div class="meta-item"><div class="meta-key">Responsável</div><div class="meta-val mono">${escapeHtml(c.carrier)}</div></div>
       </div>
     </div>`;
 
@@ -1790,8 +2087,8 @@ function openDrawer(id) {
         <div class="dsection-label">Ocorrência ativa</div>
         <div style="background:var(--danger-bg);border:1px solid rgba(248,113,113,.25);border-radius:var(--r);padding:12px 14px">
           <div style="font-size:11px;color:var(--danger);font-weight:500;margin-bottom:4px">Atenção operacional</div>
-          <div style="font-size:12px;color:var(--text-secondary)">${typeof c.ocorrencia === 'string' ? c.ocorrencia : (c.ocorrencia.desc || 'Verificar ocorrência')}</div>
-          <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:6px">${typeof c.ocorrencia === 'string' ? 'agora' : (c.ocorrencia.data || 'agora')}</div>
+          <div style="font-size:12px;color:var(--text-secondary)">${escapeHtml(typeof c.ocorrencia === 'string' ? c.ocorrencia : (c.ocorrencia.desc || 'Verificar ocorrência'))}</div>
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:6px">${escapeHtml(typeof c.ocorrencia === 'string' ? 'agora' : (c.ocorrencia.data || 'agora'))}</div>
         </div>
       </div>` : '';
   document.getElementById('d-carrier-content').innerHTML = `
@@ -1800,14 +2097,14 @@ function openDrawer(id) {
       <div class="carrier-card">
         <div class="carrier-top">
           <div class="carrier-logo"><svg viewBox="0 0 16 16"><path d="M1 8h10M1 5h10M9 3l4 5-4 5"/></svg></div>
-          <div><div class="carrier-name">${c.carrier}</div><div class="carrier-svc">${c.modalidade||''}</div></div>
+          <div><div class="carrier-name">${escapeHtml(c.carrier)}</div><div class="carrier-svc">${escapeHtml(c.modalidade||'')}</div></div>
         </div>
         <div class="carrier-fields">
-          <div><div class="cf-key">Código do lote/OP</div><div class="cf-val">${c.rastreio||'—'}</div></div>
-          <div><div class="cf-key">Prazo original</div><div class="cf-val">${c.prazo||c.eta}</div></div>
-          ${c.prazoRev?`<div><div class="cf-key">Prazo revisado</div><div class="cf-val" style="color:var(--warning)">${c.prazoRev}</div></div>`:''}
-          <div><div class="cf-key">Movimento</div><div class="cf-val">${c.frete||'—'}</div></div>
-          <div><div class="cf-key">Custo/IA</div><div class="cf-val">${c.seguro||'—'}</div></div>
+          <div><div class="cf-key">Código do lote/OP</div><div class="cf-val">${escapeHtml(c.rastreio||'—')}</div></div>
+          <div><div class="cf-key">Prazo original</div><div class="cf-val">${escapeHtml(c.prazo||c.eta)}</div></div>
+          ${c.prazoRev?`<div><div class="cf-key">Prazo revisado</div><div class="cf-val" style="color:var(--warning)">${escapeHtml(c.prazoRev)}</div></div>`:''}
+          <div><div class="cf-key">Movimento</div><div class="cf-val">${escapeHtml(c.frete||'—')}</div></div>
+          <div><div class="cf-key">Custo estimado</div><div class="cf-val">${escapeHtml(c.seguro||'—')}</div></div>
         </div>
       </div>
     </div>
@@ -1818,14 +2115,14 @@ function exportCurrentNfe() {
   const c = cargos.find(x => x.id === currentDrawerCargoId) || cargos[0];
   if (!c) { showToast('Nenhuma NF-e/OP selecionada para exportar'); return; }
   const items = (c.itens && c.itens.length ? c.itens : ['Sem itens detalhados']).map(item => {
-    if (typeof item === 'string') return `<li>${item}</li>`;
-    return `<li>${item.name || 'Item'} · <span class="mono">${item.sku || 'sem SKU'}</span> · qtd. ${item.qty || 1}</li>`;
+    if (typeof item === 'string') return `<li>${escapeHtml(item)}</li>`;
+    return `<li>${escapeHtml(item.name || 'Item')} · <span class="mono">${escapeHtml(item.sku || 'sem SKU')}</span> · qtd. ${escapeHtml(item.qty || 1)}</li>`;
   }).join('');
   const html = `<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <title>${c.nfe || c.id} · F.A.S.T</title>
+  <title>${escapeHtml(c.nfe || c.id)} · F.A.S.T</title>
   <style>
     body{font-family:Arial,sans-serif;color:#1B4965;margin:32px;line-height:1.45}h1{margin:0 0 4px}small{color:#456879}.card{border:1px solid #C8E4EF;border-radius:12px;padding:16px;margin:16px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mono{font-family:monospace;color:#14384F}ul{margin-top:8px}
   </style>
@@ -1834,17 +2131,17 @@ function exportCurrentNfe() {
   <h1>Espelho de NF-e / Ordem de Produção</h1>
   <small>Exportado pelo F.A.S.T em ${new Date().toLocaleString('pt-BR')}</small>
   <div class="card grid">
-    <div><strong>ID</strong><br><span class="mono">${c.id}</span></div>
-    <div><strong>NF-e</strong><br><span class="mono">${c.nfe || '—'}</span></div>
-    <div><strong>Status</strong><br>${c.statusLabel || c.status}</div>
-    <div><strong>Previsão</strong><br>${c.eta || c.prazo || '—'}</div>
+    <div><strong>ID</strong><br><span class="mono">${escapeHtml(c.id)}</span></div>
+    <div><strong>NF-e</strong><br><span class="mono">${escapeHtml(c.nfe || '—')}</span></div>
+    <div><strong>Status</strong><br>${escapeHtml(c.statusLabel || c.status)}</div>
+    <div><strong>Previsão</strong><br>${escapeHtml(c.eta || c.prazo || '—')}</div>
   </div>
   <div class="card grid">
-    <div><strong>Origem</strong><br>${c.origin || '—'}<br>${c.remetente?.empresa || ''}<br>${c.remetente?.cnpj || ''}</div>
-    <div><strong>Destino</strong><br>${c.dest || '—'}<br>${c.destinatario?.nome || ''}<br>${c.destinatario?.cnpj || ''}</div>
+    <div><strong>Origem</strong><br>${escapeHtml(c.origin || '—')}<br>${escapeHtml(c.remetente?.empresa || '')}<br>${escapeHtml(c.remetente?.cnpj || '')}</div>
+    <div><strong>Destino</strong><br>${escapeHtml(c.dest || '—')}<br>${escapeHtml(c.destinatario?.nome || '')}<br>${escapeHtml(c.destinatario?.cnpj || '')}</div>
   </div>
   <div class="card"><strong>Itens</strong><ul>${items}</ul></div>
-  <div class="card"><strong>Responsável</strong><br>${c.carrier || '—'} · ${c.modalidade || '—'}</div>
+  <div class="card"><strong>Responsável</strong><br>${escapeHtml(c.carrier || '—')} · ${escapeHtml(c.modalidade || '—')}</div>
 </body>
 </html>`;
   const blob = new Blob([html], {type:'text/html;charset=utf-8'});
@@ -1864,22 +2161,28 @@ function closeDrawer() {
   const drawer = document.getElementById('drawer');
   overlay.classList.remove('visible');
   drawer.classList.remove('open');
-  setTimeout(() => overlay.classList.remove('open'), 300);
+  drawer.setAttribute('aria-hidden', 'true');
+  setTimeout(() => {
+    overlay.classList.remove('open');
+    if (drawerRestoreFocus?.isConnected) drawerRestoreFocus.focus();
+    drawerRestoreFocus = null;
+  }, 300);
 }
 
 function switchDTab(id, el) {
-  document.querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.dtab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
   document.querySelectorAll('.dtab-content').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
+  el.setAttribute('aria-selected', 'true');
   document.getElementById('dtab-' + id).classList.add('active');
 }
 
 // ── QR MODAL ──
 var fromScan = true;
 var entryDraftItems = [
-  {id:'FAR-25KG', name:'Farinha de Trigo 25kg', qty:2, lote:'LT-FAR-0626-A', validade:'2026-07-12', unit:'sacos', price:92.50, cat:'Matéria-prima'},
-  {id:'FER-BIO-500', name:'Fermento biológico fresco 500g', qty:2, lote:'LT-FER-0626-C', validade:'2026-06-14', unit:'un', price:11.90, cat:'Matéria-prima'},
-  {id:'EMB-PF-1000', name:'Embalagem pão francês 1000un', qty:1, lote:'LT-EMB-0605-A', validade:'2027-01-30', unit:'fardos', price:42.00, cat:'Embalagem'}
+  {id:'FAR-25KG', name:'Farinha de Trigo 25kg', qty:2, lote:'LT-FAR-ENTRADA-A', validade:addDaysIso(30), unit:'sacos', price:92.50, cat:'Matéria-prima'},
+  {id:'FER-BIO-500', name:'Fermento biológico fresco 500g', qty:2, lote:'LT-FER-ENTRADA-C', validade:addDaysIso(5), unit:'un', price:11.90, cat:'Matéria-prima'},
+  {id:'EMB-PF-1000', name:'Embalagem pão francês 1000un', qty:1, lote:'LT-EMB-ENTRADA-A', validade:addDaysIso(180), unit:'fardos', price:42.00, cat:'Embalagem'}
 ];
 
 function renderEntryItems() {
@@ -1910,16 +2213,18 @@ function addEntryItemManual() {
       {name:'qty', label:'Quantidade recebida', type:'number', value:1, min:0, step:1, required:true},
       {name:'unit', label:'Unidade', value:'un'},
       {name:'lote', label:'Lote', value:'LT-' + Date.now().toString().slice(-6)},
-      {name:'validade', label:'Validade', type:'date', value:'2026-07-30'},
+      {name:'validade', label:'Validade', type:'date', value:addDaysIso(30)},
       {name:'cat', label:'Categoria', value:'Insumo'},
       {name:'price', label:'Preço unitário', type:'number', value:0, min:0, step:'0.01'}
     ],
     onSubmit(values) {
-      const sku = values.sku?.trim().toUpperCase();
+      const skuResult = FAST_CORE.validateSku(values.sku);
+      const sku = skuResult.value;
       const existing = db.products.find(p => p.id === sku);
       const qty = Number(values.qty);
-      if (!sku || !values.name?.trim()) { showToast('⚠️ Informe SKU e nome do item'); return false; }
-      if (!qty || qty < 0) { showToast('⚠️ Quantidade inválida'); return false; }
+      if (!skuResult.ok) { showToast(`⚠️ ${skuResult.error}`); return false; }
+      if (!values.name?.trim()) { showToast('⚠️ Informe o nome do item'); return false; }
+      if (!qty || qty <= 0) { showToast('⚠️ Quantidade inválida'); return false; }
       entryDraftItems.push({
         id:sku,
         name:values.name.trim(),
@@ -1950,34 +2255,19 @@ function openImportFile() {
 }
 
 function parseCsvRows(text) {
-  const lines = text.split(/\r?\n/).filter(Boolean).slice(0, MAX_IMPORT_ROWS + 1);
-  if (!lines.length) return [];
-  const sep = lines[0].includes(';') ? ';' : ',';
-  const headers = lines.shift().split(sep).map(h => h.trim().toLowerCase());
-  return lines.map(line => {
-    const cols = line.split(sep).map(c => c.trim());
-    const row = {};
-    headers.forEach((h,i) => row[h] = cols[i] || '');
-    return {
-      id:sanitizeImportValue(row.sku || row.id || row.codigo || row.código || '', 64).toUpperCase(),
-      name:sanitizeImportValue(row.nome || row.produto || row.descricao || row['descrição'] || 'Item importado'),
-      qty:Math.max(0, Number((row.qtd || row.quantidade || row.qty || '1').replace(',','.')) || 1),
-      lote:sanitizeImportValue(row.lote || row.batch || '', 80),
-      validade:sanitizeImportValue(row.validade || row.vencimento || row.expires || '', 20),
-      unit:sanitizeImportValue(row.unidade || row.unit || 'un', 24),
-      price:Math.max(0, Number((row.preco || row.preço || row.valor || '0').replace(',','.')) || 0),
-      cat:sanitizeImportValue(row.categoria || row.cat || 'Insumo', 80)
-    };
-  }).filter(r => r.id);
+  return FAST_CORE.parseCsvRows(text, MAX_IMPORT_ROWS);
 }
 
 function parseNfeXml(text) {
   const doc = new DOMParser().parseFromString(text, 'text/xml');
+  if (doc.querySelector('parsererror')) return [];
   return [...doc.querySelectorAll('det')].slice(0, MAX_IMPORT_ROWS).map((det, idx) => {
     const get = tag => det.querySelector(tag)?.textContent?.trim() || '';
     const name = get('xProd') || `Item NF-e ${idx + 1}`;
+    const sku = FAST_CORE.validateSku(get('cProd') || `NFE-${idx + 1}`);
+    if (!sku.ok) return null;
     return {
-      id:sanitizeImportValue(get('cProd') || `NFE-${idx + 1}`, 64).toUpperCase(),
+      id:sku.value,
       name:sanitizeImportValue(name),
       qty:Math.max(0, Number((get('qCom') || '1').replace(',','.')) || 1),
       lote:sanitizeImportValue(get('nLote') || ('NFE-' + Date.now().toString().slice(-6)), 80),
@@ -1986,7 +2276,7 @@ function parseNfeXml(text) {
       price:Math.max(0, Number((get('vUnCom') || get('vProd') || '0').replace(',','.')) || 0),
       cat:'Importado NF-e'
     };
-  });
+  }).filter(Boolean);
 }
 
 async function handleEntryImport(event) {
@@ -2013,13 +2303,20 @@ function openQR() {
   renderEntryItems();
   msGoTo('ms1');
   const overlay = document.getElementById('modal-overlay');
+  const today = FAST_CORE.isoDateInTimeZone();
+  const entryId = document.getElementById('fi-id');
+  if (entryId && !entryId.value) entryId.value = `LT-${today.replace(/-/g, '')}-${String(Date.now()).slice(-4)}`;
+  const issueDate = document.getElementById('fi-date');
+  if (issueDate) issueDate.value = today;
   overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden', 'false');
   requestAnimationFrame(() => overlay.classList.add('visible'));
 }
 
 function closeQR() {
   stopCameraScanner();
   const overlay = document.getElementById('modal-overlay');
+  overlay.setAttribute('aria-hidden', 'true');
   overlay.classList.remove('visible');
   setTimeout(() => overlay.classList.remove('open'), 250);
 }
@@ -2126,17 +2423,22 @@ function msGo(id, scan) {
   }
   if (id === 'ms5') {
     // Salva a nova entrada/lote
-    const pedNum = document.getElementById('fi-id')?.value || ('LT-' + (4900 + cargos.length));
-    const empresa = document.getElementById('fi-emp')?.value || 'Fornecedor';
-    const tipo = document.querySelector('#ms4 select')?.value || 'Compra de fornecedor';
+    const referenceResult = FAST_CORE.validateSku(document.getElementById('fi-id')?.value || ('LT-' + (4900 + cargos.length)));
+    if (!referenceResult.ok) { showToast(`⚠️ ${referenceResult.error}`); return; }
+    const pedNum = referenceResult.value;
+    const empresa = FAST_CORE.sanitizeText(document.getElementById('fi-emp')?.value || 'Fornecedor');
+    const tipo = FAST_CORE.sanitizeText(document.getElementById('fi-type')?.value || 'Compra de fornecedor');
     const nowLabel = new Date().toLocaleString('pt-BR');
+    const invalidItem = entryDraftItems.find(item => !FAST_CORE.validateSku(item.id).ok || !(Number(item.qty) > 0));
+    if (invalidItem) {
+      showToast('⚠️ Corrija os códigos e quantidades antes de confirmar a entrada.');
+      return;
+    }
     entryDraftItems.forEach(item => {
+      item.id = FAST_CORE.validateSku(item.id).value;
       const existing = db.products.find(p => p.id === item.id);
       let target = existing;
       if (target) {
-        target.lote = item.lote || target.lote;
-        target.validade = item.validade || target.validade;
-        target.fornecedor = empresa;
         if (item.price) target.price = item.price;
       } else {
         target = {
@@ -2147,7 +2449,9 @@ function msGo(id, scan) {
         };
         db.products.push(target);
       }
+      addInventoryLot(target, item, empresa, target.location);
       appendAuditMovement(target, 'entrada_lote', Number(item.qty || 0), `${tipo} · ${empresa}`, {ref:pedNum, lote:item.lote || 'sem lote', date:nowLabel});
+      updateProductLotMetadata(target);
     });
     const newCargo = {
       id: pedNum,
@@ -2155,7 +2459,7 @@ function msGo(id, scan) {
       status: 'pending', statusLabel: 'Aguardando',
       origin: document.getElementById('fi-uf')?.value || 'SP',
       dest: 'Estoque FEFO',
-      carrier: document.querySelector('#ms4 select:last-of-type')?.value || 'Equipe Estoque',
+      carrier: FAST_CORE.sanitizeText(document.getElementById('fi-responsible')?.value || 'Equipe Estoque'),
       eta: 'em breve',
       steps: [0, 3],
       badges: ['b-pending'],
@@ -2212,7 +2516,13 @@ document.addEventListener('click', function(e) {
 var scanCounts = {}; // { skuId: count }
 
 function processScannedCode(code) {
-  const exactMatch = IV_CATALOG.find(p => p.id.toLowerCase() === String(code).toLowerCase());
+  const sku = FAST_CORE.validateSku(code);
+  if (!sku.ok) {
+    showToast(`⚠️ ${sku.error}`);
+    return;
+  }
+  code = sku.value;
+  const exactMatch = IV_CATALOG.find(p => p.id.toLowerCase() === code.toLowerCase());
   if (exactMatch) {
     if (!scanCounts[exactMatch.id]) scanCounts[exactMatch.id] = 0;
     scanCounts[exactMatch.id]++;
@@ -2306,8 +2616,8 @@ function openScanCounterPanel(prod, count) {
           padding:8px 14px;border-bottom:1px solid var(--border);
           background:${isActive ? 'var(--accent-dim)' : 'transparent'}">
           <div>
-            <div style="font-size:12px;color:${isActive ? '#1B4965' : 'var(--text-primary)'};font-weight:${isActive ? '500' : '400'}">${name}</div>
-            <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:1px">${skuId}</div>
+            <div style="font-size:12px;color:${isActive ? '#1B4965' : 'var(--text-primary)'};font-weight:${isActive ? '500' : '400'}">${escapeHtml(name)}</div>
+            <div style="font-size:10px;font-family:var(--mono);color:var(--text-muted);margin-top:1px">${escapeHtml(skuId)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <div style="font-size:20px;font-family:var(--mono);font-weight:600;
@@ -2354,18 +2664,25 @@ function resetScanSession() {
 
 function exportScanSession() {
   const total = Object.values(scanCounts).reduce((a,b)=>a+b,0);
+  if (!total) { showToast('Nenhuma leitura para confirmar.'); return; }
   const nowLabel = new Date().toLocaleString('pt-BR');
+  const lotCode = `SCAN-${FAST_CORE.isoDateInTimeZone().replace(/-/g, '')}`;
   // Atualiza estoque real e mapa do armazém
   Object.entries(scanCounts).forEach(([skuId, qty]) => {
     const p = db.products.find(x => x.id === skuId);
     if (p) {
-      appendAuditMovement(p, 'entrada_scan', qty, 'Contagem confirmada pelo painel de leitura', {ref:'Bipador', date:nowLabel});
+      const position = Object.entries(positionProducts).find(([, product]) => product.id === skuId)?.[0] || p.location || '';
+      addInventoryLot(p, {lote:lotCode, qty, unit:p.unit || 'un'}, 'Leitura operacional', position);
+      appendAuditMovement(p, 'entrada_scan', qty, 'Contagem confirmada pelo painel de leitura', {ref:'Bipador', date:nowLabel, lote:lotCode});
+      updateProductLotMetadata(p);
     } else {
       const cat = IV_CATALOG.find(x => x.id === skuId);
       if (cat) {
-        const created = {id:skuId, name:cat.name, cat:cat.cat, qty:0, min:5, price:0};
+        const created = FAST_CORE.prepareNewScannedProduct({id:skuId, name:cat.name, cat:cat.cat});
         db.products.push(created);
-        appendAuditMovement(created, 'entrada_scan', qty, 'SKU criado via leitura', {ref:'Bipador', date:nowLabel, lote:'sem lote'});
+        addInventoryLot(created, {lote:lotCode, qty, unit:created.unit || 'un'}, 'Leitura operacional');
+        appendAuditMovement(created, 'entrada_scan', qty, 'SKU criado via leitura', {ref:'Bipador', date:nowLabel, lote:lotCode});
+        updateProductLotMetadata(created);
       }
     }
     // Sincroniza quantidade na(s) posição(ões) mapeada(s) para este SKU
@@ -2383,6 +2700,9 @@ function exportScanSession() {
 
 // ── MODAL CADASTRO DE NOVO PRODUTO ──
 function openNewProductModal(code) {
+  const skuResult = FAST_CORE.validateSku(code);
+  if (!skuResult.ok) { showToast(`⚠️ ${skuResult.error}`); return; }
+  code = skuResult.value;
   let modal = document.getElementById('new-product-modal-overlay');
   if (modal) modal.remove();
 
@@ -2396,7 +2716,7 @@ function openNewProductModal(code) {
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
 
   overlay.innerHTML = `
-    <div onclick="event.stopPropagation()" style="
+    <div role="dialog" aria-modal="true" aria-labelledby="new-product-title" onclick="event.stopPropagation()" style="
       background:var(--surface);border:1px solid var(--border2);
       border-radius:12px;width:420px;max-height:90vh;overflow:hidden;
       display:flex;flex-direction:column;
@@ -2404,13 +2724,13 @@ function openNewProductModal(code) {
     ">
       <!-- Header -->
       <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-        <button onclick="document.getElementById('new-product-modal-overlay').remove()"
+        <button type="button" aria-label="Fechar cadastro de produto" onclick="document.getElementById('new-product-modal-overlay').remove()"
           style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;
             cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l8 8M9 1L1 9"/></svg>
         </button>
         <div>
-          <div style="font-size:14px;font-weight:500;color:var(--text-primary)">Novo produto bipado</div>
+          <div id="new-product-title" style="font-size:14px;font-weight:500;color:var(--text-primary)">Novo produto bipado</div>
           <div style="font-size:11px;color:var(--text-muted)">Código não encontrado — preencha os dados</div>
         </div>
       </div>
@@ -2424,21 +2744,21 @@ function openNewProductModal(code) {
         </svg>
         <div>
           <div style="font-size:10px;color:#9b93cc;margin-bottom:1px">Código lido pelo bipador</div>
-          <div style="font-size:14px;font-family:var(--mono);font-weight:600;color:#1B4965;letter-spacing:.5px">${code}</div>
+          <div id="np-code-display" style="font-size:14px;font-family:var(--mono);font-weight:600;color:#1B4965;letter-spacing:.5px"></div>
         </div>
       </div>
 
       <!-- Formulário -->
       <div style="padding:14px 18px;display:flex;flex-direction:column;gap:12px;overflow-y:auto">
         <div style="display:flex;flex-direction:column;gap:4px">
-          <label style="font-size:11px;color:var(--text-muted)">SKU / Código</label>
-          <input id="np-sku" value="${code}" style="background:var(--surface2);border:1px solid var(--border2);
+          <label for="np-sku" style="font-size:11px;color:var(--text-muted)">SKU / Código</label>
+          <input id="np-sku" name="sku" value="" autocomplete="off" style="background:var(--surface2);border:1px solid var(--border2);
             border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--mono);
             font-size:13px;outline:none;letter-spacing:.3px">
         </div>
         <div style="display:flex;flex-direction:column;gap:4px">
-          <label style="font-size:11px;color:var(--text-muted)">Nome do produto *</label>
-          <input id="np-name" placeholder="Ex: Farinha de Trigo 25kg" autofocus style="background:var(--surface2);border:1px solid var(--border);
+          <label for="np-name" style="font-size:11px;color:var(--text-muted)">Nome do produto *</label>
+          <input id="np-name" name="name" placeholder="Ex.: Farinha de Trigo 25 kg" autocomplete="off" autofocus style="background:var(--surface2);border:1px solid var(--border);
             border-radius:var(--r);padding:8px 12px;color:var(--text-primary);font-family:var(--font);
             font-size:13px;outline:none;transition:border-color .15s"
             onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'">
@@ -2520,6 +2840,8 @@ function openNewProductModal(code) {
   `;
 
   document.body.appendChild(overlay);
+  document.getElementById('np-code-display').textContent = code;
+  document.getElementById('np-sku').value = code;
   // Foca no campo nome após abrir
   setTimeout(() => { const el = document.getElementById('np-name'); if(el) el.focus(); }, 100);
 }
@@ -2540,7 +2862,7 @@ function npUpdatePosition() {
 }
 
 function saveNewProductFromScan() {
-  const sku    = (document.getElementById('np-sku')    || {}).value || '';
+  const skuInput = (document.getElementById('np-sku') || {}).value || '';
   const name   = (document.getElementById('np-name')   || {}).value || '';
   const cat    = (document.getElementById('np-cat')    || {}).value || 'Outros';
   const qty    = parseInt((document.getElementById('np-qty') || {}).value) || 1;
@@ -2548,6 +2870,17 @@ function saveNewProductFromScan() {
   const nivel  = (document.getElementById('np-nivel')  || {}).value || '';
   const predio = (document.getElementById('np-predio') || {}).value || '';
 
+  const skuResult = FAST_CORE.validateSku(skuInput);
+  if (!skuResult.ok) {
+    showToast(`⚠️ ${skuResult.error}`);
+    document.getElementById('np-sku')?.focus();
+    return;
+  }
+  const sku = skuResult.value;
+  if (db.products.some(product => product.id === sku)) {
+    showToast('⚠️ Este SKU já está cadastrado. Feche e faça uma nova leitura.');
+    return;
+  }
   if (!name.trim()) {
     const el = document.getElementById('np-name');
     if (el) { el.style.borderColor='var(--danger)'; el.focus(); }
@@ -2555,10 +2888,10 @@ function saveNewProductFromScan() {
     return;
   }
 
-  // Adiciona ao catálogo e ao db.products
-  const newProd = { id: sku, name: name.trim(), cat, qty, min: 5, price: 0 };
+  // O cadastro nasce zerado; a quantidade só entra no estoque após confirmação do lote.
+  const newProd = FAST_CORE.prepareNewScannedProduct({id:sku, name, cat});
   db.products.push(newProd);
-  IV_CATALOG.push({ id: sku, name: name.trim(), cat });
+  IV_CATALOG.push({ id: sku, name:newProd.name, cat:newProd.cat });
 
   // Registra na contagem da sessão
   scanCounts[sku] = qty;
@@ -2567,17 +2900,18 @@ function saveNewProductFromScan() {
   let posMsg = '';
   if (rua && nivel && predio) {
     const cellId = `R${rua}-N${nivel}-P${predio}`;
-    positionProducts[cellId] = { id: sku, name: name.trim() };
-    ivSetCellQty(cellId, qty);
+    positionProducts[cellId] = { id: sku, name:newProd.name };
+    newProd.location = cellId;
+    ivSetCellQty(cellId, 0);
     posMsg = ` → ${cellId}`;
   }
 
   document.getElementById('new-product-modal-overlay').remove();
   renderAll();
-  showToast(`✅ "${name}" cadastrado! (${qty} un.)${posMsg}`);
+  showToast(`✅ "${newProd.name}" cadastrado. Confirme ${qty} un. no lote${posMsg}.`);
 
   // Abre o painel de contagem mostrando o novo produto
-  openScanCounterPanel({ id: sku, name: name.trim(), cat }, qty);
+  openScanCounterPanel({ id: sku, name:newProd.name, cat:newProd.cat }, qty);
 }
 
 // Animações auxiliares
@@ -2588,3 +2922,19 @@ scanStyle.textContent = `
   @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 `;
 document.head.appendChild(scanStyle);
+
+// ── URL STATE + OFFLINE APP SHELL ──
+function restorePageFromUrl() {
+  const requested = window.location.hash.replace(/^#/, '') || 'dashboard';
+  navTo(requested, null, null, false);
+}
+
+window.addEventListener('hashchange', restorePageFromUrl);
+if (!window.location.hash) window.history.replaceState({page:'dashboard'}, '', '#dashboard');
+restorePageFromUrl();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(error => console.warn('Modo offline indisponível.', error));
+  });
+}

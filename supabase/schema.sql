@@ -32,7 +32,7 @@ create table if not exists profiles (
 create table if not exists company_members (
   company_id uuid references companies(id) on delete cascade,
   user_id uuid references profiles(id) on delete cascade,
-  role text not null default 'operador',
+  role text not null default 'operador' check (role in ('dono','admin','gerente','operador','auditor')),
   created_at timestamptz not null default now(),
   primary key (company_id, user_id)
 );
@@ -43,10 +43,10 @@ create table if not exists products (
   name text not null,
   category text,
   type text,
-  qty numeric not null default 0,
-  min_qty numeric not null default 0,
+  qty numeric not null default 0 check (qty >= 0),
+  min_qty numeric not null default 0 check (min_qty >= 0),
   unit text,
-  price numeric not null default 0,
+  price numeric not null default 0 check (price >= 0),
   lot_code text,
   expires_at date,
   supplier_name text,
@@ -62,7 +62,7 @@ create table if not exists suppliers (
   name text not null,
   category text,
   lead_time_text text,
-  reliability numeric,
+  reliability numeric check (reliability between 0 and 100),
   last_purchase_text text,
   payload jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
@@ -85,7 +85,7 @@ create table if not exists recipe_ingredients (
   id text primary key,
   recipe_id text references recipes(id) on delete cascade,
   product_id text references products(id) on delete restrict,
-  qty numeric not null default 0,
+  qty numeric not null default 0 check (qty >= 0),
   payload jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   unique(recipe_id, product_id)
@@ -96,7 +96,7 @@ create table if not exists lots (
   company_id uuid references companies(id) on delete set null,
   product_id text references products(id) on delete set null,
   lot_code text not null,
-  qty numeric not null default 0,
+  qty numeric not null default 0 check (qty >= 0),
   unit text,
   expires_at date,
   supplier_name text,
@@ -127,8 +127,8 @@ create table if not exists losses (
   reason text,
   item text,
   sku text,
-  qty numeric not null default 0,
-  cost numeric not null default 0,
+  qty numeric not null default 0 check (qty >= 0),
+  cost numeric not null default 0 check (cost >= 0),
   lot_code text,
   occurred_at timestamptz,
   payload jsonb not null default '{}'::jsonb,
@@ -165,8 +165,8 @@ create table if not exists inventory_positions (
   zone text,
   product_id text references products(id) on delete set null,
   lot_code text,
-  capacity numeric,
-  used numeric,
+  capacity numeric check (capacity is null or capacity >= 0),
+  used numeric check (used is null or used >= 0),
   expires_at date,
   payload jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
@@ -310,6 +310,8 @@ drop trigger if exists products_no_direct_qty_update on products;
 create trigger products_no_direct_qty_update before update on products
   for each row execute function prevent_direct_product_qty_update();
 
+drop function if exists apply_stock_movement(text, text, numeric, text, text, text, boolean, text);
+
 create or replace function apply_stock_movement(
   p_product_id text,
   p_action_type text,
@@ -317,7 +319,6 @@ create or replace function apply_stock_movement(
   p_reason text,
   p_reference_code text default null,
   p_lot_code text default null,
-  p_allow_negative boolean default false,
   p_movement_id text default null
 )
 returns stock_movements as $$
@@ -336,7 +337,10 @@ begin
   if not exists (select 1 from company_members m where m.company_id = v_company and m.user_id = auth.uid()) then
     raise exception 'access denied';
   end if;
-  if p_action_type = 'ajuste_manual' and not has_company_role(v_company, array['dono','admin','gerente']) then
+  if not (p_action_type = any(array['entrada_lote','entrada_scan','saida_producao','entrada_producao','perda','ajuste'])) then
+    raise exception 'unsupported stock movement action';
+  end if;
+  if p_action_type = 'ajuste' and not has_company_role(v_company, array['dono','admin','gerente']) then
     raise exception 'insufficient role for manual stock adjustment';
   end if;
   if p_action_type in ('entrada_lote','entrada_scan','saida_producao','entrada_producao','perda') and not has_company_role(v_company, array['dono','admin','gerente','operador']) then
@@ -344,7 +348,7 @@ begin
   end if;
   v_before := v_product.qty;
   v_after := v_before + p_quantity_changed;
-  if v_after < 0 and not p_allow_negative then
+  if v_after < 0 then
     raise exception 'insufficient stock';
   end if;
   perform set_config('app.stock_movement_context', 'allowed', true);
@@ -361,7 +365,7 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
-grant execute on function apply_stock_movement(text, text, numeric, text, text, text, boolean, text) to authenticated;
+grant execute on function apply_stock_movement(text, text, numeric, text, text, text, text) to authenticated;
 
 -- RBAC helpers e hardening incremental pós-auditoria.
 create or replace function has_company_role(p_company_id uuid, p_allowed_roles text[])
@@ -406,8 +410,8 @@ create policy company_members_insert_self on company_members for insert
   with check (
     user_id = auth.uid()
     and (
-      not exists (select 1 from company_members existing where existing.company_id = company_members.company_id)
-      or has_company_role(company_members.company_id, array['dono','admin'])
+      (not exists (select 1 from company_members existing where existing.company_id = company_members.company_id) and role = 'dono')
+      or (has_company_role(company_members.company_id, array['dono','admin']) and role in ('admin','gerente','operador','auditor'))
     )
   );
 

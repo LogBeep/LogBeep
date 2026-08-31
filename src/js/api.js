@@ -23,12 +23,13 @@
     return `${base}/auth/v1/${path}`;
   }
   function readSession() {
-    try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
+    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); }
     catch (_) { return null; }
   }
   function writeSession(session) {
-    if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    else localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_KEY);
+    if (session) sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    else sessionStorage.removeItem(SESSION_KEY);
     return session;
   }
   function authToken() { return readSession()?.access_token || config().SUPABASE_ANON_KEY; }
@@ -92,9 +93,14 @@
   }
 
   function demoState() {
+    const db = cloneData(window.FAST_DEMO_DB || {products: [], suppliers: [], recipes: [], losses: [], movements: []});
+    db.lots = window.FAST_CORE?.migrateLots?.(db.products, db.lots) || db.lots || [];
     return {
-      db: cloneData(window.FAST_DEMO_DB || {products: [], suppliers: [], recipes: [], losses: [], movements: []}),
-      cargos: cloneData(window.FAST_DEMO_CARGOS || [])
+      stateVersion: 2,
+      db,
+      cargos: cloneData(window.FAST_DEMO_CARGOS || []),
+      positionProducts: {},
+      allRuasData: {}
     };
   }
   function normalizeState(state) {
@@ -105,9 +111,13 @@
         suppliers: Array.isArray(state?.db?.suppliers) ? state.db.suppliers : seed.db.suppliers,
         recipes: Array.isArray(state?.db?.recipes) ? state.db.recipes : seed.db.recipes,
         losses: Array.isArray(state?.db?.losses) ? state.db.losses : seed.db.losses,
-        movements: Array.isArray(state?.db?.movements) ? state.db.movements : seed.db.movements
+        movements: Array.isArray(state?.db?.movements) ? state.db.movements : seed.db.movements,
+        lots: Array.isArray(state?.db?.lots) ? state.db.lots : seed.db.lots
       },
-      cargos: Array.isArray(state?.cargos) ? state.cargos : seed.cargos
+      cargos: Array.isArray(state?.cargos) ? state.cargos : seed.cargos,
+      positionProducts: state?.positionProducts && typeof state.positionProducts === 'object' ? state.positionProducts : {},
+      allRuasData: state?.allRuasData && typeof state.allRuasData === 'object' ? state.allRuasData : {},
+      stateVersion: 2
     };
   }
   function readLocalState() {
@@ -146,26 +156,40 @@
     const raw = String(value?.id || value?.sku || value?.lote || value?.ref || value?.date || `${prefix}-${index}`);
     return raw.replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 80) || `${prefix}-${index}`;
   }
+  function scopedId(value) {
+    const raw = String(value || 'item').replace(/[^a-zA-Z0-9._:/-]/g, '-');
+    return companyId() ? `${companyId()}::${raw}` : raw;
+  }
   function productRow(product) {
-    return {id: product.id, name: product.name, category: product.cat || product.category || null, type: product.type || null, qty: Number(product.qty || 0), min_qty: Number(product.min || product.min_qty || 0), unit: product.unit || null, price: Number(product.price || 0), lot_code: product.lote || product.lot_code || null, expires_at: safeDate(product.validade || product.expires_at), supplier_name: product.fornecedor || product.supplier_name || null, location: product.location || null, company_id: product.company_id || companyId(), payload: product};
+    return {id: scopedId(product.id), name: product.name, category: product.cat || product.category || null, type: product.type || null, qty: Number(product.qty || 0), min_qty: Number(product.min || product.min_qty || 0), unit: product.unit || null, price: Number(product.price || 0), lot_code: product.lote || product.lot_code || null, expires_at: safeDate(product.validade || product.expires_at), supplier_name: product.fornecedor || product.supplier_name || null, location: product.location || null, company_id: product.company_id || companyId(), payload: product};
   }
   function supplierRow(supplier) {
-    return {id: supplier.id, name: supplier.name, category: supplier.cat || supplier.category || null, lead_time_text: supplier.lead || supplier.lead_time_text || null, reliability: supplier.reliability == null ? null : Number(supplier.reliability), last_purchase_text: supplier.last || supplier.last_purchase_text || null, company_id: supplier.company_id || companyId(), payload: supplier};
+    return {id: scopedId(supplier.id), name: supplier.name, category: supplier.cat || supplier.category || null, lead_time_text: supplier.lead || supplier.lead_time_text || null, reliability: supplier.reliability == null ? null : Number(supplier.reliability), last_purchase_text: supplier.last || supplier.last_purchase_text || null, company_id: supplier.company_id || companyId(), payload: supplier};
   }
   function recipeRow(recipe) {
-    return {id: recipe.id, name: recipe.name, yield_qty: Number(recipe.yield || recipe.yield_qty || 0), yield_unit: recipe.unit || recipe.yield_unit || null, loss_avg: Number(recipe.lossAvg || recipe.loss_avg || 0), company_id: recipe.company_id || companyId(), payload: recipe};
+    return {id: scopedId(recipe.id), name: recipe.name, yield_qty: Number(recipe.yield || recipe.yield_qty || 0), yield_unit: recipe.unit || recipe.yield_unit || null, loss_avg: Number(recipe.lossAvg || recipe.loss_avg || 0), company_id: recipe.company_id || companyId(), payload: recipe};
   }
   function ingredientRows(recipe) {
-    return (recipe.ingredients || []).map(([productId, qty]) => ({id: `${recipe.id}-${productId}`.replace(/[^a-zA-Z0-9_-]/g, '-'), recipe_id: recipe.id, product_id: productId, qty: Number(qty || 0), payload: {recipe_id: recipe.id, product_id: productId, qty}}));
+    return (recipe.ingredients || []).map(([productId, qty]) => ({id: scopedId(`${recipe.id}-${productId}`), recipe_id: scopedId(recipe.id), product_id: scopedId(productId), qty: Number(qty || 0), payload: {recipe_id: recipe.id, product_id: productId, qty}}));
+  }
+  function lotRow(lot) {
+    return {id: scopedId(lot.id), company_id: lot.company_id || companyId(), product_id: scopedId(lot.product_id), lot_code: lot.lot_code || 'SEM-LOTE', qty: Number(lot.qty || 0), unit: lot.unit || null, expires_at: safeDate(lot.expires_at), supplier_name: lot.supplier_name || null, location: lot.location || null, status: lot.status || 'active', payload: lot};
+  }
+  function positionRows(state) {
+    return Object.entries(state.positionProducts || {}).map(([id, product]) => {
+      const stock = state.db.products.find(item => item.id === product.id);
+      const lot = state.db.lots.find(item => item.product_id === product.id && Number(item.qty || 0) > 0);
+      return {id: scopedId(id), company_id: companyId(), label:id, zone:id.split('-')[0], product_id:scopedId(product.id), lot_code:lot?.lot_code || null, capacity:800, used:Number(stock?.qty || 0), expires_at:safeDate(lot?.expires_at), payload:{id, product}};
+    });
   }
   function movementRow(movement, index = 0) {
-    return {id: movement.id || stableId('MOV', movement, index), product_id: movement.product_id || movement.sku || null, company_id: movement.company_id || companyId(), user_id: movement.user_id || null, action_type: movement.action_type || movement.type || 'movimento', type: movement.type || movement.action_type || 'movimento', item: movement.item || null, sku: movement.sku || movement.product_id || null, qty: Number(movement.qty ?? movement.quantity_changed ?? 0), quantity_before: Number(movement.quantity_before ?? 0), quantity_changed: Number(movement.quantity_changed ?? movement.qty ?? 0), quantity_after: Number(movement.quantity_after ?? 0), reason: movement.reason || movement.note || null, lot_code: movement.lote || movement.lot_code || null, reference_code: movement.ref || movement.reference_code || null, note: movement.note || movement.reason || null, occurred_at: safeDate(movement.date) || movement.created_at || new Date().toISOString(), created_at: movement.created_at || new Date().toISOString(), payload: movement};
+    return {id: scopedId(movement.id || stableId('MOV', movement, index)), product_id: scopedId(movement.product_id || movement.sku), company_id: movement.company_id || companyId(), user_id: movement.user_id || null, action_type: movement.action_type || movement.type || 'movimento', type: movement.type || movement.action_type || 'movimento', item: movement.item || null, sku: movement.sku || movement.product_id || null, qty: Number(movement.qty ?? movement.quantity_changed ?? 0), quantity_before: Number(movement.quantity_before ?? 0), quantity_changed: Number(movement.quantity_changed ?? movement.qty ?? 0), quantity_after: Number(movement.quantity_after ?? 0), reason: movement.reason || movement.note || null, lot_code: movement.lote || movement.lot_code || null, reference_code: movement.ref || movement.reference_code || null, note: movement.note || movement.reason || null, occurred_at: safeDate(movement.date) || movement.created_at || new Date().toISOString(), created_at: movement.created_at || new Date().toISOString(), payload: movement};
   }
   function productionOrderRow(order) {
-    return {id: order.id, title: order.title || order.id, status: order.status || null, status_label: order.statusLabel || order.status_label || null, responsible: order.carrier || order.responsible || null, eta: order.eta || null, lot_code: order.rastreio || order.lote || order.lot_code || null, company_id: order.company_id || companyId(), payload: order};
+    return {id: scopedId(order.id), title: order.title || order.id, status: order.status || null, status_label: order.statusLabel || order.status_label || null, responsible: order.carrier || order.responsible || null, eta: order.eta || null, lot_code: order.rastreio || order.lote || order.lot_code || null, company_id: order.company_id || companyId(), payload: order};
   }
   function lossRow(loss, index = 0) {
-    return {id: loss.id || stableId('LOSS', loss, index), reason: loss.reason || null, item: loss.item || null, sku: loss.sku || null, qty: Number(loss.qty || 0), cost: Number(loss.cost || 0), lot_code: loss.lote || loss.lot_code || null, occurred_at: safeDate(loss.date) || new Date().toISOString(), company_id: loss.company_id || companyId(), payload: loss};
+    return {id: scopedId(loss.id || stableId('LOSS', loss, index)), reason: loss.reason || null, item: loss.item || null, sku: loss.sku || null, qty: Number(loss.qty || 0), cost: Number(loss.cost || 0), lot_code: loss.lote || loss.lot_code || null, occurred_at: safeDate(loss.date) || new Date().toISOString(), company_id: loss.company_id || companyId(), payload: loss};
   }
   function rowPayload(row, fallback = {}) { return row?.payload && Object.keys(row.payload).length ? row.payload : fallback; }
   function productFromRow(row) { return rowPayload(row, {id: row.id, name: row.name, cat: row.category, type: row.type, qty: Number(row.qty || 0), min: Number(row.min_qty || 0), unit: row.unit, price: Number(row.price || 0), lote: row.lot_code, validade: row.expires_at, fornecedor: row.supplier_name, location: row.location}); }
@@ -174,6 +198,8 @@
   function movementFromRow(row) { return rowPayload(row, {id: row.id, product_id: row.product_id, company_id: row.company_id, user_id: row.user_id, action_type: row.action_type || row.type, type: row.type || row.action_type, item: row.item, sku: row.sku || row.product_id, qty: Number(row.quantity_changed ?? row.qty ?? 0), quantity_before: Number(row.quantity_before || 0), quantity_changed: Number(row.quantity_changed ?? row.qty ?? 0), quantity_after: Number(row.quantity_after || 0), reason: row.reason, lote: row.lot_code, ref: row.reference_code, date: row.occurred_at}); }
   function orderFromRow(row) { return rowPayload(row, {id: row.id, title: row.title, status: row.status, statusLabel: row.status_label, carrier: row.responsible, eta: row.eta, rastreio: row.lot_code, badges: ['b-pending'], steps: [0, 2], itens: [], timeline: []}); }
   function lossFromRow(row) { return rowPayload(row, {id: row.id, reason: row.reason, item: row.item, sku: row.sku, qty: Number(row.qty || 0), cost: Number(row.cost || 0), lote: row.lot_code, date: row.occurred_at}); }
+  function lotFromRow(row) { return rowPayload(row, {id:row.id, product_id:row.product_id, lot_code:row.lot_code, qty:Number(row.qty || 0), unit:row.unit, expires_at:row.expires_at, supplier_name:row.supplier_name, location:row.location, status:row.status}); }
+  function positionFromRows(rows) { return Object.fromEntries(rows.map(row => { const payload = rowPayload(row, {id:row.label, product:{id:row.product_id, name:row.product_id}}); return [payload.id || row.label, payload.product || {id:row.product_id, name:row.product_id}]; })); }
 
   async function ensureCompany() {
     const company = getCompany();
@@ -189,12 +215,12 @@
       await supabaseFetch('profiles?on_conflict=id', {
         method: 'POST',
         headers: {Prefer: 'resolution=ignore-duplicates,return=minimal'},
-        body: JSON.stringify([{id: userId, full_name: session.user?.email || 'Operador', role: 'operador'}])
+        body: JSON.stringify([{id: userId, full_name: session.user?.email || 'Responsável', role: 'dono'}])
       });
       await supabaseFetch('company_members?on_conflict=company_id,user_id', {
         method: 'POST',
         headers: {Prefer: 'resolution=ignore-duplicates,return=minimal'},
-        body: JSON.stringify([{company_id: company.id, user_id: userId, role: 'operador'}])
+        body: JSON.stringify([{company_id: company.id, user_id: userId, role: 'dono'}])
       });
     }
     return company;
@@ -214,10 +240,10 @@
   }
   async function loadRemoteState() {
     if (!hasSupabaseConfig()) return readLocalState();
-    const [products, suppliers, recipes, losses, movements, orders] = await Promise.all([
-      listRows('products', 'name.asc'), listRows('suppliers', 'name.asc'), listRows('recipes', 'name.asc'), listRows('losses'), listRows('stock_movements'), listRows('production_orders')
+    const [products, suppliers, recipes, losses, movements, orders, lots, positions] = await Promise.all([
+      listRows('products', 'name.asc'), listRows('suppliers', 'name.asc'), listRows('recipes', 'name.asc'), listRows('losses'), listRows('stock_movements'), listRows('production_orders'), listRows('lots'), listRows('inventory_positions', 'label.asc')
     ]);
-    const state = normalizeState({db: {products: products.map(productFromRow), suppliers: suppliers.map(supplierFromRow), recipes: recipes.map(recipeFromRow), losses: losses.map(lossFromRow), movements: movements.map(movementFromRow)}, cargos: orders.map(orderFromRow)});
+    const state = normalizeState({db: {products: products.map(productFromRow), suppliers: suppliers.map(supplierFromRow), recipes: recipes.map(recipeFromRow), losses: losses.map(lossFromRow), movements: movements.map(movementFromRow), lots:lots.map(lotFromRow)}, cargos: orders.map(orderFromRow), positionProducts:positionFromRows(positions)});
     writeLocalState(state);
     return cloneData(state);
   }
@@ -227,7 +253,7 @@
     const company = await ensureCompany();
     if (!company) return {ok: false, skipped: 'missing-company'};
     const normalized = normalizeState(state);
-    const tasks = [insertIgnoreRows('products', normalized.db.products.map(productRow)), upsertRows('suppliers', normalized.db.suppliers.map(supplierRow)), upsertRows('recipes', normalized.db.recipes.map(recipeRow)), upsertRows('recipe_ingredients', normalized.db.recipes.flatMap(ingredientRows)), upsertRows('losses', normalized.db.losses.map(lossRow)), upsertRows('production_orders', normalized.cargos.map(productionOrderRow))];
+    const tasks = [upsertRows('products', normalized.db.products.map(productRow)), upsertRows('suppliers', normalized.db.suppliers.map(supplierRow)), upsertRows('recipes', normalized.db.recipes.map(recipeRow)), upsertRows('recipe_ingredients', normalized.db.recipes.flatMap(ingredientRows)), upsertRows('lots', normalized.db.lots.map(lotRow)), upsertRows('inventory_positions', positionRows(normalized)), upsertRows('losses', normalized.db.losses.map(lossRow)), upsertRows('production_orders', normalized.cargos.map(productionOrderRow))];
     const results = await Promise.allSettled(tasks);
     const failed = results.filter(result => result.status === 'rejected');
     if (failed.length) console.warn('F.A.S.T Supabase: algumas sincronizações falharam.', failed);
@@ -270,15 +296,22 @@
     return supabaseFetch('rpc/apply_stock_movement', {
       method: 'POST',
       body: JSON.stringify({
-        p_product_id: movement.product_id || movement.sku,
+        p_product_id: scopedId(movement.product_id || movement.sku),
         p_action_type: movement.action_type || movement.type,
         p_quantity_changed: Number(movement.quantity_changed ?? movement.qty ?? 0),
         p_reason: movement.reason || movement.note || movement.type || 'Movimentação',
         p_reference_code: movement.ref || movement.reference_code || null,
         p_lot_code: movement.lote || movement.lot_code || null,
-        p_allow_negative: false,
-        p_movement_id: movement.id || null
+        p_movement_id: movement.id ? scopedId(movement.id) : null
       })
+    });
+  }
+
+  async function removeRemotePosition(positionId) {
+    if (!canWriteRemote()) return null;
+    return supabaseFetch(`inventory_positions?id=eq.${encodeURIComponent(scopedId(positionId))}${companyFilter()}`, {
+      method: 'DELETE',
+      headers: {Prefer: 'return=minimal'}
     });
   }
 
@@ -319,6 +352,6 @@
     return cloneData(created);
   }
 
-  window.FAST_API = {STORAGE_KEY, SESSION_KEY, COMPANY_KEY, readState, writeState, readLocalState, writeLocalState, hasSupabaseConfig, isSupabaseSource, supabaseFetch, loadRemoteState, syncStateToSupabase, syncNow, applyRemoteStockMovement, ensureRemoteProductSeed, logSecurityEvent, signIn, signOut, getSession, getCompany, setCompany, createLocalCompany, ensureCompany, listProducts, saveProduct, listMovements, createMovement, createProductionOrder};
+  window.FAST_API = {STORAGE_KEY, SESSION_KEY, COMPANY_KEY, readState, writeState, readLocalState, writeLocalState, hasSupabaseConfig, isSupabaseSource, supabaseFetch, loadRemoteState, syncStateToSupabase, syncNow, applyRemoteStockMovement, removeRemotePosition, ensureRemoteProductSeed, logSecurityEvent, signIn, signOut, getSession, getCompany, setCompany, createLocalCompany, ensureCompany, listProducts, saveProduct, listMovements, createMovement, createProductionOrder};
   Object.assign(window, {listProducts, saveProduct, listMovements, createMovement, createProductionOrder});
 })();

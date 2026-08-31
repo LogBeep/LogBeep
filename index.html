@@ -3,23 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F5FBFF">
+<meta name="description" content="F.A.S.T: controle acessível de estoque, lotes, validade e produção para padarias.">
+<meta name="application-name" content="F.A.S.T">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>F.A.S.T — Estoque Inteligente para Padarias</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/logbeep-mark-transparent.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/logbeep-mark-transparent.png">
 <link rel="stylesheet" href="src/styles/app.css">
 </head>
 <body>
 
+<a class="skip-link" href="#main-content">Pular para o conteúdo principal</a>
+
 <!-- ── TOAST ── -->
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <!-- ── COMMAND PALETTE ── -->
-<div class="cmd-overlay" id="cmd-overlay" onclick="handleCommandOverlayClick(event)">
+<div class="cmd-overlay" id="cmd-overlay" role="dialog" aria-modal="true" aria-labelledby="cmd-title" aria-hidden="true" onclick="handleCommandOverlayClick(event)">
   <div class="cmd-palette" onclick="event.stopPropagation()">
+    <h2 class="sr-only" id="cmd-title">Busca rápida e ações</h2>
     <div class="cmd-input-wrap">
-      <svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg>
-      <input id="cmd-input" placeholder="Busque insumos, lotes, receitas ou ações..." oninput="renderCommandResults(this.value)" onkeydown="handleCommandKey(event)">
-      <button onclick="closeCommandPalette()">Esc</button>
+      <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-search"></use></svg>
+      <label class="sr-only" for="cmd-input">Buscar insumos, lotes, receitas ou ações</label>
+      <input id="cmd-input" name="command-search" autocomplete="off" placeholder="Busque insumos, lotes, receitas ou ações…" oninput="renderCommandResults(this.value)" onkeydown="handleCommandKey(event)">
+      <button type="button" onclick="closeCommandPalette()" aria-label="Fechar busca rápida">Esc</button>
     </div>
     <div class="cmd-results" id="cmd-results"></div>
   </div>
@@ -32,7 +45,7 @@
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="logo-mark">
-        <svg viewBox="0 0 14 14"><path d="M1 7h5M8 7h5M7 1v5M7 8v5" stroke-linecap="round"/></svg>
+        <img src="assets/logbeep-mark-transparent.png" class="brand-logo-image" alt="" aria-hidden="true">
       </div>
       <div class="logo-copy">
         <span class="logo-name">F.A.S.T</span>
@@ -41,92 +54,93 @@
     </div>
 
     <div class="nav-section">
-      <div class="nav-item active" data-page="dashboard" onclick="navTo('dashboard',this)">
-        <svg viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+      <button type="button" class="nav-item active" data-page="dashboard" onclick="navTo('dashboard',this)">
+        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-dashboard"></use></svg>
         Visão Geral
-      </div>
-      <div class="nav-item" data-page="pedidos" onclick="navTo('pedidos',this)">
-        <svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h8" stroke-linecap="round"/></svg>
+      </button>
+      <button type="button" class="nav-item" data-page="pedidos" onclick="navTo('pedidos',this)">
+        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-production"></use></svg>
         Produção
-        <span class="nav-badge">12</span>
-      </div>
-      <div class="nav-item" data-page="estoque" onclick="navTo('estoque',this)">
-        <svg viewBox="0 0 16 16"><path d="M2 2h12v4H2zM2 8h12v4H2z" stroke-linecap="round"/><path d="M5 4v4M11 4v4" stroke-linecap="round"/></svg>
+        <span class="nav-count">12</span>
+      </button>
+      <button type="button" class="nav-item" data-page="estoque" onclick="navTo('estoque',this)">
+        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-inventory"></use></svg>
         Estoque
-      </div>
-      <div class="nav-item" data-page="rastreio" onclick="navTo('rastreio',this)">
-        <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>
+      </button>
+      <button type="button" class="nav-item" data-page="rastreio" onclick="navTo('rastreio',this)">
+        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-lots"></use></svg>
         Lotes
-        <span class="nav-badge">3</span>
-      </div>
-      <div class="nav-item" data-page="heatmap" onclick="navTo('heatmap',this)">
-        <svg viewBox="0 0 16 16"><rect x="1" y="1" width="4" height="4" rx=".5"/><rect x="6" y="1" width="4" height="4" rx=".5"/><rect x="11" y="1" width="4" height="4" rx=".5"/><rect x="1" y="6" width="4" height="4" rx=".5"/><rect x="6" y="6" width="4" height="4" rx=".5"/><rect x="11" y="6" width="4" height="4" rx=".5"/><rect x="1" y="11" width="4" height="4" rx=".5"/><rect x="6" y="11" width="4" height="4" rx=".5"/><rect x="11" y="11" width="4" height="4" rx=".5"/></svg>
+        <span class="nav-count">3</span>
+      </button>
+      <button type="button" class="nav-item" data-page="heatmap" onclick="navTo('heatmap',this)">
+        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-fefo"></use></svg>
         Mapa FEFO
-      </div>
+      </button>
     </div>
 
     <div class="nav-section" style="margin-top:8px">
       <div class="nav-label">Operação</div>
-      <div class="nav-item" data-page="fornecedores" onclick="navTo('fornecedores',this)">
-        <svg viewBox="0 0 16 16"><path d="M2 12V5l6-3 6 3v7"/><path d="M6 16v-5h4v5"/></svg>
+      <button type="button" class="nav-item" data-page="fornecedores" onclick="navTo('fornecedores',this)">
+        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-suppliers"></use></svg>
         Fornecedores
-      </div>
-      <div class="nav-item" data-page="perdas" onclick="navTo('perdas',this)">
-        <svg viewBox="0 0 16 16"><path d="M3 2h10l1 4H2z"/><path d="M2 6v8h12V6"/></svg>
+      </button>
+      <button type="button" class="nav-item" data-page="perdas" onclick="navTo('perdas',this)">
+        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-losses"></use></svg>
         Perdas
-      </div>
-      <div class="nav-item" data-page="auditoria" onclick="navTo('auditoria',this)">
-        <svg viewBox="0 0 16 16"><path d="M3 2h10v12H3z"/><path d="M5 5h6M5 8h6M5 11h4" stroke-linecap="round"/></svg>
+      </button>
+      <button type="button" class="nav-item" data-page="auditoria" onclick="navTo('auditoria',this)">
+        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-audit"></use></svg>
         Auditoria
-      </div>
+      </button>
     </div>
 
     <div class="sidebar-footer">
-      <div class="side-help" onclick="openHelpModal()">
-        <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M6.5 6a1.6 1.6 0 113 1c-.8.5-1.5 1-1.5 2" stroke-linecap="round"/><path d="M8 12h.01" stroke-linecap="round"/></svg>
+      <button type="button" class="side-help" onclick="openHelpModal()">
+        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-help"></use></svg>
         <span>Centro de Ajuda</span>
-      </div>
-      <div class="side-user" onclick="openProfileModal()">
+      </button>
+      <button type="button" class="side-user" onclick="openProfileModal()" aria-label="Abrir perfil de Ana Martins">
         <div class="side-user-avatar">AM</div>
         <div class="side-user-copy">
           <strong>Ana Martins</strong>
           <span>Administrador</span>
         </div>
-        <svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
+        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-chevron-down"></use></svg>
+      </button>
     </div>
   </nav>
 
   <!-- MAIN -->
-  <div class="main">
+  <main class="main" id="main-content" tabindex="-1">
 
     <!-- HEADER -->
     <header class="header">
       <button class="hamburger" onclick="toggleSidebar()" aria-label="Abrir menu">
-        <svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12" stroke-linecap="round"/></svg>
+        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg>
       </button>
       <div class="header-left">
-        <div class="header-title" id="header-title">Dashboard</div>
-        <div class="header-subtitle" id="header-sub">Sexta-feira, 10 abr 2026</div>
+        <h1 class="header-title" id="header-title">Dashboard</h1>
+        <div class="header-subtitle" id="header-sub">Carregando data…</div>
       </div>
       <div class="header-search">
-        <svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg>
-        <input id="global-search" placeholder="Buscar insumos, lotes, receitas..." oninput="globalSearch(this.value)" onfocus="openCommandPalette(this.value)">
+        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-search"></use></svg>
+        <label class="sr-only" for="global-search">Buscar insumos, lotes e receitas</label>
+        <input id="global-search" name="global-search" autocomplete="off" placeholder="Buscar insumos, lotes e receitas…" oninput="globalSearch(this.value)" onfocus="openCommandPalette(this.value)">
         <button type="button" class="cmd-shortcut" onclick="openCommandPalette(document.getElementById('global-search').value)"><span>Ctrl</span><span>K</span></button>
       </div>
       <div class="header-right">
-        <button class="sync-status-pill" id="supabase-status" onclick="openConnectionModal()" type="button">Local</button>
+        <button class="sync-status" id="supabase-status" onclick="openConnectionModal()" type="button">Local</button>
         <button class="btn-secondary header-sync" onclick="syncSupabaseNow()" type="button">Sincronizar agora</button>
         <button class="btn-secondary header-login" id="session-button" onclick="openLoginModal()" type="button">Entrar</button>
         <button class="header-icon" onclick="openNotificationsModal()" aria-label="Notificações">
-          <svg viewBox="0 0 16 16"><path d="M4 6a4 4 0 018 0c0 4 1.5 4.5 1.5 4.5h-11S4 10 4 6"/><path d="M6.5 13a1.8 1.8 0 003 0" stroke-linecap="round"/></svg>
+          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-bell"></use></svg>
           <span>3</span>
         </button>
         <button class="header-icon" onclick="openSettingsModal()" aria-label="Configurações">
-          <svg viewBox="0 0 16 16"><path d="M3 4h10M3 8h10M3 12h10" stroke-linecap="round"/><circle cx="6" cy="4" r="1.4"/><circle cx="10" cy="8" r="1.4"/><circle cx="7.5" cy="12" r="1.4"/></svg>
+          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-settings"></use></svg>
         </button>
         <button class="btn-scan header-primary" onclick="openQR()">
-          <svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke-linecap="round"/></svg>
+          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg>
           Nova entrada
         </button>
       </div>
@@ -135,128 +149,266 @@
     <!-- ── PAGE: DASHBOARD ── -->
     <div class="page active" id="page-dashboard">
       <div class="search-bar dashboard-mobile-search">
-        <div class="search-icon"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg></div>
-        <input class="search-input" placeholder="Buscar insumo, lote ou receita..." oninput="filterCards(this.value)">
+        <div class="search-icon"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-search"></use></svg></div>
+        <label class="sr-only" for="dashboard-search">Buscar insumo, lote ou receita</label>
+        <input class="search-input" id="dashboard-search" name="dashboard-search" autocomplete="off" placeholder="Buscar insumo, lote ou receita…" oninput="filterCards(this.value)">
         <button class="btn-scan" onclick="openQR()">
-          <svg viewBox="0 0 16 16"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/><rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h3M12 10h3M10 12v3"/></svg>
+          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-qr"></use></svg>
           Bipar lote
         </button>
       </div>
 
       <div class="content dashboard-content">
+        <div class="dashboard-overview" id="dashboard-overview">
+          <div>
+            <span class="dashboard-kicker">Central operacional</span>
+            <h2 id="dashboard-headline">O turno está sob controle</h2>
+            <p id="dashboard-summary-text">Prioridades de estoque, validade e produção reunidas em uma única visão.</p>
+          </div>
+          <div class="dashboard-overview-actions">
+            <span class="dashboard-period">Hoje · atualização em tempo real</span>
+            <button type="button" class="btn-secondary dashboard-production-action" onclick="openProductionForm()">
+              <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-production"></use></svg>
+              Registrar produção
+            </button>
+          </div>
+        </div>
+
         <div class="metrics-row" id="dash-metrics"></div>
 
-        <div class="dashboard-grid">
-          <section class="dashboard-panel dashboard-panel-wide">
+        <div class="dashboard-operational-grid">
+          <section class="dashboard-panel dashboard-coverage-panel">
             <div class="section-header">
-              <div class="section-title">Produção de hoje</div>
-              <div class="section-action" onclick="navToStr('pedidos')">Ver todos</div>
+              <div>
+                <span class="section-eyebrow">Pulso FEFO</span>
+                <h2 class="section-title">Cobertura dos insumos</h2>
+              </div>
+              <button type="button" class="section-action" onclick="navToStr('estoque')">Abrir estoque</button>
+            </div>
+            <div class="coverage-summary" id="dashboard-coverage-summary"></div>
+            <div class="coverage-chart" id="dashboard-coverage-chart" aria-label="Dias de cobertura dos principais insumos"></div>
+            <div class="coverage-legend"><span><i class="healthy"></i>Acima do alvo</span><span><i class="attention"></i>Atenção</span><span><i class="critical"></i>Crítico</span><small>Alvo operacional: 7 dias</small></div>
+          </section>
+
+          <section class="dashboard-panel dashboard-health-panel">
+            <div class="section-header">
+              <div>
+                <span class="section-eyebrow">Conformidade</span>
+                <h2 class="section-title">Saúde do estoque</h2>
+              </div>
+              <button type="button" class="section-action" onclick="navToStr('rastreio')">Ver lotes</button>
+            </div>
+            <div id="dashboard-health"></div>
+          </section>
+        </div>
+
+        <div class="dashboard-work-grid">
+          <section class="dashboard-panel dashboard-production-panel">
+            <div class="section-header">
+              <div>
+                <span class="section-eyebrow">Turno atual</span>
+                <h2 class="section-title">Produção de hoje</h2>
+              </div>
+              <button type="button" class="section-action" onclick="navToStr('pedidos')">Ver todas</button>
             </div>
             <div class="recent-orders" id="cargo-list"></div>
           </section>
 
-          <section class="dashboard-panel">
-            <div class="section-header">
-              <div class="section-title">Produção em andamento</div>
-              <div class="section-action" onclick="navToStr('rastreio')">Ver mapa</div>
-            </div>
-            <div id="dashboard-tracking"></div>
-          </section>
+          <aside class="dashboard-side-stack">
+            <section class="dashboard-panel dashboard-priority-panel">
+              <div class="section-header">
+                <div>
+                  <span class="section-eyebrow">Ação necessária</span>
+                  <h2 class="section-title">Fila de decisão</h2>
+                </div>
+                <button type="button" class="section-action" onclick="navToStr('perdas')">Ver tudo</button>
+              </div>
+              <div class="alerts-list" id="dashboard-alerts"></div>
+            </section>
 
-          <section class="dashboard-panel dashboard-panel-wide">
-            <div class="section-header">
-              <div class="section-title">Lotes FEFO</div>
-              <div class="section-action" onclick="navToStr('heatmap')">Ver mapa FEFO</div>
-            </div>
-            <div class="stock-table stock-table-dashboard" id="stock-table-critical"></div>
-          </section>
-
-          <section class="dashboard-panel">
-            <div class="section-header">
-              <div class="section-title">Alertas e sugestões IA</div>
-              <div class="section-action" onclick="navToStr('perdas')">Ver todos</div>
-            </div>
-            <div class="alerts-list" id="dashboard-alerts"></div>
-          </section>
+            <section class="dashboard-panel dashboard-live-panel">
+              <div class="section-header">
+                <div>
+                  <span class="section-eyebrow">Agora</span>
+                  <h2 class="section-title">Produção em andamento</h2>
+                </div>
+                <button type="button" class="section-action" onclick="navToStr('pedidos')">Acompanhar</button>
+              </div>
+              <div id="dashboard-tracking"></div>
+            </section>
+          </aside>
         </div>
+
+        <section class="dashboard-panel dashboard-fefo-panel">
+          <div class="section-header">
+            <div>
+              <span class="section-eyebrow">Próximas saídas</span>
+              <h2 class="section-title">Lotes prioritários por FEFO</h2>
+            </div>
+            <div class="dashboard-fefo-actions">
+              <span class="dashboard-fefo-summary" id="dashboard-fefo-summary">Calculando prioridades…</span>
+              <button type="button" class="section-action" onclick="navToStr('heatmap')">Abrir mapa FEFO</button>
+            </div>
+          </div>
+          <div class="dashboard-fefo-list" id="stock-table-critical"></div>
+        </section>
+
         <div style="height:80px"></div>
       </div>
     </div>
 
     <!-- ── PAGE: PEDIDOS ── -->
-    <div class="page" id="page-pedidos">
-      <div class="search-bar production-actions">
-        <div style="flex:1"></div>
+    <div class="page workspace-page" id="page-pedidos">
+      <div class="search-bar workspace-toolbar production-actions">
+        <div class="workspace-toolbar-context">
+          <span class="workspace-toolbar-icon"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-production"></use></svg></span>
+          <span><strong>Execução do turno</strong><small>Fornadas, etapas e liberação</small></span>
+        </div>
+        <div class="workspace-toolbar-actions">
         <button class="btn-secondary" onclick="openProductionSummaryModal()">
           Resumo produção
         </button>
-        <button class="btn-secondary" onclick="openProductionForm()">
+        <button class="btn-scan workspace-primary-action" onclick="openProductionForm()">
+          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg>
           Registrar produção
         </button>
+        </div>
       </div>
-      <div class="content">
-        <div class="cargo-list" id="cargo-list-all"></div>
+      <div class="content workspace-content">
+        <header class="workspace-intro">
+          <div>
+            <span class="workspace-kicker">Produção em movimento</span>
+            <h2>Ordens e fornadas</h2>
+            <p class="section-description">Acompanhe o preparo, a baixa de ingredientes e a liberação dos produtos acabados.</p>
+          </div>
+          <div class="workspace-context-chip"><span>Fluxo do turno</span><strong>Preparo → liberação</strong></div>
+        </header>
+        <section class="workspace-panel production-workspace-panel">
+          <div class="section-header">
+            <div><span class="section-eyebrow">Fila operacional</span><h3 class="section-title">Acompanhamento das ordens</h3></div>
+            <span class="workspace-panel-hint">Abra uma ordem para ver etapas e insumos</span>
+          </div>
+          <div class="cargo-list" id="cargo-list-all"></div>
+        </section>
         <div style="height:80px"></div>
       </div>
     </div>
 
     <!-- ── PAGE: ESTOQUE ── -->
-    <div class="page" id="page-estoque">
-      <div class="search-bar">
-        <div class="search-icon"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg></div>
-        <input class="search-input" id="estoque-search" placeholder="Buscar produto ou SKU..." oninput="renderStockFull(this.value)">
+    <div class="page workspace-page" id="page-estoque">
+      <div class="search-bar workspace-toolbar">
+        <div class="search-icon"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-search"></use></svg></div>
+        <label class="sr-only" for="estoque-search">Buscar produto, lote ou SKU</label>
+        <input class="search-input" id="estoque-search" name="stock-search" autocomplete="off" placeholder="Buscar produto, lote ou SKU…" oninput="renderStockFull(this.value)">
         <button class="btn-secondary" onclick="openStockModal()">
           Resumo estoque
         </button>
         <button class="btn-scan" onclick="openQR()">
-          <svg viewBox="0 0 16 16"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/><rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h3M12 10h3M10 12v3"/></svg>
+          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-qr"></use></svg>
           Entrada de insumo
         </button>
       </div>
-      <div class="content">
-        <div class="metrics-row" id="estoque-metrics"></div>
-        <div>
-          <div class="section-header"><div class="section-title">Insumos, lotes e produtos acabados</div></div>
+      <div class="content workspace-content">
+        <header class="workspace-intro">
+          <div>
+            <span class="workspace-kicker">Controle de insumos</span>
+            <h2>Saldo, mínimo e validade</h2>
+            <p class="section-description">Decida o que repor e qual lote consumir primeiro sem perder o ritmo da produção.</p>
+          </div>
+          <div class="workspace-context-chip"><span>Regra ativa</span><strong>Saída por FEFO</strong></div>
+        </header>
+        <div class="metrics-row workspace-metrics" id="estoque-metrics"></div>
+        <section class="workspace-panel workspace-table-panel">
+          <div class="section-header"><div><span class="section-eyebrow">Visão por item</span><h3 class="section-title">Insumos, lotes e produtos acabados</h3></div><span class="workspace-panel-hint">Clique no saldo para ajustar</span></div>
           <div class="stock-table" id="stock-table-full"></div>
-        </div>
+        </section>
         <div style="height:80px"></div>
       </div>
     </div>
 
     <!-- ── PAGE: RASTREIO ── -->
-    <div class="page" id="page-rastreio">
-      <div class="content">
-        <div class="section-header"><div class="section-title">Ordens em monitoramento</div></div>
-        <div class="track-list" id="track-list">
-          <div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhuma ordem em monitoramento</div>
+    <div class="page workspace-page" id="page-rastreio">
+      <div class="search-bar workspace-toolbar">
+        <div class="search-icon"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-search"></use></svg></div>
+        <label class="sr-only" for="lot-search">Buscar lote, produto, fornecedor ou posição</label>
+        <input class="search-input" id="lot-search" name="lot-search" autocomplete="off" placeholder="Buscar lote, produto, fornecedor ou posição…" oninput="renderLotTraceability(this.value)">
+        <button class="btn-secondary" onclick="openFefoMapModal()">Resumo FEFO</button>
+        <button class="btn-scan" onclick="openQR()">
+          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg>
+          Nova entrada
+        </button>
+      </div>
+      <div class="content workspace-content">
+        <header class="workspace-intro">
+          <div>
+            <span class="workspace-kicker">Rastreabilidade</span>
+            <h2>Origem e destino de cada lote</h2>
+            <p class="section-description">Acompanhe o caminho da matéria-prima à fornada, com validade e posição física visíveis.</p>
+          </div>
+          <div class="workspace-context-chip"><span>Escopo</span><strong>Entradas + produção interna</strong></div>
+        </header>
+        <div class="lot-summary workspace-metrics" id="lot-summary"></div>
+        <section class="dashboard-panel workspace-panel workspace-table-panel lot-panel">
+          <div class="section-header page-section-heading">
+            <div>
+              <h3 class="section-title">Rastreabilidade de lotes</h3>
+              <p class="section-description">Consulte origem, saldo, validade e posição física de cada entrada ou produção interna.</p>
+            </div>
+            <button type="button" class="section-action" onclick="navToStr('heatmap')">Abrir mapa FEFO</button>
+          </div>
+          <div class="lot-list" id="lot-list">
+            <div class="empty-state">Nenhum lote ativo cadastrado.</div>
+          </div>
+        </section>
+        <div class="lot-context">
+          <span class="lot-context-icon" aria-hidden="true"><svg class="app-icon"><use href="assets/icons.svg#i-lots"></use></svg></span>
+          <div><strong>Lotes contam a história do estoque.</strong><span>Para acompanhar ordens, etapas e fornadas em execução, use a área de Produção.</span></div>
+          <button type="button" class="section-action" onclick="navToStr('pedidos')">Ir para Produção</button>
         </div>
         <div style="height:80px"></div>
       </div>
     </div>
 
     <!-- ── PAGE: FORNECEDORES ── -->
-    <div class="page" id="page-fornecedores">
-      <div class="content">
-        <div class="section-header"><div class="section-title">Fornecedores homologados</div><div class="section-action" onclick="openSupplierForm()">+ Novo →</div></div>
-        <div class="supplier-grid" id="supplier-grid">
-          <div style="padding:32px;text-align:center;font-size:12px;color:var(--text-muted);grid-column:1/-1">Nenhum fornecedor cadastrado</div>
-        </div>
+    <div class="page workspace-page" id="page-fornecedores">
+      <div class="content workspace-content">
+        <header class="workspace-intro">
+          <div>
+            <span class="workspace-kicker">Abastecimento confiável</span>
+            <h2>Rede de fornecedores</h2>
+            <p class="section-description">Compare prazo, regularidade e histórico antes de decidir a próxima reposição.</p>
+          </div>
+          <button type="button" class="btn-scan workspace-primary-action" onclick="openSupplierForm()"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg>Novo fornecedor</button>
+        </header>
+        <section class="workspace-panel supplier-workspace-panel">
+          <div class="section-header"><div><span class="section-eyebrow">Rede homologada</span><h3 class="section-title">Desempenho de abastecimento</h3></div><span class="workspace-panel-hint">Confiabilidade baseada no histórico</span></div>
+          <div class="supplier-grid" id="supplier-grid">
+            <div class="empty-state">Nenhum fornecedor cadastrado</div>
+          </div>
+        </section>
         <div style="height:80px"></div>
       </div>
     </div>
 
     <!-- ── PAGE: PERDAS ── -->
-    <div class="page" id="page-perdas">
-      <div class="content">
-        <div class="section-header"><div class="section-title">Perdas e descartes</div><div class="section-action" onclick="openLossForm()">+ Registrar perda →</div></div>
-        <div class="metrics-row" id="loss-metrics"></div>
-        <div class="dashboard-grid">
-          <section class="dashboard-panel dashboard-panel-wide">
-            <div class="section-header"><div class="section-title">Histórico de perdas</div></div>
+    <div class="page workspace-page" id="page-perdas">
+      <div class="content workspace-content">
+        <header class="workspace-intro">
+          <div>
+            <span class="workspace-kicker">Eficiência operacional</span>
+            <h2>Perdas, sobras e custo evitável</h2>
+            <p class="section-description">Transforme registros de descarte em ajustes práticos de compra, produção e validade.</p>
+          </div>
+          <button type="button" class="btn-scan workspace-primary-action" onclick="openLossForm()"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg>Registrar perda</button>
+        </header>
+        <div class="metrics-row workspace-metrics" id="loss-metrics"></div>
+        <div class="dashboard-grid workspace-two-column">
+          <section class="dashboard-panel workspace-panel workspace-table-panel dashboard-panel-wide">
+            <div class="section-header"><div><span class="section-eyebrow">Ocorrências</span><h3 class="section-title">Histórico de perdas</h3></div></div>
             <div class="stock-table" id="loss-table"></div>
           </section>
-          <section class="dashboard-panel">
-            <div class="section-header"><div class="section-title">Ações recomendadas</div></div>
+          <section class="dashboard-panel workspace-panel recommendations-panel">
+            <div class="section-header"><div><span class="section-eyebrow">Próximo passo</span><h3 class="section-title">Ações recomendadas</h3></div></div>
             <div class="alerts-list" id="loss-suggestions"></div>
           </section>
         </div>
@@ -265,68 +417,76 @@
     </div>
 
     <!-- ── PAGE: AUDITORIA ── -->
-    <div class="page" id="page-auditoria">
-      <div class="content">
-        <div class="section-header">
-          <div class="section-title">Movimentações e auditoria</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <div class="section-action" onclick="exportMovementsCsv()">Exportar CSV →</div>
-            <div class="section-action" onclick="exportAllDataJson()">Backup JSON →</div>
+    <div class="page workspace-page" id="page-auditoria">
+      <div class="content workspace-content">
+        <header class="workspace-intro">
+          <div>
+            <span class="workspace-kicker">Governança e segurança</span>
+            <h2>Movimentações e auditoria</h2>
+            <p class="section-description">Consulte a trilha de entradas, consumo, ajustes e perdas com contexto suficiente para conferir cada evento.</p>
           </div>
-        </div>
-        <div class="metrics-row" id="audit-metrics"></div>
-        <div class="dashboard-panel">
+          <div class="workspace-intro-actions">
+            <button type="button" class="section-action" onclick="exportMovementsCsv()">Exportar CSV</button>
+            <button type="button" class="section-action" onclick="exportAllDataJson()">Backup JSON</button>
+          </div>
+        </header>
+        <div class="metrics-row workspace-metrics" id="audit-metrics"></div>
+        <section class="dashboard-panel workspace-panel workspace-table-panel audit-workspace-panel">
           <div class="section-header">
-            <div class="section-title">Histórico operacional</div>
-            <input id="audit-search" class="search-input" style="max-width:320px;border:1px solid var(--border);border-radius:10px;padding:9px 12px" placeholder="Filtrar por SKU, lote, tipo..." oninput="renderAudit(this.value)">
+            <div><span class="section-eyebrow">Linha do tempo</span><h3 class="section-title">Histórico operacional</h3></div>
+            <label class="sr-only" for="audit-search">Filtrar histórico por SKU, lote ou tipo</label>
+            <input id="audit-search" name="audit-search" autocomplete="off" class="search-input workspace-inline-search" placeholder="Filtrar por SKU, lote ou tipo…" oninput="renderAudit(this.value)">
           </div>
           <div class="stock-table" id="audit-table"></div>
-        </div>
+        </section>
         <div style="height:80px"></div>
       </div>
     </div>
 
     <!-- ── PAGE: MAPA DE ESTOQUE (HEATMAP) ── -->
-    <div class="page" id="page-heatmap">
-      <div style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+    <div class="page workspace-page" id="page-heatmap">
+      <div class="fefo-workspace">
+
+        <header class="workspace-intro fefo-intro">
+          <div>
+            <span class="workspace-kicker">Pulso FEFO</span>
+            <h2>Mapa físico do estoque</h2>
+            <p class="section-description">Encontre cada insumo por rua, nível e posição — e antecipe espaços críticos antes da próxima entrada.</p>
+          </div>
+          <div class="workspace-intro-actions">
+            <button type="button" class="btn-secondary" onclick="openFefoMapModal()">Resumo FEFO</button>
+            <button type="button" class="btn-scan workspace-primary-action" onclick="openQR()"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-qr"></use></svg>Nova entrada</button>
+          </div>
+        </header>
 
         <!-- TAB BAR -->
-        <div style="background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:stretch;padding:0 18px;flex-shrink:0">
-          <div id="hmtab-mapa" onclick="ivSwitchTab('mapa')" style="padding:12px 16px;font-size:13px;font-weight:500;color:var(--text-primary);cursor:pointer;border-bottom:2px solid var(--text-primary);margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:all .15s">
+        <div class="fefo-tabbar" style="background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:stretch;padding:0 18px;flex-shrink:0">
+          <button type="button" class="fefo-tab" id="hmtab-mapa" onclick="ivSwitchTab('mapa')" style="padding:12px 16px;font-size:13px;font-family:var(--font);background:transparent;font-weight:500;color:var(--text-primary);cursor:pointer;border:0;border-bottom:2px solid var(--text-primary);margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:border-color .15s,color .15s">
             <svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8" viewBox="0 0 14 14"><rect x="1" y="1" width="3.5" height="3.5" rx=".5"/><rect x="5.25" y="1" width="3.5" height="3.5" rx=".5"/><rect x="9.5" y="1" width="3.5" height="3.5" rx=".5"/><rect x="1" y="5.25" width="3.5" height="3.5" rx=".5"/><rect x="5.25" y="5.25" width="3.5" height="3.5" rx=".5"/><rect x="9.5" y="5.25" width="3.5" height="3.5" rx=".5"/><rect x="1" y="9.5" width="3.5" height="3.5" rx=".5"/><rect x="5.25" y="9.5" width="3.5" height="3.5" rx=".5"/><rect x="9.5" y="9.5" width="3.5" height="3.5" rx=".5"/></svg>
             Mapa de Posições
-          </div>
-          <div id="hmtab-produto" onclick="ivSwitchTab('produto')" style="padding:12px 16px;font-size:13px;font-weight:400;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:all .15s">
+          </button>
+          <button type="button" class="fefo-tab" id="hmtab-produto" onclick="ivSwitchTab('produto')" style="padding:12px 16px;font-size:13px;font-family:var(--font);background:transparent;font-weight:400;color:var(--text-muted);cursor:pointer;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:border-color .15s,color .15s">
             <svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8" viewBox="0 0 14 14"><circle cx="6" cy="6" r="4"/><path d="M9.5 9.5l3 3" stroke-linecap="round"/></svg>
             Localizar Produto
-          </div>
-          <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-            <button onclick="openFefoMapModal()" style="background:#FFFFFF;border:1px solid var(--border);border-radius:var(--r);padding:5px 12px;color:#1B4965;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px">
-              Resumo FEFO
-            </button>
-            <button onclick="openQR()" style="background:var(--accent-dim);border:1px solid rgba(98,182,203,.35);border-radius:var(--r);padding:5px 12px;color:#1B4965;font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px">
-              <svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 14 14"><rect x="1" y="1" width="4" height="4" rx="1"/><rect x="9" y="1" width="4" height="4" rx="1"/><rect x="1" y="9" width="4" height="4" rx="1"/><path d="M9 9h1.5v1.5H9zM10.5 10.5H13M10.5 9H13M9 10.5v2.5"/></svg>
-              Scan QR
-            </button>
-          </div>
+          </button>
         </div>
 
         <!-- ── ABA: MAPA DE POSIÇÕES ── -->
-        <div id="hmview-mapa" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+        <div class="fefo-map-view" id="hmview-mapa" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
 
           <!-- FILTERS -->
-          <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
+          <div class="fefo-filters" style="background:var(--surface);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
             <span style="font-size:10px;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap">Rua</span>
-            <div id="tg-rua" style="display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px">
+            <div class="fefo-toggle-group" id="tg-rua" style="display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px">
               <button class="iv-tg active" onclick="ivSetToggle('tg-rua',this,'1')" style="background:var(--surface3);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-primary);cursor:pointer">R1</button>
               <button class="iv-tg" onclick="ivSetToggle('tg-rua',this,'2')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">R2</button>
               <button class="iv-tg" onclick="ivSetToggle('tg-rua',this,'3')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">R3</button>
               <button class="iv-tg" onclick="ivSetToggle('tg-rua',this,'4')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">R4</button>
               <button class="iv-tg" onclick="ivSetToggle('tg-rua',this,'5')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">R5</button>
             </div>
-            <div style="width:1px;height:18px;background:var(--border);flex-shrink:0"></div>
+            <div class="fefo-filter-divider" style="width:1px;height:18px;background:var(--border);flex-shrink:0"></div>
             <span style="font-size:10px;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap">Nível</span>
-            <div id="tg-nivel" style="display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px">
+            <div class="fefo-toggle-group" id="tg-nivel" style="display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px">
               <button class="iv-tg active" onclick="ivSetToggle('tg-nivel',this,'all')" style="background:var(--surface3);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-primary);cursor:pointer">Todos</button>
               <button class="iv-tg" onclick="ivSetToggle('tg-nivel',this,'1')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">N1</button>
               <button class="iv-tg" onclick="ivSetToggle('tg-nivel',this,'2')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">N2</button>
@@ -334,18 +494,18 @@
               <button class="iv-tg" onclick="ivSetToggle('tg-nivel',this,'4')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">N4</button>
               <button class="iv-tg" onclick="ivSetToggle('tg-nivel',this,'5')" style="background:transparent;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-family:var(--font);color:var(--text-muted);cursor:pointer">N5</button>
             </div>
-            <div style="width:1px;height:18px;background:var(--border);flex-shrink:0"></div>
-            <span style="font-size:10px;color:var(--text-muted);font-style:italic">Clique em uma célula para atribuir ou editar produto</span>
+            <div class="fefo-filter-divider" style="width:1px;height:18px;background:var(--border);flex-shrink:0"></div>
+            <span class="fefo-filter-help" style="font-size:10px;color:var(--text-muted);font-style:italic">Clique em uma célula para atribuir ou editar produto</span>
           </div>
 
           <!-- METRICS -->
-          <div id="iv-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 18px;border-bottom:1px solid var(--border);flex-shrink:0"></div>
+          <div class="fefo-metrics workspace-metrics" id="iv-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 18px;border-bottom:1px solid var(--border);flex-shrink:0"></div>
 
           <!-- HEATMAP AREA -->
-          <div style="padding:14px 18px;flex:1;overflow:hidden;display:flex;flex-direction:column">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0">
+          <div class="fefo-map-panel" style="padding:14px 18px;flex:1;overflow:hidden;display:flex;flex-direction:column">
+            <div class="fefo-map-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0">
               <div id="hm-title" style="font-size:11px;color:var(--text-secondary);letter-spacing:.4px;text-transform:uppercase">Rua 1 — mapa de posições</div>
-              <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-muted)">
+              <div class="fefo-legend" style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-muted)">
                 <span>Vazio</span>
                 <div style="display:flex;gap:2px;align-items:center">
                   <div style="width:14px;height:10px;border-radius:2px;background:#F0F8FC"></div>
@@ -361,41 +521,42 @@
                 <div style="width:14px;height:10px;border-radius:2px;background:rgba(95,168,211,.35);border:1px solid rgba(98,182,203,.65)"></div><span>Com produto</span>
               </div>
             </div>
-            <div style="overflow-x:auto;overflow-y:auto;flex:1">
+            <div class="fefo-map-scroll" style="overflow-x:auto;overflow-y:auto;flex:1">
               <div id="heatmap-container"></div>
             </div>
           </div>
 
           <!-- FOOTER -->
-          <div style="padding:10px 18px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-shrink:0">
+          <div class="fefo-footer" style="padding:10px 18px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-shrink:0">
             <div style="font-size:11px;color:var(--text-muted)">Mostrando <span id="foot-count" style="color:var(--text-secondary);font-family:var(--mono)">100</span> posições · Rua <span id="foot-rua" style="color:var(--text-secondary);font-family:var(--mono)">1</span> · Última sync <span style="color:var(--text-secondary);font-family:var(--mono)">há 2 min</span></div>
             <div id="foot-sel" style="font-size:11px;color:var(--text-muted)"></div>
           </div>
         </div>
 
         <!-- ── ABA: LOCALIZAR PRODUTO ── -->
-        <div id="hmview-produto" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="fefo-product-view" id="hmview-produto" style="display:none;flex-direction:column;flex:1;overflow:hidden">
           <!-- SEARCH -->
-          <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+          <div class="fefo-product-search" style="background:var(--surface);border-bottom:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0">
             <div style="flex:1;position:relative;display:flex;align-items:center">
               <div style="position:absolute;left:10px;color:var(--text-muted);display:flex">
                 <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8" viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg>
               </div>
-              <input id="prod-search" placeholder="Buscar por nome ou SKU..." oninput="ivFilterProductList(this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px 8px 34px;color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'">
+              <label class="sr-only" for="prod-search">Buscar produto por nome ou SKU</label>
+              <input id="prod-search" name="product-search" autocomplete="off" placeholder="Buscar por nome ou SKU…" oninput="ivFilterProductList(this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px 8px 34px;color:var(--text-primary);font-family:var(--font);font-size:13px" onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'">
             </div>
             <span style="font-size:11px;color:var(--text-muted)">Clique num produto para ver onde está no armazém</span>
           </div>
 
           <!-- SPLIT: lista + mini-mapa -->
-          <div style="flex:1;overflow:hidden;display:flex;gap:0">
+          <div class="fefo-product-split" style="flex:1;overflow:hidden;display:flex;gap:0">
 
             <!-- PRODUCT LIST -->
-            <div style="width:300px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column">
+            <div class="fefo-product-list" style="width:300px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column">
               <div id="prod-list" style="padding:8px;display:flex;flex-direction:column;gap:4px"></div>
             </div>
 
             <!-- LOCATOR PANEL -->
-            <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;padding:16px 20px">
+            <div class="fefo-locator" style="flex:1;overflow:hidden;display:flex;flex-direction:column;padding:16px 20px">
               <div id="prod-locator-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text-muted)">
                 <svg style="width:36px;height:36px;stroke:currentColor;fill:none;stroke-width:1.2;opacity:.4" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
                 <div style="font-size:13px">Selecione um produto para localizar no armazém</div>
@@ -424,14 +585,14 @@
     </div>
 
     <!-- MODAL: ATRIBUIR PRODUTO A POSIÇÃO -->
-    <div id="cell-modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;display:none;opacity:0;transition:opacity .2s;align-items:center;justify-content:center" onclick="ivCloseCellModal()">
-      <div onclick="event.stopPropagation()" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;width:400px;max-width:94vw;display:flex;flex-direction:column;overflow:hidden;transform:translateY(16px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)" id="cell-modal">
+    <div id="cell-modal-overlay" aria-hidden="true" style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;display:none;opacity:0;transition:opacity .2s;align-items:center;justify-content:center" onclick="ivCloseCellModal()">
+      <div role="dialog" aria-modal="true" aria-labelledby="cell-modal-title" onclick="event.stopPropagation()" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;width:400px;max-width:94vw;display:flex;flex-direction:column;overflow:hidden;transform:translateY(16px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)" id="cell-modal">
         <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between">
           <div>
             <div id="cm-cell-id" style="font-size:10px;font-family:var(--mono);color:var(--text-muted);letter-spacing:.6px;margin-bottom:3px"></div>
-            <div style="font-size:14px;font-weight:500;color:var(--text-primary)">Atribuir produto à posição</div>
+            <div id="cell-modal-title" style="font-size:14px;font-weight:500;color:var(--text-primary)">Atribuir produto à posição</div>
           </div>
-          <button onclick="ivCloseCellModal()" style="background:transparent;border:1px solid var(--border);border-radius:5px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)">
+          <button type="button" aria-label="Fechar janela" onclick="ivCloseCellModal()" style="background:transparent;border:1px solid var(--border);border-radius:5px;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)">
             <svg style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 12 12"><path d="M1 1l10 10M11 1L1 11" stroke-linecap="round"/></svg>
           </button>
         </div>
@@ -456,7 +617,8 @@
             <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px">Selecionar produto</div>
             <div style="position:relative;display:flex;align-items:center;margin-bottom:8px">
               <div style="position:absolute;left:9px;color:var(--text-muted);display:flex"><svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8" viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4" stroke-linecap="round"/></svg></div>
-              <input id="cm-search" placeholder="Buscar produto por nome ou SKU..." oninput="ivCmFilter(this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px 7px 30px;color:var(--text-primary);font-family:var(--font);font-size:12px;outline:none" onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'">
+              <label class="sr-only" for="cm-search">Buscar produto por nome ou SKU</label>
+              <input id="cm-search" name="cell-product-search" autocomplete="off" placeholder="Buscar produto por nome ou SKU…" oninput="ivCmFilter(this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px 7px 30px;color:var(--text-primary);font-family:var(--font);font-size:12px" onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'">
             </div>
             <div id="cm-product-list" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;border:1px solid var(--border);border-radius:var(--r);padding:4px;background:var(--surface2)"></div>
           </div>
@@ -469,56 +631,56 @@
     </div>
 
     <!-- TAB BAR MOBILE -->
-    <div class="tab-bar">
+    <nav class="tab-bar" aria-label="Navegação principal no celular">
       <div class="tab-bar-inner">
-        <div class="tb-item active" id="tb-dashboard" onclick="navTo('dashboard',null,'tb-dashboard')">
-          <svg viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+        <button type="button" class="tb-item active" id="tb-dashboard" onclick="navTo('dashboard',null,'tb-dashboard')">
+          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-dashboard"></use></svg>
           Início
-        </div>
-        <div class="tb-item" id="tb-pedidos" onclick="navTo('pedidos',null,'tb-pedidos')">
-          <svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h8" stroke-linecap="round"/></svg>
+        </button>
+        <button type="button" class="tb-item" id="tb-pedidos" onclick="navTo('pedidos',null,'tb-pedidos')">
+          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-production"></use></svg>
           Produção
-        </div>
-        <div class="tb-item" id="tb-estoque" onclick="navTo('estoque',null,'tb-estoque')">
-          <svg viewBox="0 0 16 16"><path d="M2 2h12v4H2zM2 8h12v4H2z" stroke-linecap="round"/></svg>
+        </button>
+        <button type="button" class="tb-item" id="tb-estoque" onclick="navTo('estoque',null,'tb-estoque')">
+          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-inventory"></use></svg>
           Estoque
-        </div>
-        <div class="tb-item" id="tb-rastreio" onclick="navTo('rastreio',null,'tb-rastreio')">
-          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>
+        </button>
+        <button type="button" class="tb-item" id="tb-rastreio" onclick="navTo('rastreio',null,'tb-rastreio')">
+          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-lots"></use></svg>
           Lotes
-        </div>
+        </button>
       </div>
-    </div>
+    </nav>
 
-  </div><!-- /main -->
+  </main><!-- /main -->
 </div><!-- /app -->
 
 <!-- FAB -->
 <button class="fab" onclick="openQR()">
-  <svg viewBox="0 0 14 14"><path d="M7 1v12M1 7h12" stroke-linecap="round"/></svg>
+  <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg>
   Nova entrada
 </button>
 
 <!-- ── DRAWER ── -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
-<aside class="drawer" id="drawer">
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title" aria-hidden="true">
   <div class="drawer-header">
-    <button class="close-btn" onclick="closeDrawer()"><svg viewBox="0 0 12 12"><path d="M1 1l10 10M11 1L1 11" stroke-linecap="round"/></svg></button>
+    <button type="button" class="close-btn" aria-label="Fechar detalhes" onclick="closeDrawer()"><svg viewBox="0 0 12 12"><path d="M1 1l10 10M11 1L1 11" stroke-linecap="round"/></svg></button>
     <div>
       <div class="dh-id" id="d-id">ORDEM/LOTE · #OP-2026-00128</div>
       <div class="dh-title" id="d-title">Produção — Pão francês</div>
-      <div class="dh-badges" id="d-badges">
-        <span class="badge b-transit">Em produção</span>
-        <span class="badge b-priority">FEFO</span>
-        <span class="badge b-fragile">Validade curta</span>
+      <div class="dh-statuses" id="d-badges">
+        <span class="status-text b-transit">Em produção</span>
+        <span class="status-text b-priority">FEFO</span>
+        <span class="status-text b-fragile">Validade curta</span>
       </div>
     </div>
   </div>
-  <div class="drawer-tabs">
-    <div class="dtab active" onclick="switchDTab('timeline',this)">Timeline</div>
-    <div class="dtab" onclick="switchDTab('items',this)">Itens</div>
-    <div class="dtab" onclick="switchDTab('info',this)">Detalhes</div>
-    <div class="dtab" onclick="switchDTab('carrier',this)">Responsável</div>
+  <div class="drawer-tabs" role="tablist" aria-label="Seções da ordem">
+    <button type="button" role="tab" class="dtab active" onclick="switchDTab('timeline',this)">Linha do tempo</button>
+    <button type="button" role="tab" class="dtab" onclick="switchDTab('items',this)">Itens</button>
+    <button type="button" role="tab" class="dtab" onclick="switchDTab('info',this)">Detalhes</button>
+    <button type="button" role="tab" class="dtab" onclick="switchDTab('carrier',this)">Responsável</button>
   </div>
   <div class="drawer-body" id="drawer-body">
     <div class="dtab-content active" id="dtab-timeline"><div id="d-timeline-content"></div></div>
@@ -535,43 +697,43 @@
       <svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5"/><path d="M7 4v3l2 2" stroke-linecap="round"/></svg>
       Rastrear
     </button>
-    <button class="btn-icon" onclick="showToast('Compartilhado!')">
+    <button type="button" class="btn-icon" aria-label="Compartilhar ordem" onclick="showToast('Compartilhado!')">
       <svg viewBox="0 0 14 14"><path d="M2 7h10M7 2l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
   </div>
 </aside>
 
 <!-- ── QR MODAL ── -->
-<div class="modal-overlay" id="modal-overlay" onclick="handleModalClick(event)">
-  <div class="modal" onclick="event.stopPropagation()">
+<div class="modal-overlay" id="modal-overlay" aria-hidden="true" onclick="handleModalClick(event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="entry-modal-title" onclick="event.stopPropagation()">
 
     <!-- STEP 1: ESCOLHA -->
     <div class="mstep active" id="ms1">
       <div class="modal-mheader">
-        <button class="close-btn" onclick="closeQR()"><svg viewBox="0 0 12 12"><path d="M1 1l10 10M11 1L1 11" stroke-linecap="round"/></svg></button>
-        <div><div class="modal-title">Nova entrada</div><div class="modal-sub">Como deseja registrar insumo, lote ou produção?</div></div>
+        <button type="button" class="close-btn" aria-label="Fechar nova entrada" onclick="closeQR()"><svg viewBox="0 0 12 12"><path d="M1 1l10 10M11 1L1 11" stroke-linecap="round"/></svg></button>
+        <div><div class="modal-title" id="entry-modal-title">Nova entrada</div><div class="modal-sub">Como deseja registrar insumo, lote ou produção?</div></div>
       </div>
       <div class="choice-grid">
-        <div class="choice-card" onclick="msGo('ms2')">
-          <div class="ci ci-qr"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="10" y="1" width="5" height="5" rx="1"/><rect x="1" y="10" width="5" height="5" rx="1"/><path d="M10 10h2v2h-2zM12 12h3M12 10h3M10 12v3"/></svg></div>
+        <button type="button" class="choice-card" onclick="msGo('ms2')">
+          <div class="ci ci-qr"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-qr"></use></svg></div>
           <div><div class="choice-label">Bipar lote QR Code</div><div class="choice-desc">Preenche os campos automaticamente via câmera</div></div>
-        </div>
-        <div class="choice-card" onclick="msGo('ms4',false)">
-          <div class="ci ci-manual"><svg viewBox="0 0 16 16"><path d="M3 3h10M3 7h10M3 11h6" stroke-linecap="round"/></svg></div>
+        </button>
+        <button type="button" class="choice-card" onclick="msGo('ms4',false)">
+          <div class="ci ci-manual"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-inventory"></use></svg></div>
           <div><div class="choice-label">Entrada de insumo manual</div><div class="choice-desc">Preencha campo a campo manualmente</div></div>
-        </div>
+        </button>
       </div>
-      <div class="choice-wide" onclick="openImportFile()">
-        <div class="ci ci-manual"><svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke-linecap="round"/></svg></div>
+      <button type="button" class="choice-wide" onclick="openImportFile()">
+        <div class="ci ci-manual"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-file-import"></use></svg></div>
         <div><div class="choice-label">Importar planilha / NF-e</div><div class="choice-desc">Selecione um .csv ou XML de NF-e com múltiplos lotes</div></div>
-      </div>
-      <input id="entry-import-file" type="file" accept=".csv,.xml,text/csv,text/xml,application/xml" style="display:none" onchange="handleEntryImport(event)">
+      </button>
+      <input id="entry-import-file" aria-label="Selecionar CSV ou XML de entrada" type="file" accept=".csv,.xml,text/csv,text/xml,application/xml" style="display:none" onchange="handleEntryImport(event)">
     </div>
 
     <!-- STEP 2: SCANNER -->
     <div class="mstep" id="ms2">
       <div class="modal-mheader">
-        <button class="close-btn" onclick="msGo('ms1')"><svg viewBox="0 0 12 12"><path d="M8 1L3 6l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" class="close-btn" aria-label="Voltar às opções de entrada" onclick="msGo('ms1')"><svg viewBox="0 0 12 12"><path d="M8 1L3 6l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <div><div class="modal-title">Bipar lote QR Code</div><div class="modal-sub">Aponte para o código na NF ou etiqueta</div></div>
       </div>
       <div class="camera-area" id="camera-area">
@@ -579,8 +741,8 @@
         <div class="camera-error" id="camera-error">Não foi possível acessar a câmera. Verifique a permissão do navegador ou use a leitura simulada/manual.</div>
         <div class="cam-grid"></div>
         <div class="cam-top">
-          <div class="cam-badge"><div class="cam-rec"></div>câmera ativa</div>
-          <div class="cam-badge">1x</div>
+          <div class="camera-readout"><div class="cam-rec"></div>câmera ativa</div>
+          <div class="camera-readout">1x</div>
         </div>
         <div class="viewfinder">
           <div class="vfc tl"><svg viewBox="0 0 20 20"><path d="M2 11V2h9"/></svg></div>
@@ -631,7 +793,7 @@
     <!-- STEP 4: FORM -->
     <div class="mstep" id="ms4">
       <div class="modal-mheader">
-        <button class="close-btn" onclick="msGo('ms1')"><svg viewBox="0 0 12 12"><path d="M8 1L3 6l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" class="close-btn" aria-label="Voltar às opções de entrada" onclick="msGo('ms1')"><svg viewBox="0 0 12 12"><path d="M8 1L3 6l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <div><div class="modal-title" id="form-modal-title">Nova Entrada de insumo</div><div class="modal-sub" id="form-modal-sub">Confirme ou edite os dados preenchidos</div></div>
       </div>
       <div class="form-body">
@@ -641,34 +803,34 @@
         </div>
         <div class="fsection">
           <div class="fsection-label">Identificação</div>
-          <div class="frow"><div class="field"><label>Número do lote / OP</label><input id="fi-id" value="LT-0610-4899" class="af"></div></div>
+          <div class="frow"><div class="field"><label for="fi-id">Número do lote / OP</label><input id="fi-id" name="entry-id" autocomplete="off" value="" placeholder="Gerado automaticamente" class="af"></div></div>
           <div class="frow c2">
-            <div class="field"><label>NF-e</label><input id="fi-nfe" value="000.433" class="af"></div>
-            <div class="field"><label>Data de emissão</label><input id="fi-date" value="10/04/2026" class="af"></div>
+            <div class="field"><label for="fi-nfe">NF-e</label><input id="fi-nfe" name="invoice-number" inputmode="numeric" autocomplete="off" value="000.433" class="af"></div>
+            <div class="field"><label for="fi-date">Data de emissão</label><input id="fi-date" name="issue-date" type="date" value="" class="af"></div>
           </div>
-          <div class="frow"><div class="field"><label>Tipo de entrada</label><select><option>Compra de fornecedor</option><option>Devolução de cliente</option><option>Transferência interna</option></select></div></div>
+          <div class="frow"><div class="field"><label for="fi-type">Tipo de entrada</label><select id="fi-type" name="entry-type"><option>Compra de fornecedor</option><option>Devolução de cliente</option><option>Transferência interna</option></select></div></div>
         </div>
         <div class="fsection">
           <div class="fsection-label">Remetente</div>
-          <div class="frow"><div class="field"><label>Empresa</label><input id="fi-emp" value="Moinho Paulista" class="af"></div></div>
+          <div class="frow"><div class="field"><label for="fi-emp">Empresa</label><input id="fi-emp" name="supplier-name" autocomplete="organization" value="Moinho Paulista" class="af"></div></div>
           <div class="frow c2">
-            <div class="field"><label>CNPJ</label><input id="fi-cnpj" value="12.345.678/0001-90" class="af"></div>
-            <div class="field"><label>UF</label><input id="fi-uf" value="SP" class="af"></div>
+            <div class="field"><label for="fi-cnpj">CNPJ</label><input id="fi-cnpj" name="supplier-document" inputmode="numeric" autocomplete="off" value="12.345.678/0001-90" class="af"></div>
+            <div class="field"><label for="fi-uf">UF</label><input id="fi-uf" name="supplier-state" autocomplete="address-level1" value="SP" maxlength="2" class="af"></div>
           </div>
         </div>
         <div class="fsection">
           <div class="fsection-label">Itens do lote</div>
           <div id="entry-items-list"></div>
-          <div class="add-row" onclick="addEntryItemManual()"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke-linecap="round"/></svg>Adicionar item manualmente</div>
+          <button type="button" class="add-row" onclick="addEntryItemManual()"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke-linecap="round"/></svg>Adicionar item manualmente</button>
         </div>
         <div class="fsection">
           <div class="fsection-label">Logística</div>
           <div class="frow c2">
-            <div class="field"><label>Peso/volume total</label><input value="14,2" class="af"></div>
-            <div class="field"><label>Qtd. recebida</label><input value="3" class="af"></div>
+            <div class="field"><label for="fi-weight">Peso/volume total</label><input id="fi-weight" name="total-weight" inputmode="decimal" value="14,2" class="af"></div>
+            <div class="field"><label for="fi-received">Qtd. recebida</label><input id="fi-received" name="received-quantity" type="number" min="0" value="3" class="af"></div>
           </div>
-          <div class="frow"><div class="field"><label>Responsável</label><select><option>Equipe Estoque</option><option>Fornecedor entrega</option><option>Compras</option></select></div></div>
-          <div class="frow"><div class="field"><label>Observações</label><input placeholder="Instruções especiais..."></div></div>
+          <div class="frow"><div class="field"><label for="fi-responsible">Responsável</label><select id="fi-responsible" name="responsible"><option>Equipe Estoque</option><option>Fornecedor entrega</option><option>Compras</option></select></div></div>
+          <div class="frow"><div class="field"><label for="fi-notes">Observações</label><input id="fi-notes" name="notes" autocomplete="off" placeholder="Instruções especiais…"></div></div>
         </div>
         <div style="height:8px"></div>
       </div>
@@ -701,6 +863,7 @@
   </div>
 </div>
 
+<script src="src/js/core.js"></script>
 <script src="src/js/data/demo.js"></script>
 <script src="src/js/config.js"></script>
 <script src="src/js/api.js"></script>

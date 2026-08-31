@@ -1,20 +1,28 @@
 // Dados demonstrativos da padaria usados pelo modo local/demo.
+(() => {
+const demoDate = (offsetDays=0) => {
+  const base = new Date(`${window.FAST_CORE.isoDateInTimeZone()}T12:00:00Z`);
+  base.setUTCDate(base.getUTCDate() + offsetDays);
+  return base.toISOString().slice(0, 10);
+};
+const demoDateBr = (offsetDays=0) => window.FAST_CORE.formatDatePtBr(demoDate(offsetDays));
+
 window.FAST_DEMO_DB = {
   products: [
-    {id:'FAR-25KG', name:'Farinha de Trigo 25kg', cat:'Matéria-prima', type:'Insumo', qty:18, min:10, unit:'sacos', price:92.50, lote:'LT-FAR-0626-A', validade:'2026-07-12', fornecedor:'Moinho Paulista', location:'R1-N1-P02', dailyUse:5},
-    {id:'FER-BIO-500', name:'Fermento biológico fresco 500g', cat:'Matéria-prima', type:'Insumo refrigerado', qty:9, min:12, unit:'un', price:11.90, lote:'LT-FER-0626-C', validade:'2026-06-14', fornecedor:'Fermentos Brasil', location:'Câmara fria A', dailyUse:3},
-    {id:'OVO-BD-30', name:'Ovos brancos bandeja 30un', cat:'Perecível', type:'Insumo', qty:7, min:8, unit:'bandejas', price:24.80, lote:'LT-OVO-0610-B', validade:'2026-06-13', fornecedor:'Granja Boa Vista', location:'Câmara fria B', dailyUse:2},
-    {id:'LEI-UHT-1L', name:'Leite integral UHT 1L', cat:'Perecível', type:'Insumo', qty:22, min:16, unit:'litros', price:5.40, lote:'LT-LEI-0608-D', validade:'2026-06-18', fornecedor:'Laticínios Serra', location:'R2-N1-P04', dailyUse:6},
-    {id:'MARG-15KG', name:'Margarina culinária 15kg', cat:'Matéria-prima', type:'Insumo', qty:3, min:4, unit:'baldes', price:138.00, lote:'LT-MAR-0601-A', validade:'2026-06-22', fornecedor:'Laticínios Serra', location:'R2-N2-P01', dailyUse:1},
-    {id:'ACU-5KG', name:'Açúcar cristal 5kg', cat:'Matéria-prima', type:'Insumo', qty:14, min:10, unit:'pacotes', price:19.70, lote:'LT-ACU-0528-A', validade:'2026-09-30', fornecedor:'Distribuidora Doce Minas', location:'R1-N2-P07', dailyUse:2},
-    {id:'EMB-PF-1000', name:'Embalagem pão francês 1000un', cat:'Embalagem', type:'Embalagem', qty:6, min:5, unit:'fardos', price:42.00, lote:'LT-EMB-0605-A', validade:'2027-01-30', fornecedor:'PackFood', location:'R3-N1-P03', dailyUse:1},
-    {id:'PAO-FRANCES', name:'Pão francês', cat:'Produto acabado', type:'Venda balcão', qty:420, min:180, unit:'un', price:0.85, lote:'PRD-PF-0610-M', validade:'2026-06-11', fornecedor:'Produção própria', location:'Balcão 1', dailyUse:0}
+    {id:'FAR-25KG', name:'Farinha de Trigo 25kg', cat:'Matéria-prima', type:'Insumo', qty:18, min:10, unit:'sacos', price:92.50, lote:'LT-FAR-DEMO-A', validade:demoDate(30), fornecedor:'Moinho Paulista', location:'R1-N1-P02', dailyUse:5},
+    {id:'FER-BIO-500', name:'Fermento biológico fresco 500g', cat:'Matéria-prima', type:'Insumo refrigerado', qty:9, min:12, unit:'un', price:11.90, lote:'LT-FER-DEMO-C', validade:demoDate(3), fornecedor:'Fermentos Brasil', location:'Câmara fria A', dailyUse:3},
+    {id:'OVO-BD-30', name:'Ovos brancos bandeja 30un', cat:'Perecível', type:'Insumo', qty:7, min:8, unit:'bandejas', price:24.80, lote:'LT-OVO-DEMO-B', validade:demoDate(2), fornecedor:'Granja Boa Vista', location:'Câmara fria B', dailyUse:2},
+    {id:'LEI-UHT-1L', name:'Leite integral UHT 1L', cat:'Perecível', type:'Insumo', qty:22, min:16, unit:'litros', price:5.40, lote:'LT-LEI-DEMO-D', validade:demoDate(7), fornecedor:'Laticínios Serra', location:'R2-N1-P04', dailyUse:6},
+    {id:'MARG-15KG', name:'Margarina culinária 15kg', cat:'Matéria-prima', type:'Insumo', qty:3, min:4, unit:'baldes', price:138.00, lote:'LT-MAR-DEMO-A', validade:demoDate(12), fornecedor:'Laticínios Serra', location:'R2-N2-P01', dailyUse:1},
+    {id:'ACU-5KG', name:'Açúcar cristal 5kg', cat:'Matéria-prima', type:'Insumo', qty:14, min:10, unit:'pacotes', price:19.70, lote:'LT-ACU-DEMO-A', validade:demoDate(45), fornecedor:'Distribuidora Doce Minas', location:'R1-N2-P07', dailyUse:2},
+    {id:'EMB-PF-1000', name:'Embalagem pão francês 1000un', cat:'Embalagem', type:'Embalagem', qty:6, min:5, unit:'fardos', price:42.00, lote:'LT-EMB-DEMO-A', validade:demoDate(180), fornecedor:'PackFood', location:'R3-N1-P03', dailyUse:1},
+    {id:'PAO-FRANCES', name:'Pão francês', cat:'Produto acabado', type:'Venda balcão', qty:420, min:180, unit:'un', price:0.85, lote:'PRD-PF-DEMO-M', validade:demoDate(1), fornecedor:'Produção própria', location:'Balcão 1', dailyUse:0}
   ],
   suppliers: [
-    {id:'SUP-MOINHO', name:'Moinho Paulista', cat:'Farinhas', lead:'2 dias', reliability:98, last:'08/06/2026'},
-    {id:'SUP-FERMENTO', name:'Fermentos Brasil', cat:'Fermentos', lead:'1 dia', reliability:94, last:'09/06/2026'},
-    {id:'SUP-GRANJA', name:'Granja Boa Vista', cat:'Ovos', lead:'1 dia', reliability:91, last:'10/06/2026'},
-    {id:'SUP-PACK', name:'PackFood', cat:'Embalagens', lead:'3 dias', reliability:96, last:'05/06/2026'}
+    {id:'SUP-MOINHO', name:'Moinho Paulista', cat:'Farinhas', lead:'2 dias', reliability:98, last:demoDateBr(-2)},
+    {id:'SUP-FERMENTO', name:'Fermentos Brasil', cat:'Fermentos', lead:'1 dia', reliability:94, last:demoDateBr(-1)},
+    {id:'SUP-GRANJA', name:'Granja Boa Vista', cat:'Ovos', lead:'1 dia', reliability:91, last:demoDateBr(0)},
+    {id:'SUP-PACK', name:'PackFood', cat:'Embalagens', lead:'3 dias', reliability:96, last:demoDateBr(-5)}
   ],
   recipes: [
     {id:'REC-PF', name:'Pão francês', yield:100, unit:'un', ingredients:[['FAR-25KG',0.2],['FER-BIO-500',0.3],['EMB-PF-1000',0.001]], lossAvg:3.2},
@@ -25,8 +33,8 @@ window.FAST_DEMO_DB = {
     {reason:'Vencimento próximo', item:'Fermento biológico', qty:2, cost:23.80}
   ],
   movements: [
-    {type:'entrada', item:'Farinha de Trigo 25kg', sku:'FAR-25KG', qty:18, lote:'LT-FAR-0626-A', date:'10/06/2026', ref:'Estoque inicial'},
-    {type:'perda', item:'Pão francês', sku:'PAO-FRANCES', qty:38, lote:'PRD-PF-0610-M', date:'10/06/2026', ref:'Sobra de balcão'}
+    {type:'entrada', item:'Farinha de Trigo 25kg', sku:'FAR-25KG', qty:18, lote:'LT-FAR-DEMO-A', date:demoDateBr(0), ref:'Estoque inicial'},
+    {type:'perda', item:'Pão francês', sku:'PAO-FRANCES', qty:38, lote:'PRD-PF-DEMO-M', date:demoDateBr(0), ref:'Sobra de balcão'}
   ]
 };
 
@@ -65,7 +73,8 @@ window.FAST_DEMO_CARGOS = [
     id:'OP-2026-00124', title:'Compra: reposição de ovos e fermento', status:'pending', statusLabel:'Compra sugerida',
     origin:'Compras', dest:'Fornecedor', carrier:'Granja Boa Vista / Fermentos Brasil', eta:'Aprovar hoje', steps:[0,2], badges:['b-pending'],
     remetente:{empresa:'Padaria Três Irmãos', cnpj:'12.345.678/0001-90', tel:'(11) 4002-7788'}, destinatario:{nome:'Fornecedores homologados', endereco:'Compra recomendada', cnpj:'—', tel:'—'},
-    nfe:'PC-00124', peso:'—', volumes:1, seguro:'Sugestão IA R$ 268,40', frete:'—', rastreio:'COMPRA-0610', modalidade:'Compra recomendada', prazo:'Aprovar hoje', prazoRev:null, ocorrencia:'Evita ruptura para produção de amanhã',
+    nfe:'PC-00124', peso:'—', volumes:1, seguro:'Regra de reposição · R$ 268,40', frete:'—', rastreio:'COMPRA-DEMO', modalidade:'Compra recomendada', prazo:'Aprovar hoje', prazoRev:null, ocorrencia:'Evita ruptura para produção de amanhã',
     itens:[{name:'Ovos brancos bandeja 30un', sku:'OVO-BD-30', qty:8},{name:'Fermento biológico fresco 500g', sku:'FER-BIO-500', qty:12}], timeline:[{cls:'active',ev:'Sugestão gerada',detail:'Baseada no consumo médio e validade',time:'agora'},{cls:'pending',ev:'Aprovação',detail:'Gerente precisa confirmar compra',time:'hoje'}]
   }
 ];
+})();

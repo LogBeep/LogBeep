@@ -1,6 +1,17 @@
 # F.A.S.T — Padaria Inteligente
 
-Dashboard front-end para controle de estoque, FEFO, produção, perdas, auditoria e entrada de insumos de uma padaria.
+Aplicação web para controle de estoque por produto e lote, PVPS/FEFO, endereçamento físico R-N-P, produção, perdas, auditoria e entrada de insumos de uma padaria.
+
+## O que está implementado
+
+- estoque agregado por SKU com lotes independentes e validade real;
+- baixa PVPS/FEFO atômica para produção, perdas e ajustes;
+- entrada manual, CSV, XML de NF-e, QR Code e bipador;
+- mapa de posições com persistência local e sincronização remota;
+- recomendações explicáveis por validade, mínimo e falta de endereço;
+- trilha auditável, exportação CSV e backup JSON;
+- interface responsiva, acessível por teclado e instalável como PWA;
+- modo offline/local e integração opcional com Supabase, autenticação e RLS.
 
 ## Modo atual
 
@@ -9,7 +20,8 @@ O app roda sem build e sem backend obrigatório:
 1. Abra `index.html` em um servidor estático ou no GitHub Pages.
 2. Os dados iniciais vêm de `src/js/data/demo.js`.
 3. As alterações do usuário são persistidas no navegador via `localStorage`.
-4. A camada de dados pública fica em `src/js/api.js`, para facilitar a troca futura por backend real.
+4. Sem login, o site continua funcional em modo local/offline. Ao entrar, passa a usar o fluxo remoto configurado.
+5. O service worker mantém o app shell disponível sem conexão e busca a versão mais recente quando há rede.
 
 ## Preparar Supabase
 
@@ -52,11 +64,11 @@ Erros `403 (Forbidden)` em `products`, `suppliers`, `recipes`, `losses` ou `prod
 
 ## Login, usuários e RLS
 
-O schema inclui `companies`, `profiles` e `company_members`, policies iniciais de usuário autenticado e RLS operacional por `company_id`. No front, quando `DATA_SOURCE: 'supabase'`, ações críticas pedem login e a primeira sessão pode criar o vínculo local da padaria para gravar `company_id` nos dados sincronizados.
+O schema inclui `companies`, `profiles` e `company_members`, RLS por `company_id`, papéis permitidos e RPC auditável de estoque. Sem sessão, as ações ficam no dispositivo; após o login, a primeira sessão cria o vínculo da padaria e o primeiro membro recebe o papel `dono`.
 
 ## Observação de segurança
 
-O schema é uma base inicial para desenvolvimento. Antes de produção real, revise as policies, teste dois usuários/duas empresas, valide convites/onboarding e ajuste permissões por perfil.
+Antes de produção real, execute os testes ofensivos com dois usuários e duas empresas, valide o processo de convite/onboarding e mantenha as chaves administrativas exclusivamente no servidor.
 
 ## Segurança de estoque e auditoria
 
@@ -65,3 +77,14 @@ O fluxo seguro de estoque deve usar movimentações auditáveis em vez de altera
 ### Reforços adicionais de segurança
 
 A exportação CSV agora exige sessão em modo Supabase e tenta registrar evento `export_csv`. Importações CSV/XML possuem limite de tamanho, extensão e quantidade de linhas, além de evento `import_file`. A tabela `stock_movements` não deve aceitar insert direto do cliente; use a RPC `apply_stock_movement`, que valida empresa, papel e saldo.
+
+## Testes
+
+Com Node.js disponível:
+
+```bash
+npm test
+npm run check
+```
+
+A suíte cobre cálculo de validade por fuso horário, alocação FEFO, atomicidade de perdas, CSV com campos entre aspas, validação de SKU, scanner sem contagem duplicada, retorno de sincronização, PWA, semântica básica e proteções do RPC.
