@@ -92,6 +92,9 @@ test('operational states use restrained text markers instead of capsule badges',
   assert.doesNotMatch(app, /class=["'][^"']*\bpill\b/);
   assert.match(css, /\.status-text\{[^}]*background:\s*transparent[^}]*border-radius:\s*0[^}]*\}/s);
   assert.match(css, /\.status-text::before\{[^}]*border-radius:\s*50%[^}]*\}/s);
+  assert.match(css, /\.dashboard-metric \.metric-delta\{[^}]*padding:\s*0[^}]*border-radius:\s*0[^}]*background:\s*transparent/s);
+  assert.match(css, /\.coverage-primary em\{[^}]*padding:\s*0[^}]*border-radius:\s*0[^}]*background:\s*transparent/s);
+  assert.match(css, /\.supplier-grade\{[^}]*padding:\s*0[^}]*border-radius:\s*0[^}]*background:\s*transparent/s);
   assert.match(css, /\.recent-order>\.recent-loc:nth-child\(3\),\s*\.recent-order>\.recent-arrow\{display:\s*none\}/s);
 });
 

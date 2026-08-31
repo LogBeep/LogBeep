@@ -1,9 +1,9 @@
-const CACHE_NAME = 'fast-app-shell-v5';
+const CACHE_NAME = 'fast-app-shell-v7';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './assets/logbeep-logo.jpg',
+  './assets/logbeep-mark-transparent.png',
   './assets/icons.svg',
   './src/styles/app.css',
   './src/js/core.js',

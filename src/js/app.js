@@ -626,12 +626,12 @@ function formatDayCount(value) {
 }
 
 function lotUrgencyMeta(row) {
-  if (row.expiryDays === null) return {label:'Sem validade', badge:'b-transit'};
-  if (row.expiryDays < 0) return {label:`Vencido há ${formatDayCount(Math.abs(row.expiryDays))}`, badge:'b-alert'};
-  if (row.expiryDays === 0) return {label:'Vence hoje', badge:'b-alert'};
-  if (row.urgency === 'critical') return {label:`Vence em ${formatDayCount(row.expiryDays)}`, badge:'b-alert'};
-  if (row.urgency === 'attention') return {label:`Vence em ${formatDayCount(row.expiryDays)}`, badge:'b-pending'};
-  return {label:`Validade em ${formatDayCount(row.expiryDays)}`, badge:'b-delivered'};
+  if (row.expiryDays === null) return {label:'Sem validade', tone:'b-transit'};
+  if (row.expiryDays < 0) return {label:`Vencido há ${formatDayCount(Math.abs(row.expiryDays))}`, tone:'b-alert'};
+  if (row.expiryDays === 0) return {label:'Vence hoje', tone:'b-alert'};
+  if (row.urgency === 'critical') return {label:`Vence em ${formatDayCount(row.expiryDays)}`, tone:'b-alert'};
+  if (row.urgency === 'attention') return {label:`Vence em ${formatDayCount(row.expiryDays)}`, tone:'b-pending'};
+  return {label:`Validade em ${formatDayCount(row.expiryDays)}`, tone:'b-delivered'};
 }
 
 function renderLotTraceability(q='') {
@@ -672,7 +672,7 @@ function renderLotTraceability(q='') {
         <div class="lot-quantity"><strong>${row.quantity.toLocaleString('pt-BR')}</strong><span>${escapeHtml(row.unit)}</span></div>
         <div class="lot-expiry"><strong>${escapeHtml(FAST_CORE.formatDatePtBr(row.expiresAt))}</strong><span>${row.expiryDays === null ? 'Não informada' : escapeHtml(status.label)}</span></div>
         <div class="lot-location">${fastIcon('map-pin')}<span>${escapeHtml(row.location)}</span></div>
-        <div class="lot-status"><span class="status-text ${status.badge}">${escapeHtml(status.label)}</span></div>
+        <div class="lot-status"><span class="status-text ${status.tone}">${escapeHtml(status.label)}</span></div>
       </article>`;
     }).join('')}`;
 }
