@@ -334,22 +334,22 @@ function renderDashMetrics() {
   const snapshot = dashboardSnapshot();
   el.innerHTML = `
     <div class="metric-card dashboard-metric">
-      <div class="metric-heading"><span class="metric-icon"><i class="fi fi-bs-dolly-flatbed app-icon"></i></span><span class="metric-label">Produções ativas</span></div>
+      <div class="metric-heading"><span class="metric-icon"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-production"></use></svg></span><span class="metric-label">Produções ativas</span></div>
       <div class="metric-value">${snapshot.inProduction}</div>
       <div class="metric-delta ${snapshot.pendingOrders ? 'warning' : 'success'}">${snapshot.pendingOrders} aguardando liberação</div>${metricSpark('M4 35 C18 32 25 26 34 10 S51 11 58 24 S73 31 82 19 S95 30 106 34')}
     </div>
     <div class="metric-card dashboard-metric">
-      <div class="metric-heading"><span class="metric-icon"><i class="fi fi-ss-calendar-clock app-icon"></i></span><span class="metric-label">Lotes em 7 dias</span></div>
+      <div class="metric-heading"><span class="metric-icon"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-clock"></use></svg></span><span class="metric-label">Lotes em 7 dias</span></div>
       <div class="metric-value">${snapshot.expiringSoon}</div>
       <div class="metric-delta ${snapshot.expiringSoon ? 'danger' : 'success'}">${snapshot.expiringSoon ? 'priorizar saída FEFO' : 'validade sob controle'}</div>${metricSpark('M4 35 C14 31 15 10 28 19 S42 34 54 24 S74 16 86 22 S96 30 106 8')}
     </div>
     <div class="metric-card dashboard-metric">
-      <div class="metric-heading"><span class="metric-icon"><i class="fi fi-br-box-remove app-icon"></i></span><span class="metric-label">Abaixo do mínimo</span></div>
+      <div class="metric-heading"><span class="metric-icon"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-box-alert"></use></svg></span><span class="metric-label">Abaixo do mínimo</span></div>
       <div class="metric-value">${snapshot.criticalStock}</div>
       <div class="metric-delta ${snapshot.criticalStock ? 'warning' : 'success'}">${snapshot.criticalStock ? 'reposição recomendada' : 'saldo adequado'}</div>${metricSpark('M4 34 C16 30 18 14 30 23 S47 37 55 21 S71 11 80 18 S94 31 106 12')}
     </div>
     <div class="metric-card dashboard-metric">
-      <div class="metric-heading"><span class="metric-icon"><i class="fi fi-sr-trash app-icon"></i></span><span class="metric-label">Risco de perda</span></div>
+      <div class="metric-heading"><span class="metric-icon"><svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-losses"></use></svg></span><span class="metric-label">Risco de perda</span></div>
       <div class="metric-value">R$ ${Math.round(snapshot.lossRiskValue).toLocaleString('pt-BR')}</div>
       <div class="metric-delta ${snapshot.lossRiskValue ? 'danger' : 'success'}">validade em até 3 dias</div>${metricSpark('M4 32 C16 31 21 20 30 28 S45 37 53 27 S68 23 76 32 S91 37 106 9')}
     </div>
