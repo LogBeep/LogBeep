@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">F.A.S.T</title>
+  <desc id="desc">Espiga de trigo, símbolo de estoque inteligente para padarias</desc>
+  <rect width="512" height="512" rx="112" fill="#1B4965"/>
+  <path d="M256 416V174" fill="none" stroke="#BEE9E8" stroke-width="28" stroke-linecap="round"/>
+  <path d="M256 190c-76 0-122-42-128-116 76 0 122 42 128 116ZM256 266c76 0 122-42 128-116-76 0-122 42-128 116ZM256 342c-76 0-122-42-128-116 76 0 122 42 128 116Z" fill="#62B6CB" stroke="#CAE9FF" stroke-width="20" stroke-linejoin="round"/>
+</svg>

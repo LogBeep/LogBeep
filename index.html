@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-bold-rounded/css/uicons-bold-rounded.css">
 <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css">
 <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-regular-straight/css/uicons-regular-straight.css">
+<link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-regular-curved/css/uicons-regular-curved.css">
 <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-bold-straight/css/uicons-bold-straight.css">
 <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-straight/css/uicons-solid-straight.css">
 <link rel="manifest" href="manifest.webmanifest">
@@ -66,12 +67,12 @@
         Visão Geral
       </button>
       <button type="button" class="nav-item" data-page="pedidos" onclick="navTo('pedidos',this)">
-        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-production"></use></svg>
+        <i class="fi fi-rr-conveyor-belt app-icon" aria-hidden="true"></i>
         Produção
         <span class="nav-count">12</span>
       </button>
       <button type="button" class="nav-item" data-page="estoque" onclick="navTo('estoque',this)">
-        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-inventory"></use></svg>
+        <i class="fi fi-rr-boxes app-icon" aria-hidden="true"></i>
         Estoque
       </button>
       <button type="button" class="nav-item" data-page="rastreio" onclick="navTo('rastreio',this)">
@@ -80,7 +81,7 @@
         <span class="nav-count">3</span>
       </button>
       <button type="button" class="nav-item" data-page="heatmap" onclick="navTo('heatmap',this)">
-        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-fefo"></use></svg>
+        <i class="fi fi-rc-shelves app-icon" aria-hidden="true"></i>
         Mapa FEFO
       </button>
     </div>
@@ -88,7 +89,7 @@
     <div class="nav-section" style="margin-top:8px">
       <div class="nav-label">Operação</div>
       <button type="button" class="nav-item" data-page="fornecedores" onclick="navTo('fornecedores',this)">
-        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-suppliers"></use></svg>
+        <i class="fi fi-ss-garage app-icon" aria-hidden="true"></i>
         Fornecedores
       </button>
       <button type="button" class="nav-item" data-page="perdas" onclick="navTo('perdas',this)">
@@ -96,14 +97,14 @@
         Perdas
       </button>
       <button type="button" class="nav-item" data-page="auditoria" onclick="navTo('auditoria',this)">
-        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-audit"></use></svg>
+        <i class="fi fi-ss-audit app-icon" aria-hidden="true"></i>
         Auditoria
       </button>
     </div>
 
     <div class="sidebar-footer">
       <button type="button" class="side-help" onclick="openHelpModal()">
-        <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-help"></use></svg>
+        <i class="fi fi-rs-interrogation app-icon" aria-hidden="true"></i>
         <span>Centro de Ajuda</span>
       </button>
       <button type="button" class="side-user" onclick="openProfileModal()" aria-label="Abrir perfil de Ana Martins">
@@ -140,14 +141,14 @@
         <button class="btn-secondary header-sync" onclick="syncSupabaseNow()" type="button">Sincronizar agora</button>
         <button class="btn-secondary header-login" id="session-button" onclick="openLoginModal()" type="button">Entrar</button>
         <button class="header-icon" onclick="openNotificationsModal()" aria-label="Notificações">
-          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-bell"></use></svg>
+          <i class="fi fi-rr-smart-watch-notifications app-icon" aria-hidden="true"></i>
           <span>3</span>
         </button>
         <button class="header-icon" onclick="openSettingsModal()" aria-label="Configurações">
-          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-settings"></use></svg>
+          <i class="fi fi-sr-settings app-icon" aria-hidden="true"></i>
         </button>
         <button class="btn-scan header-primary" onclick="openQR()">
-          <svg class="app-icon" aria-hidden="true"><use href="assets/icons.svg#i-file-import"></use></svg>
+          <i class="fi fi-rr-inbox-in app-icon" aria-hidden="true"></i>
           Nova entrada
         </button>
       </div>
