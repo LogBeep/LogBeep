@@ -1,27 +1,10 @@
 // ── DATABASE CENTRAL ──
 const FAST_CORE = window.FAST_CORE;
-const FAST_ICONS = {
-  'alert': `<path d="M12 3 2.8 20h18.4L12 3Z"/><path d="M12 9v5M12 17h.01"/>`,
-  'audit': `<path d="M9 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M8 12h5M8 16h4M16 11l2 2 4-5"/>`,
-  'box-alert': `<path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7 8 4v10l-8-4V7ZM20 7l-8 4v10l8-4V7Z"/><path d="M16.5 11.5v3M16.5 17h.01"/>`,
-  'check-circle': `<circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16.5 8"/>`,
-  'chevron-right': `<path d="m9 18 6-6-6-6"/>`,
-  'clock': `<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>`,
-  'fefo': `<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 17h7M18 14l3 3-3 3"/>`,
-  'file-import': `<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z"/><path d="M14 3v6h6M8 15h8M13 12l3 3-3 3"/>`,
-  'inventory': `<path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7 8 4v10l-8-4V7ZM20 7l-8 4v10l8-4V7Z"/><path d="m8 5 8 4"/>`,
-  'losses': `<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/>`,
-  'lots': `<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 10h18"/><circle cx="14.5" cy="15.5" r="3"/><path d="M14.5 14v1.8l1.2.7"/>`,
-  'map-pin': `<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>`,
-  'oven': `<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M7 6h.01M11 6h.01M15 6h2"/><path d="M8 17c1.2-2.6 2.4-4 4-4s2.8 1.4 4 4H8Z"/>`,
-  'plus': `<path d="M12 5v14M5 12h14"/>`,
-  'production': `<path d="M5 19h14a2 2 0 0 0 2-2v-2c0-4.4-4-8-9-8s-9 3.6-9 8v2a2 2 0 0 0 2 2Z"/><path d="M8 11.5c.8 1.2 1.2 2.5 1.2 4M12 9.5c.8 1.5 1.2 3.2 1.2 5M16 11.5c.5 1 .8 2 .8 3"/>`,
-  'circle': `<circle cx="12" cy="12" r="8"/>`,
-};
+const FAST_ICON_SPRITE = 'assets/icons.svg';
 
 function fastIcon(name) {
-  const safeName = /^[a-z0-9-]+$/.test(name) && FAST_ICONS[name] ? name : 'circle';
-  return `<svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${FAST_ICONS[safeName]}</svg>`;
+  const safeName = /^[a-z0-9-]+$/.test(name) ? name : 'circle';
+  return `<svg class="app-icon" aria-hidden="true" focusable="false"><use href="${FAST_ICON_SPRITE}#i-${safeName}"></use></svg>`;
 }
 
 function cloneData(value) {
@@ -334,22 +317,22 @@ function renderDashMetrics() {
   const snapshot = dashboardSnapshot();
   el.innerHTML = `
     <div class="metric-card dashboard-metric">
-      <div class="metric-heading"><span class="metric-icon"><i class="fi fi-bs-dolly-flatbed app-icon" aria-hidden="true"></i></span><span class="metric-label">Produções ativas</span></div>
+      <div class="metric-heading"><span class="metric-icon">${fastIcon('oven')}</span><span class="metric-label">Produções ativas</span></div>
       <div class="metric-value">${snapshot.inProduction}</div>
       <div class="metric-delta ${snapshot.pendingOrders ? 'warning' : 'success'}">${snapshot.pendingOrders} aguardando liberação</div>${metricSpark('M4 35 C18 32 25 26 34 10 S51 11 58 24 S73 31 82 19 S95 30 106 34')}
     </div>
     <div class="metric-card dashboard-metric">
-      <div class="metric-heading"><span class="metric-icon"><i class="fi fi-ss-calendar-clock app-icon" aria-hidden="true"></i></span><span class="metric-label">Lotes em 7 dias</span></div>
+      <div class="metric-heading"><span class="metric-icon">${fastIcon('lots')}</span><span class="metric-label">Lotes em 7 dias</span></div>
       <div class="metric-value">${snapshot.expiringSoon}</div>
       <div class="metric-delta ${snapshot.expiringSoon ? 'danger' : 'success'}">${snapshot.expiringSoon ? 'priorizar saída FEFO' : 'validade sob controle'}</div>${metricSpark('M4 35 C14 31 15 10 28 19 S42 34 54 24 S74 16 86 22 S96 30 106 8')}
     </div>
     <div class="metric-card dashboard-metric">
-      <div class="metric-heading"><span class="metric-icon"><i class="fi fi-br-box-remove app-icon" aria-hidden="true"></i></span><span class="metric-label">Abaixo do mínimo</span></div>
+      <div class="metric-heading"><span class="metric-icon">${fastIcon('box-alert')}</span><span class="metric-label">Abaixo do mínimo</span></div>
       <div class="metric-value">${snapshot.criticalStock}</div>
       <div class="metric-delta ${snapshot.criticalStock ? 'warning' : 'success'}">${snapshot.criticalStock ? 'reposição recomendada' : 'saldo adequado'}</div>${metricSpark('M4 34 C16 30 18 14 30 23 S47 37 55 21 S71 11 80 18 S94 31 106 12')}
     </div>
     <div class="metric-card dashboard-metric">
-      <div class="metric-heading"><span class="metric-icon"><i class="fi fi-sr-trash app-icon" aria-hidden="true"></i></span><span class="metric-label">Risco de perda</span></div>
+      <div class="metric-heading"><span class="metric-icon">${fastIcon('losses')}</span><span class="metric-label">Risco de perda</span></div>
       <div class="metric-value">R$ ${Math.round(snapshot.lossRiskValue).toLocaleString('pt-BR')}</div>
       <div class="metric-delta ${snapshot.lossRiskValue ? 'danger' : 'success'}">validade em até 3 dias</div>${metricSpark('M4 32 C16 31 21 20 30 28 S45 37 53 27 S68 23 76 32 S91 37 106 9')}
     </div>
