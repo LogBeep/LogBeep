@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fast-app-shell-v11';
+const CACHE_NAME = 'fast-app-shell-v12';
 
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
