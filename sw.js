@@ -1,43 +1,56 @@
-const CACHE_NAME = 'fast-app-shell-v7';
-const APP_SHELL = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './assets/logbeep-mark-transparent.png',
-  './assets/icons.svg',
-  './src/styles/app.css',
-  './src/js/core.js',
-  './src/js/data/demo.js',
-  './src/js/config.js',
-  './src/js/api.js',
-  './src/js/app.js'
-];
+const CACHE_NAME = 'fast-app-shell-v8';
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
-  self.skipWaiting();
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
-      .then(() => self.clients.claim())
+    caches.keys().then(keys =>
+      Promise.all(
+        keys
+          .filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', event => {
   const request = event.request;
+
   if (request.method !== 'GET') return;
+
   const url = new URL(request.url);
+
   if (url.origin !== self.location.origin) return;
 
   event.respondWith(
     fetch(request)
       .then(response => {
-        if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request.mode === 'navigate' ? './index.html' : request, response.clone()));
+        if (!response.ok) return response;
+
+        const responseToCache = response.clone();
+
+        event.waitUntil(
+          caches.open(CACHE_NAME).then(cache => {
+            const cacheRequest =
+              request.mode === 'navigate'
+                ? new Request('./index.html')
+                : request;
+
+            return cache.put(cacheRequest, responseToCache);
+          })
+        );
+
         return response;
       })
-      .catch(() => caches.match(request.mode === 'navigate' ? './index.html' : request))
+      .catch(() =>
+        caches.match(
+          request.mode === 'navigate'
+            ? './index.html'
+            : request
+        )
+      )
   );
 });

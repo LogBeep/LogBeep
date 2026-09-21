@@ -1177,3 +1177,11 @@ body{background:#F4F8FB}
 @media(max-width:480px){
   .sidebar-logo .logo-mark{width:38px;height:38px}.dashboard-fefo-panel{padding:13px!important}.dashboard-fefo-panel>.section-header{gap:10px}.dashboard-fefo-actions{max-width:46%}.dashboard-fefo-summary{font-size:7px}.dashboard-fefo-list{grid-template-columns:repeat(5,minmax(190px,1fr))}
 }
+
+/* ── Flaticon Uicons (font icons) — sizing/centering to match previous SVG icon slots ── */
+i.app-icon.fi{display:inline-flex;align-items:center;justify-content:center;stroke:none;line-height:1;flex-shrink:0}
+.metric-icon i.app-icon.fi{font-size:23px}
+.nav-item i.app-icon.fi{font-size:17px}
+.side-help i.app-icon.fi{font-size:16px}
+.header-icon i.app-icon.fi{font-size:18px}
+.header-primary i.app-icon.fi{font-size:16px}
